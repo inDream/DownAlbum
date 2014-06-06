@@ -4,8 +4,8 @@
 // @version       0.14.2.4
 // @description   Download Facebook & Instagram Album by One Click.
 // @namespace     DownAlbum
-// @updateURL     https://userscripts.org/scripts/source/130425.meta.js
-// @downloadURL   https://userscripts.org/scripts/source/130425.user.js
+// @updateURL     https://raw.githubusercontent.com/inDream/DownAlbum/master/DownAlbum.meta.js
+// @downloadURL   https://raw.githubusercontent.com/inDream/DownAlbum/master/DownAlbum.user.js
 // @include       htt*://*.facebook.com/*
 // @match         http://*.facebook.com/*
 // @match         https://*.facebook.com/*
