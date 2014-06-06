@@ -3,7 +3,7 @@
 // @author        indream
 // @version       0.14.2.4
 // @description   Download Facebook & Instagram Album by One Click.
-// @namespace     http://userscripts.org/users/83150
+// @namespace     DownAlbum
 // @updateURL     https://userscripts.org/scripts/source/130425.meta.js
 // @downloadURL   https://userscripts.org/scripts/source/130425.user.js
 // @include       htt*://*.facebook.com/*
