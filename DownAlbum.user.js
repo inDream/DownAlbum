@@ -614,42 +614,55 @@ unsafeWindow.dFAcore = function(setup) {
     g.newL = !!(qSA('#pagelet_timeline_medley_photos a[aria-role="tab"]').length);
     getPhotos();
   }else if(location.href.match(/.*instagram.com/)){
-    try{
-      var s=qSA("script");
-      for(var i=0;i<s.length;i++){
-        if(!s[i].src&&s[i].textContent.indexOf('_sharedData')>0){s=s[i].textContent;break;}
+    var xhr = new XMLHttpRequest();
+    xhr.onload = function(){
+      var html = this.response;
+      var doc;
+      if(document.implementation){
+        doc = document.implementation.createHTMLDocument('');
+        doc.documentElement.innerHTML = html;
+      }else if(DOMParser){
+        doc = (new DOMParser).parseFromString(html, 'text/html');
       }
-      g.Env=JSON.parse(s.match(/({".*})/)[1]);g.stored=[];
-      if(!g.Env.entry_data.UserProfile){
+      try{
+        s=doc.querySelectorAll("script");
+        for(i=0;i<s.length;i++){
+          if(!s[i].src&&s[i].textContent.indexOf('_sharedData')>0){s=s[i].textContent;break;}
+        }
+        g.Env=JSON.parse(s.match(/({".*})/)[1]);g.stored=[];
+        if(!g.Env.entry_data.UserProfile){
+          alert('Need to reload for required variable.');
+          location.reload(); return;
+        }
+      }catch(e){alert('Cannot load required variable!');}
+      g.Env = g.Env.entry_data.UserProfile[0];
+      var userName = qS("h1 span");
+      userName = userName?userName.textContent:"";
+      if(userName && userName!=g.Env.user.username){
         alert('Need to reload for required variable.');
         location.reload(); return;
       }
-    }catch(e){alert('Cannot load required variable!');}
-    g.Env = g.Env.entry_data.UserProfile[0];
-    var userName = qS("h1 span");
-    userName = userName?userName.textContent:"";
-    if(userName && userName!=g.Env.user.username){
-      alert('Need to reload for required variable.');
-      location.reload(); return;
-    }
-    g.total=g.mode!=2?+qS('.number-stat').textContent.replace(/,/g,""):g.Env.user.counts.media;
-    console.log(g.Env);
-    aName=g.Env.user.full_name;
-    if(!aName)aName='Instagram';
-    aAuth=g.Env.user.username;
-    aLink=g.Env.user.website;
-    if(!aLink)aLink='http://instagram.com/'+aAuth;
-    g.status = {e: qS('.link-profile strong') || qS('.loginLink')};
-    g.status.t = g.status.e.textContent;
-    g.photodata = {
-      aName:aName.replace(/'|"/g,'\"'),
-      aAuth:aAuth,
-      aLink:aLink,
-      aTime:'Last Update: '+parseTime(g.Env.userMedia[0].created_time),
-      photos: [],
-      aDes:g.Env.user.bio.replace(/'|"/g,'\"')
+      g.total=g.mode!=2?+qS('.number-stat').textContent.replace(/,/g,""):g.Env.user.counts.media;
+      console.log(g.Env);
+      aName=g.Env.user.full_name;
+      if(!aName)aName='Instagram';
+      aAuth=g.Env.user.username;
+      aLink=g.Env.user.website;
+      if(!aLink)aLink='http://instagram.com/'+aAuth;
+      g.status = {e: qS('.link-profile strong') || qS('.loginLink')};
+      g.status.t = g.status.e.textContent;
+      g.photodata = {
+        aName:aName.replace(/'|"/g,'\"'),
+        aAuth:aAuth,
+        aLink:aLink,
+        aTime:'Last Update: '+parseTime(g.Env.userMedia[0].created_time),
+        photos: [],
+        aDes:g.Env.user.bio.replace(/'|"/g,'\"')
+      };
+      getInstagram();
     };
-    getInstagram();
+    xhr.open('GET', location.href);
+    xhr.send();
   }else if(location.href.match(/weibo.com/)){
     try{
       aName='微博配圖';
