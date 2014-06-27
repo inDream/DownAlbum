@@ -257,7 +257,7 @@ function getPhotos(){
       var q={};for(var j=0;j<ajax.length;j++){var d=ajax[j].split("=");q[d[0]]=d[1];}
       ajax=location.protocol+'//www.facebook.com/ajax/pagelet/generic.php/PhotoViewerInitPagelet?ajaxpipe=1&ajaxpipe_token='+g.Env.ajaxpipe_token+'&no_script_path=1&data='+JSON.stringify(q)+'&__user='+g.Env.user+'&__a=1&__adt=2';
     }
-    url=url.match(/&src.(.*)/)[1].replace("s720x720/","");
+    url=url.match(/&src.(.*)/)[1].replace("s720x720/","").replace(/&smallsrc=.*\?/, '?');
     if(url.match(/\?/)){
       var b=url.split('?'), t='', a=b[1].split('&');
       for(var ii=0;ii<a.length;ii++){
