@@ -594,7 +594,7 @@ unsafeWindow.dFAcore = function(setup) {
     }catch(e){alert('Cannot load required variable');}
     try{
       for(i=0; t=s[i].textContent, i<len; i++){
-        var m = t.match(/"id":"(\d+)"/);
+        var m = t.match(/"USER_ID":"(\d+)"/);
         if(m){
           g.Env.user = m[1]; break;
         }
