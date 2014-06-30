@@ -28,6 +28,7 @@
 // @exclude       htt*://*.facebook.com/contact_importer/*
 // @exclude       htt*://*.facebook.com/ajax/*
 // @exclude       htt*://www.facebook.com/places/map*_iframe.php*
+// @require       http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js
 // ==/UserScript==
 function qS(s){return document.querySelector(s);}
 function qSA(s){return document.querySelectorAll(s);}
