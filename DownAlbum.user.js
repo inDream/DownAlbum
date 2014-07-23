@@ -105,7 +105,7 @@ function output(){
       }catch(e){}
       delete photos[i].ajax;
     }
-    var t=qS('.navLink');
+    var t=qS('.navItem.middleItem a');
     t.innerHTML=g.statusText;
     var b=qS('#stopAjax');
     if(b){t.parentNode.removeChild(b);}
@@ -132,7 +132,7 @@ function fbAjax(){
     delete g.dataLoaded[src];
     g.ajaxLoaded++;
     if(len<50||i%15==0)console.log('Loaded '+(i+1)+' of '+len+'. (cached)');
-    qS('.navLink').textContent='Loading '+(i+1)+' of '+len+'.';
+    qS('.navItem.middleItem a').textContent='Loading '+(i+1)+' of '+len+'.';
     if(i+1!=len){document.title="("+(i+1)+"/"+(len)+") ||"+g.photodata.aName;fbAjax();
     }else{output();}
   }else if(!qS('#stopAjaxCkb')||!qS('#stopAjaxCkb').checked){
@@ -208,7 +208,7 @@ function fbAjax(){
       g.ajaxLoaded++;
     }
     if(len<50||i%15==0)console.log('Loaded '+(i+1)+' of '+len+'.');
-    var t=qS('.navLink');
+    var t=qS('.navItem.middleItem a');
     if(!t.nextElementSibling){var stopBtn=document.createElement('label');stopBtn.id='stopAjax';stopBtn.innerHTML='<a class="navLink"> | Stop</a><input id="stopAjaxCkb" type="checkbox">';t.parentNode.appendChild(stopBtn);}
     t.textContent='Loaded '+(i+1)+' of '+len+'.';
     if(i+1==len||g.ajaxRetry==1){output();}else{if(i==g.ajaxLoaded){g.ajaxRetry++};
@@ -427,7 +427,7 @@ function fbAutoLoad(elms){
       var old=elms?Array.prototype.slice.call(elms,0):'';
       g.elms=old?old.concat(Array.prototype.slice.call(e,0)):e;
     }
-    var t=qS('.navLink');
+    var t=qS('.navItem.middleItem a');
     if(!t.nextElementSibling){var stopBtn=document.createElement('label');stopBtn.id='stopAjax';stopBtn.innerHTML='<a class="navLink"> | Stop</a><input id="stopAjaxCkb" type="checkbox">';t.parentNode.appendChild(stopBtn);}
     t.textContent='Loading album... ('+g.elms.length+')';
     document.title='('+g.elms.length+') ||'+g.photodata.aName;
@@ -602,7 +602,7 @@ unsafeWindow.dFAcore = function(setup) {
       }
     }catch(e){console.warn(e);alert('Cannot load required variable');}
     g.ajaxLoaded=0;g.dataLoaded={};g.ajaxRetry=0;g.elms='';g.lastLoaded=0;g.ajaxStarted=0;
-    g.statusText=qS('.navLink').innerHTML;g.downloaded={};g.profilesList={};g.commentsList={count:0};
+    g.statusText=qS('.navItem.middleItem a').innerHTML;g.downloaded={};g.profilesList={};g.commentsList={count:0};
     g.photodata = {
       aName:aName.replace(/'|"/g,'\"'),
       aAuth:aAuth.replace(/'|"/g,'\"'),
