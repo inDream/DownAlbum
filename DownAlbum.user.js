@@ -545,23 +545,27 @@ function getWeibo(){
     for(var i=0;elms&&i<elms.length;i++){
       html = document.createElement("div");
       html.innerHTML = elms[i];
-      var link = html.querySelector("a.ph_ar_box").getAttribute("action-data").split("&");
-      var img = html.querySelector("img.photo_pic").src;
-      var data = {};
-      for(var j=0; j<link.length; j++){
-        var t = link[j].split("=");
-        data[t[0]] = t[1];
+      var links = html.querySelectorAll("a.ph_ar_box");
+      var img = html.querySelectorAll("img.photo_pic");
+      var title = html.querySelector(".describe span").title || '';
+      var photoTime = html.querySelector(".photo_time").textContent || '';
+      for(var imgCount = 0; imgCount < img.length; imgCount++){
+        var data = {};
+        var link = links[imgCount].getAttribute("action-data").split("&");
+        for(var j=0; j<link.length; j++){
+          var t = link[j].split("=");
+          data[t[0]] = t[1];
+        }
+        var url = img[imgCount].src.match(/http:\/\/([\w\.]+)\//);
+        url = 'http://' + url[1] + '/large/' + data.pid + '.jpg';
+        if(!g.downloaded[url]){g.downloaded[url]=1;}else{continue;}
+        photodata.photos.push({
+        title: title,
+        url: url,
+        href: 'http://photo.weibo.com/'+g.uId+'/talbum/detail/photo_id/'+data.mid,
+        date: photoTime
+        });
       }
-      img = img.match(/http:\/\/([\w\.]+)\//);
-
-      var url='http://'+img[1]+'/large/'+data.pid+'.jpg';
-      if(!g.downloaded[url]){g.downloaded[url]=1;}else{continue;}
-      photodata.photos.push({
-      title: html.querySelector(".describe span").title || '',
-      url: url,
-      href: 'http://photo.weibo.com/'+g.uId+'/talbum/detail/photo_id/'+data.mid,
-      date: html.querySelector(".photo_time").textContent || ''
-      });
     }
     console.log('Loaded '+photodata.photos.length+' photos.');
     document.title="("+g.photodata.photos.length+") ||"+g.photodata.aName;
