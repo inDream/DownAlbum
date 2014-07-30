@@ -82,6 +82,19 @@ function getText(s, html){
   if(q && html && q.querySelectorAll('a').length){t = 'innerHTML';}
   return q ? q[t] : "";
 }
+function getDOM(html){
+  var doc;
+  if(document.implementation){
+    doc = document.implementation.createHTMLDocument('');
+    doc.documentElement.innerHTML = html;
+  }else if(DOMParser){
+    doc = (new DOMParser).parseFromString(html, 'text/html');
+  }else{
+    doc = document.createElement('div');
+    doc.innerHTML = html;
+  }
+  return doc;
+}
 function parseTime(t){return new Date(t*1000+g.timeOffset).toJSON().replace('T',' ').split('.')[0];}
 function parseQuery(s){
   var data = {};
@@ -618,13 +631,7 @@ unsafeWindow.dFAcore = function(setup) {
     var xhr = new XMLHttpRequest();
     xhr.onload = function(){
       var html = this.response;
-      var doc;
-      if(document.implementation){
-        doc = document.implementation.createHTMLDocument('');
-        doc.documentElement.innerHTML = html;
-      }else if(DOMParser){
-        doc = (new DOMParser).parseFromString(html, 'text/html');
-      }
+      var doc = getDOM(html);
       try{
         s=doc.querySelectorAll("script");
         for(i=0;i<s.length;i++){
