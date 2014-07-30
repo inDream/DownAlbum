@@ -105,7 +105,7 @@ function output(){
       }catch(e){}
       delete photos[i].ajax;
     }
-    var t=qS('.navItem.middleItem a');
+    var t=g.statusEle;
     t.innerHTML=g.statusText;
     var b=qS('#stopAjax');
     if(b){t.parentNode.removeChild(b);}
@@ -132,7 +132,7 @@ function fbAjax(){
     delete g.dataLoaded[src];
     g.ajaxLoaded++;
     if(len<50||i%15==0)console.log('Loaded '+(i+1)+' of '+len+'. (cached)');
-    qS('.navItem.middleItem a').textContent='Loading '+(i+1)+' of '+len+'.';
+    g.statusEle.textContent='Loading '+(i+1)+' of '+len+'.';
     if(i+1!=len){document.title="("+(i+1)+"/"+(len)+") ||"+g.photodata.aName;fbAjax();
     }else{output();}
   }else if(!qS('#stopAjaxCkb')||!qS('#stopAjaxCkb').checked){
@@ -208,8 +208,8 @@ function fbAjax(){
       g.ajaxLoaded++;
     }
     if(len<50||i%15==0)console.log('Loaded '+(i+1)+' of '+len+'.');
-    var t=qS('.navItem.middleItem a');
-    if(!t.nextElementSibling){var stopBtn=document.createElement('label');stopBtn.id='stopAjax';stopBtn.innerHTML='<a class="navLink"> | Stop</a><input id="stopAjaxCkb" type="checkbox">';t.parentNode.appendChild(stopBtn);}
+    var t=g.statusEle;
+    if(!t.nextElementSibling){var stopBtn=document.createElement('label');stopBtn.id='stopAjax';stopBtn.innerHTML='<a class="navItem"> | Stop</a><input id="stopAjaxCkb" type="checkbox">';t.parentNode.appendChild(stopBtn);}
     t.textContent='Loaded '+(i+1)+' of '+len+'.';
     if(i+1==len||g.ajaxRetry==1){output();}else{if(i==g.ajaxLoaded){g.ajaxRetry++};
     document.title="("+(i+1)+"/"+(len)+") ||"+g.photodata.aName;fbAjax();}
@@ -427,8 +427,8 @@ function fbAutoLoad(elms){
       var old=elms?Array.prototype.slice.call(elms,0):'';
       g.elms=old?old.concat(Array.prototype.slice.call(e,0)):e;
     }
-    var t=qS('.navItem.middleItem a');
-    if(!t.nextElementSibling){var stopBtn=document.createElement('label');stopBtn.id='stopAjax';stopBtn.innerHTML='<a class="navLink"> | Stop</a><input id="stopAjaxCkb" type="checkbox">';t.parentNode.appendChild(stopBtn);}
+    var t=g.statusEle;
+    if(!t.nextElementSibling){var stopBtn=document.createElement('label');stopBtn.id='stopAjax';stopBtn.innerHTML='<a class="navItem"> | Stop</a><input id="stopAjaxCkb" type="checkbox">';t.parentNode.appendChild(stopBtn);}
     t.textContent='Loading album... ('+g.elms.length+')';
     document.title='('+g.elms.length+') ||'+g.photodata.aName;
 
@@ -443,7 +443,6 @@ function fbAutoLoad(elms){
     setTimeout(getPhotos,1000);
   }
   xhr.open("GET", ajaxAlbum);
-  xhr.setRequestHeader("x-svn-rev",g.Env.svn_rev);
   g.timeout=setTimeout(function(){
     xhr.abort();
     if(g.ajaxRetry>5){if(confirm('Timeout reached.\nTry again->OK\nOutput loaded photos->Cancel')){g.ajaxRetry=0;}else{g.lastLoaded=1;}}getPhotos();
@@ -474,7 +473,7 @@ function instaAjax(){
       };
     }
     console.log('Loaded '+photodata.photos.length+' of '+total+' photos.');
-    if(!g.status.e.nextElementSibling){var stopBtn=document.createElement('label');stopBtn.id='stopAjax';stopBtn.innerHTML='<a class="navLink"> | Stop</a><input id="stopAjaxCkb" type="checkbox">';g.status.e.parentNode.appendChild(stopBtn);}
+    if(!g.status.e.nextElementSibling){var stopBtn=document.createElement('label');stopBtn.id='stopAjax';stopBtn.innerHTML='<a class="navItem"> | Stop</a><input id="stopAjaxCkb" type="checkbox">';g.status.e.parentNode.appendChild(stopBtn);}
     g.status.e.textContent='Loaded '+g.photodata.photos.length+' / '+total;
     document.title="("+g.photodata.photos.length+"/"+total+") ||"+g.photodata.aName;
     if(qS('#stopAjaxCkb')&&qS('#stopAjaxCkb').checked){output();}
@@ -602,7 +601,8 @@ unsafeWindow.dFAcore = function(setup) {
       }
     }catch(e){console.warn(e);alert('Cannot load required variable');}
     g.ajaxLoaded=0;g.dataLoaded={};g.ajaxRetry=0;g.elms='';g.lastLoaded=0;g.ajaxStarted=0;
-    g.statusText=qS('.navItem.middleItem a').innerHTML;g.downloaded={};g.profilesList={};g.commentsList={count:0};
+    g.statusEle = qS('.navItem.middleItem a') || qS('ul[role="navigation"] li:nth-of-type(2) a');
+    g.statusText=g.statusEle.innerHTML;g.downloaded={};g.profilesList={};g.commentsList={count:0};
     g.photodata = {
       aName:aName.replace(/'|"/g,'\"'),
       aAuth:aAuth.replace(/'|"/g,'\"'),
