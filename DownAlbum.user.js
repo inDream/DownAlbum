@@ -561,16 +561,16 @@ function getWeibo(){
         url = 'http://' + url[1] + '/large/' + data.pid + '.jpg';
         if(!g.downloaded[url]){g.downloaded[url]=1;}else{continue;}
         photodata.photos.push({
-        title: title,
-        url: url,
-        href: 'http://photo.weibo.com/'+g.uId+'/talbum/detail/photo_id/'+data.mid,
-        date: photoTime
+          title: title,
+          url: url,
+          href: 'http://photo.weibo.com/'+g.uId+'/talbum/detail/photo_id/'+data.mid,
+          date: photoTime
         });
       }
     }
     console.log('Loaded '+photodata.photos.length+' photos.');
     document.title="("+g.photodata.photos.length+") ||"+g.photodata.aName;
-    if(!qS('#stopAjaxCkb')){var stopBtn=document.createElement('label');stopBtn.id='stopAjax';stopBtn.innerHTML='Stop <input id="stopAjaxCkb" type="checkbox">';qS('.gn_person').appendChild(stopBtn);}
+    if(!qS('#stopAjaxCkb')){var stopBtn=document.createElement('li');stopBtn.id='stopAjax';stopBtn.innerHTML='Stop <input id="stopAjaxCkb" type="checkbox">';qS('.gn_topmenulist ul').appendChild(stopBtn);}
     if(qS('#stopAjaxCkb')&&qS('#stopAjaxCkb').checked){output();}
     else if(g.ajax){setTimeout(getWeibo, 2000);}else{output();}
   }
