@@ -649,7 +649,7 @@ unsafeWindow.dFAcore = function(setup) {
         }
       }catch(e){alert('Cannot load required variable!');}
       g.Env = g.Env.entry_data.UserProfile[0];
-      var userName = qS("h1 span");
+      var userName = qS("h1 span a") || qS("h1 span");
       userName = userName?userName.textContent:"";
       if(userName && userName!=g.Env.user.username){
         alert('Need to reload for required variable.');
