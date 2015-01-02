@@ -755,7 +755,7 @@ unsafeWindow.dFAcore = function(setup) {
         location.reload(); return;
       }
       if(g.mode != 2){
-        g.total = qS('.sCount') ? +qS('.sCount').textContent : g.Env.user.counts.media;
+        g.total = qS('.sCount') ? +qS('.sCount').textContent.replace(/,/g,'') : g.Env.user.counts.media;
       }else{
         g.total = g.Env.user.counts.media;
       }
