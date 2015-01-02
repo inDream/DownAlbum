@@ -291,7 +291,7 @@ function fbAjax(){
 }
 function getPhotos(){
   if(g.start!=2||g.start==3){return;}
-  var scrollEle = !!(qS('#fbTimelinePhotosScroller *')||qS('.uiSimpleScrollingLoadingIndicator')||qS('.fbStarGrid~img')||qS('#browse_result_below_fold')||qS('#contentArea .hidden_elem'));
+  var scrollEle = !!(qS('#fbTimelinePhotosScroller *')||qS('.uiSimpleScrollingLoadingIndicator')||qS('.fbStarGrid~img')||qS('#browse_result_below_fold')||(qS('#contentArea div.hidden_elem')&&location.href.match('search')));
   if(g.ajaxFailed&&g.mode!=2&&scrollEle){scrollTo(0, document.body.clientHeight);setTimeout(getPhotos,2000);return;}
   var i, photodata = g.photodata, testNeeded = 0, ajaxNeeded = 0;
   var elms = g.elms || qS('#album_pagelet') || qS('#static_set_pagelet') || qS('#pagelet_photos_stream') || qS('#group_photoset') || qS('#initial_browse_result') || qS('#contentArea');
@@ -307,8 +307,8 @@ function getPhotos(){
           tmp.push(tmpE[tmpLen]);
         }
       }
-      grid = tmp; ajaxNeeded=1;
-    }else{grid=grid[0].querySelectorAll('a.uiMediaThumb[ajaxify]');ajaxNeeded=1;}
+      elms = tmp; ajaxNeeded=1;
+    }else{elms=grid[0].querySelectorAll('a.uiMediaThumb[ajaxify]');ajaxNeeded=1;}
   }else if(elms){
     var temp = elms.querySelectorAll('a.uiMediaThumb[ajaxify]');ajaxNeeded=1;
     if(!temp.length){
