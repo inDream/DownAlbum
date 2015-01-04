@@ -13,6 +13,8 @@
 // @match         http://instagram.com/*
 // @include       htt*://weibo.com/p/*/album*
 // @match         http://weibo.com/p/*/album*
+// @include       htt*://*.weibo.com/p/*/album*
+// @match         http://*.weibo.com/p/*/album*
 // @exclude       htt*://*static*.facebook.com*
 // @exclude       htt*://*channel*.facebook.com*
 // @exclude       htt*://developers.facebook.com/*

@@ -13,6 +13,8 @@
 // @match         http://instagram.com/*
 // @include       htt*://weibo.com/p/*/album*
 // @match         http://weibo.com/p/*/album*
+// @include       htt*://*.weibo.com/p/*/album*
+// @match         http://*.weibo.com/p/*/album*
 // @exclude       htt*://*static*.facebook.com*
 // @exclude       htt*://*channel*.facebook.com*
 // @exclude       htt*://developers.facebook.com/*
@@ -33,10 +35,10 @@
 var dFAinit = function(){
   if(document.querySelector('#dFA') || (location.href.indexOf('//www.facebook.com')<0 && location.href.indexOf('instagram.com')<0 && location.href.indexOf('weibo.com/p/')<0))return;
   var k = document.createElement('li');
-  k.innerHTML = '<a id="dFA" class="navSubmenu" onClick="dFAcore();">DownFbAlbum</a>';
+  k.innerHTML = '<a id="dFA" class="navSubmenu" onClick="dFAcore();" title="DownFbAlbum">DownFbAlbum</a>';
   var k2 = document.createElement('li');
-  k2.innerHTML = '<a class="navSubmenu" onClick="dFAcore(true);">DownFbAlbum(Setup)</a>';
-  var t = qS('#userNavigation') || qS('.Dropdown ul') || qS('.gn_topmenulist.gn_topmenulist_set');
+  k2.innerHTML = '<a class="navSubmenu" onClick="dFAcore(true);" title="DownFbAlbum(Setup)">DownFbAlbum(Setup)</a>';
+  var t = qS('#userNavigation') || qS('.Dropdown ul') || qS('.gn_topmenulist.gn_topmenulist_set ul');
   if(t){t.appendChild(k); t.appendChild(k2);}
   if(location.href.indexOf('instagram.com')){
     var o = WebKitMutationObserver || MutationObserver;
@@ -889,7 +891,7 @@ unsafeWindow.dFAcore = function(setup) {
   }else if(location.href.match(/weibo.com/)){
     try{
       aName='微博配圖';
-      aAuth=(qS('.name') || qS('.username strong')).textContent
+      aAuth=getText('.username') || qS('.pf_photo img') ? qS('.pf_photo img').alt : '';
     }catch(e){}
     g.downloaded = {};
     var k = qSA('script'), id = '';
