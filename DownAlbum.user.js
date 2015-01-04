@@ -119,9 +119,18 @@ function getFbid(s){
   var fbid = s.match(/fbid=(\d+)/);
   if(!fbid){
     if(s.match('opaqueCursor')){
-      fbid = s.match(/\/([0-9]+)\//);
+      var index = s.indexOf('/photos/');
+      if(index != -1){
+        fbid = getFbid(s.slice(index + 8));
+        if(fbid){
+          return fbid;
+        }
+      }
       if(!fbid){
-        fbid = s.match(/([0-9]{5,})/);
+        fbid = s.match(/\/([0-9]+)\//);
+        if(!fbid){
+          fbid = s.match(/([0-9]{5,})/);
+        }
       }
     }else if(s.match('&')){
       try{
@@ -291,7 +300,7 @@ function fbAjax(){
 }
 function getPhotos(){
   if(g.start!=2||g.start==3){return;}
-  var scrollEle = !!(qS('#fbTimelinePhotosScroller *')||qS('.uiSimpleScrollingLoadingIndicator')||qS('.fbStarGrid~img')||qS('#browse_result_below_fold')||(qS('#contentArea div.hidden_elem')&&location.href.match('search')));
+  var scrollEle = !!(qS('#fbTimelinePhotosScroller *')||qS('.uiSimpleScrollingLoadingIndicator')||qS('.fbStarGrid~img')||qS('#browse_result_below_fold')||(!qS('#browse_end_of_results_footer')&&qS('#contentArea div.hidden_elem')&&location.href.match('search')));
   if(g.ajaxFailed&&g.mode!=2&&scrollEle){scrollTo(0, document.body.clientHeight);setTimeout(getPhotos,2000);return;}
   var i, photodata = g.photodata, testNeeded = 0, ajaxNeeded = 0;
   var elms = g.elms || qS('#album_pagelet') || qS('#static_set_pagelet') || qS('#pagelet_photos_stream') || qS('#group_photoset') || qS('#initial_browse_result') || qS('#contentArea');
