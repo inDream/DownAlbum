@@ -15,6 +15,8 @@
 // @match         http://weibo.com/p/*/album*
 // @include       htt*://*.weibo.com/p/*/album*
 // @match         http://*.weibo.com/p/*/album*
+// @include       htt*://www.pinterest.com/*
+// @match         http://www.pinterest.com/*
 // @exclude       htt*://*static*.facebook.com*
 // @exclude       htt*://*channel*.facebook.com*
 // @exclude       htt*://developers.facebook.com/*
@@ -33,18 +35,23 @@
 // @require       http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js
 // ==/UserScript==
 var dFAinit = function(){
-  if(document.querySelector('#dFA') || (location.href.indexOf('//www.facebook.com')<0 && location.href.indexOf('instagram.com')<0 && location.href.indexOf('weibo.com/p/')<0))return;
+  if(document.querySelector('#dFA') || (location.href.indexOf('//www.facebook.com')<0 && location.href.indexOf('instagram.com')<0 && location.href.indexOf('weibo.com/p/')<0) && location.href.indexOf('pinterest.com')<0)return;
   var k = document.createElement('li');
   k.innerHTML = '<a id="dFA" class="navSubmenu" onClick="dFAcore();" title="DownFbAlbum">DownFbAlbum</a>';
   var k2 = document.createElement('li');
   k2.innerHTML = '<a class="navSubmenu" onClick="dFAcore(true);" title="DownFbAlbum(Setup)">DownFbAlbum(Setup)</a>';
   var t = qS('#userNavigation') || qS('.Dropdown ul') || qS('.gn_topmenulist.gn_topmenulist_set ul');
   if(t){t.appendChild(k); t.appendChild(k2);}
-  if(location.href.indexOf('instagram.com')){
+  if(location.href.indexOf('instagram.com') > 0){
     var o = WebKitMutationObserver || MutationObserver;
     if(o){
       var observer = new o(runLater);
       observer.observe(document.body, {subtree: true, childList: true});
+    }
+  }else if(location.href.indexOf('pinterest.com') > 0){
+    if(!qS('#dfaButton')){
+      var t = qS('.boardButtons');
+      t.innerHTML += '<button id="dfaButton" onClick="dFAcore();" class="Module BoardFollowButton ui-FollowButton notNavigatable Button btn rounded primary boardFollowUnfollowButton hasText"><span class="buttonText">DownAlbum</span></button><button onClick="dFAcore(true);" class="Module BoardFollowButton ui-FollowButton notNavigatable Button btn rounded primary boardFollowUnfollowButton hasText"><span class="buttonText">DownAlbum(Setup)</span></button>';
     }
   }
 };
@@ -776,7 +783,130 @@ function getWeibo(){
   }
   });
 }
-unsafeWindow.dFAcore = function(setup) {
+function parsePinterest(list){
+  var photodata = g.photodata;
+  for(var j = 0; j < list.length; j++){
+    photodata.photos.push({
+      title: list[j].description + '<br><a taget="_blank" href="' + 
+        list[j].link + '">Pinned from ' + list[j].domain + '</a>',
+      url: list[j].images.orig.url,
+      href: 'http://www.pinterest.com/pin/' + list[j].id + '/',
+      date: new Date(list[j].created_at).toLocaleString()
+    });
+  }
+  console.log('Loaded ' + photodata.photos.length + ' photos.');
+}
+function getPinterest(){
+  var photodata = g.photodata;
+  var board = location.pathname.match(/\/(\S+)\/(\S+)\//);
+  if(board){
+    // User's board
+    var xhr = new XMLHttpRequest();
+    xhr.onload = function() {
+      var r = JSON.parse(this.responseText);
+      console.log(r);
+      var d = r.module.tree.children;
+      for(var i = 0; i < d.length; i++){
+        if(d[i].name == 'Grid'){
+          parsePinterest(d[i].data);
+          g.bookmarks = d[i].resource.options;
+          g.options = d[i].options;
+        }
+      }
+      getPinterest_sub();
+    };
+    var data = {
+      "options": {
+        "username": board[1],
+        "field_set_key": "detailed",
+        "slug": board[2]
+      },
+      "context": {},
+      "module": {
+        "name": "BoardPage",
+        "options": {
+          "inviter_user_id": null,
+          "show_follow_memo": null,
+          "tab": "pins"
+        }
+      },
+      "render_type": 1,
+      "error_strategy": 0
+    };
+    var url = 'http://www.pinterest.com/resource/BoardResource/get/?source_url=';
+    data = '%2F' + board[1] + '%2F' + board[2] + '%2F&data=' + escape(JSON.stringify(data));
+    url = url + data + '&_=' + (+new Date());
+    xhr.open('GET', url);
+    xhr.setRequestHeader('Accept', 'application/json, text/javascript, */*; q=0.01');
+    var appVer = qS('#jsInit').textContent.match(/app_version": "(\w+)/);
+    appVer = appVer ? appVer[1] : '';
+    g.appVer = appVer;
+    xhr.setRequestHeader('X-APP-VERSION', appVer);
+    xhr.setRequestHeader('X-NEW-APP', 1);
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    xhr.send();
+  }else{
+    // Own Feed
+
+  }
+}
+function getPinterest_sub(){
+  var photodata = g.photodata;
+  var board = location.pathname.match(/\/(\S+)\/(\S+)\//);
+  if(board){
+    // User's board
+    var xhr = new XMLHttpRequest();
+    xhr.onload = function() {
+      var r = JSON.parse(this.responseText);
+      var d = r.module.tree;
+      parsePinterest(d.data);
+      g.options = d.options;
+      g.bookmarks = d.resource.options;
+
+      document.title="("+g.photodata.photos.length+") ||"+g.photodata.aName;
+      if(!qS('#stopAjaxCkb')){var stopBtn=document.createElement('button');stopBtn.id='stopAjax';stopBtn.innerHTML='<span class="dfaCounter"></span>|| Stop <input id="stopAjaxCkb" type="checkbox">';qS('.boardButtons').appendChild(stopBtn);}
+      qS('.dfaCounter').textContent = g.photodata.photos.length + '/' + getText('.pinsAndFollowerCount .value');
+      if(qS('#stopAjaxCkb')&&qS('#stopAjaxCkb').checked){output();}
+      else if(g.bookmarks.bookmarks[0] != '-end-'){
+        getPinterest_sub();
+      }else{
+        output();
+      }
+    };
+    var data = {
+      "options" : g.bookmarks,
+      "context": {},
+      "module": {
+        "name": "GridItems",
+        "options": g.options
+      },
+      "module_path": "Button(class_name=primary, text=Close)"
+    };
+    var url = 'http://www.pinterest.com/resource/BoardFeedResource/get/';
+    var data = 'source_url=%2F' + board[1] + '%2F' + board[2] + 
+      '%2F&data=' + escape(JSON.stringify(data)) + '&_=' + (+new Date());
+    xhr.open('POST', url);
+    xhr.setRequestHeader('Accept', 'application/json, text/javascript, */*; q=0.01');
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    var token = g.token || document.cookie.match(/csrftoken=(\S+);/)
+    if(token){
+      if(!g.token){
+        token = token[1];
+        g.token = token;
+      }
+      xhr.setRequestHeader('X-CSRFToken', token);
+      xhr.setRequestHeader('X-APP-VERSION', g.appVer);
+      xhr.setRequestHeader('X-NEW-APP', 1);
+      xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+      xhr.send(data);
+    }else{
+      alert('Missing token!');
+    }
+  }else{
+    // Own Feed
+  }
+}
+unsafeWindow.dFAcore = function(setup, bypass) {
   g.start=1;g.settings={};
   if(!setup&&localStorage['dFASetting']){g.settings=localStorage['dFASetting']?JSON.parse(localStorage['dFASetting']):{};}
   g.mode=g.settings.mode||window.prompt('Please type your choice:\nNormal: 1/press Enter\nDownload without auto load: 2\nAutoload start from specific id: 3\nOptimization for large album: 4')||1;
@@ -913,6 +1043,16 @@ unsafeWindow.dFAcore = function(setup) {
       aDes:""
     };
     getWeibo();
+  }else if(location.href.match(/pinterest.com/)){
+    g.photodata = {
+      aName: getText('h1.boardName') || 'Pinterest',
+      aAuth: getText('h4.fullname') || '',
+      aLink: location.href,
+      aTime: aTime,
+      photos: [],
+      aDes: aDes
+    };
+    getPinterest();
   }
 };
 function sendRequest(request, sender, sendResponse) {
