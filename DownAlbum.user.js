@@ -40,9 +40,16 @@ var dFAinit = function(){
   k.innerHTML = '<a id="dFA" class="navSubmenu" onClick="dFAcore();" title="DownFbAlbum">DownFbAlbum</a>';
   var k2 = document.createElement('li');
   k2.innerHTML = '<a class="navSubmenu" onClick="dFAcore(true);" title="DownFbAlbum(Setup)">DownFbAlbum(Setup)</a>';
-  var t = qS('.uiContextualLayer ul') || qS('.Dropdown ul') || qS('.gn_topmenulist.gn_topmenulist_set ul') || qS('ul[role="menu"]');
+  var t = qS('.uiContextualLayerPositionerFixed ul') || qS('.Dropdown ul') || qS('.gn_topmenulist.gn_topmenulist_set ul') || qS('#pagelet_bluebar [role*="menu"]');
   if(t){t.appendChild(k); t.appendChild(k2);}
-  if(location.href.indexOf('instagram.com') > 0){
+  if(location.href.indexOf('facebook.com') > 0){
+    if(!t && qS('#userNavigation')){
+      // Handle async menu
+      $('#pageLoginAnchor').on('click.dfainit', function(){
+        setTimeout(dFAinit, 500);
+      });
+    }
+  }else if(location.href.indexOf('instagram.com') > 0){
     var o = WebKitMutationObserver || MutationObserver;
     if(o){
       var observer = new o(runLater);
