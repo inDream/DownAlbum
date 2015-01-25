@@ -13,8 +13,8 @@
 // @match         http://instagram.com/*
 // @include       htt*://weibo.com/p/*/album*
 // @match         http://weibo.com/p/*/album*
-// @include       htt*://*.weibo.com/p/*/album*
-// @match         http://*.weibo.com/p/*/album*
+// @include       htt*://*.weibo.com/*
+// @match         http://*.weibo.com/*
 // @include       htt*://www.pinterest.com/*
 // @match         http://www.pinterest.com/*
 // @exclude       htt*://*static*.facebook.com*
@@ -35,7 +35,7 @@
 // @require       http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js
 // ==/UserScript==
 var dFAinit = function(){
-  if(document.querySelector('#dFA') || (location.href.indexOf('//www.facebook.com')<0 && location.href.indexOf('instagram.com')<0 && location.href.indexOf('weibo.com/p/')<0) && location.href.indexOf('pinterest.com')<0)return;
+  if(document.querySelector('#dFA') || (location.href.indexOf('//www.facebook.com')<0 && location.href.indexOf('instagram.com')<0 && location.href.indexOf('weibo.com')<0) && location.href.indexOf('pinterest.com')<0)return;
   var k = document.createElement('li');
   k.innerHTML = '<a id="dFA" class="navSubmenu" onClick="dFAcore();" title="DownFbAlbum">DownFbAlbum</a>';
   var k2 = document.createElement('li');
