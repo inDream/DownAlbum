@@ -540,21 +540,26 @@ function fbAutoLoad(elms){
     var query = {};
     if(!g.query){
       var s=qSA("script"), temp=[];
-      try{
-        for(var i=0;i<s.length;i++){
+      for(var i=0;i<s.length;i++){
           if(s[i].textContent.indexOf('encoded_query')>0){temp[0]=s[i].textContent;}
           if(s[i].textContent.indexOf('cursor')>0){temp[1]=s[i].textContent;}
           if(temp.length==2)break;
         }
-        query = temp[0];
-        query = JSON.parse(query.slice(query.indexOf("(")+1, query.lastIndexOf(")")));
-        
-        var cursor = temp[1];
-        cursor = JSON.parse(cursor.slice(cursor.indexOf("(")+1, cursor.lastIndexOf(")")));
+      query = temp[0];
+      var cursor = temp[1];
+      try{
+        query = JSON.parse(query.slice(query.indexOf("({")+1, query.lastIndexOf("})")+1));
+        cursor = JSON.parse(cursor.slice(cursor.indexOf("({")+1, cursor.lastIndexOf("})")+1));
       }catch(e){
         console.log(e);
-        fbAutoLoadFailed();
-        return;
+        try{
+          query = JSON.parse(query.slice(query.indexOf("(")+1, query.lastIndexOf(")")));
+          cursor = JSON.parse(cursor.slice(cursor.indexOf("(")+1, cursor.lastIndexOf(")")));
+        }catch(e){
+          console.log(e);
+          fbAutoLoadFailed();
+          return;
+        }
       }
       var rq = query.jsmods.require;
       for(i=0; i<rq.length; i++){
@@ -1039,6 +1044,13 @@ unsafeWindow.dFAcore = function(setup, bypass) {
     eval(id);
     if(!$CONFIG){alert("發生錯誤，請聯絡作者");return;}
     g.oId = $CONFIG.page_id || $CONFIG.oid;
+    var uId = qS('[action-type="copy_cover"]') || qS('[action-type="webim.conversation"]');
+    if(uId){
+      uId = uId.getAttribute('action-data').match(/uid=(\d+)/);
+      if(uId){
+        g.uId = uId[1];
+      }
+    }
     g.ajaxPage = 1;
     g.ajax = ""
     g.photodata = {
