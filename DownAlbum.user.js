@@ -1101,10 +1101,12 @@ switch(request.type){
       }
       if(comments){
         var co ='<div class="loadedComment">';
-        if(comments[0]>comments.length-1){
-          var cLink = comments[1].fbid ? ("https://www.facebook.com/photo.php?fbid="+comments[1].fbid) : comments[1].id;
-          co += '<p align="center"><a href="'+cLink+'" target="_blank">View all '+comments[0]+' comments</a></p>';
-        }
+        try{
+          if(comments[0]>comments.length-1){
+            var cLink = comments[1].fbid ? ("https://www.facebook.com/photo.php?fbid="+comments[1].fbid) : comments[1].id;
+            co += '<p align="center"><a href="'+cLink+'" target="_blank">View all '+comments[0]+' comments</a></p>';
+          }
+        }catch(e){}
         for(var ii=1; ii<comments.length; ii++){
           var p = comments[ii];
           co += '<blockquote><p>'+p.text+'</p><small><a href="'+p.url+'" target="_blank">'+p.name+'</a> '+(p.fbid?('<a href="https://www.facebook.com/photo.php?fbid='+p.fbid+'&comment_id='+p.id+'" target="_blank">'):'')+p.date+(p.fbid?'</a>':'')+'</small></blockquote>';
