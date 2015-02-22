@@ -50,7 +50,7 @@ var dFAinit = function(){
       });
     }
   }else if(location.href.indexOf('instagram.com') > 0){
-    var o = WebKitMutationObserver || MutationObserver;
+    var o = window.WebKitMutationObserver || window.MutationObserver;
     if(o){
       var observer = new o(runLater);
       observer.observe(document.body, {subtree: true, childList: true});
@@ -68,14 +68,22 @@ function addLink(){
   var k = qSA(".mediaPhoto");
   for(var i = 0; i<k.length; i++)_addLink(k[i], k[i]);
   k = qS(".LikeableFrame");
-  if(k)_addLink(k, qS(".Info .followButtonActions"));
+  if(k){
+    var target = qS('time.timestamp') || qS(".Info .FollowButtonContainer").parentNode;
+    _addLink(k, target, true);
+  }
 }
-function _addLink(k, target){
+function _addLink(k, target, floatRight){
   if(!target || (target.nextElementSibling && target.nextElementSibling.classList.contains("dLink")))return;
   var t = k.querySelector("div");
   if(t){
     var link = document.createElement('div');
-    link.className = "timelineLikeList dLink";
+    if(floatRight){
+      link.style.cssText = 'display: inline-block; float: right;';
+      link.className = "dLink";
+    }else{
+      link.className = "timelineLikeList dLink";
+    }
     link.innerHTML = "<a href='" + t.getAttribute("src") + "' download class='llNameLink' title='(provided by Download FB Album mod)'>Download</a>";
     target.insertAdjacentElement("afterEnd", link);
   }
