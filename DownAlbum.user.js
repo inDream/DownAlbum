@@ -75,8 +75,12 @@ function addLink(){
 }
 function _addLink(k, target, floatRight){
   if(!target || (target.nextElementSibling && target.nextElementSibling.classList.contains("dLink")))return;
+  var tagged = k.querySelector('.UserTaggedImage');
+  if(tagged){
+    k = tagged;
+  }
   var t = k.querySelector("div");
-  if(t){
+  if(t && t.getAttribute("src")){
     var link = document.createElement('div');
     if(floatRight){
       link.style.cssText = 'display: inline-block; float: right;';
