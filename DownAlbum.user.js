@@ -6,11 +6,14 @@
 // @namespace     DownAlbum
 // @updateURL     https://raw.githubusercontent.com/inDream/DownAlbum/master/DownAlbum.meta.js
 // @downloadURL   https://raw.githubusercontent.com/inDream/DownAlbum/master/DownAlbum.user.js
+// @grant         unsafeWindow
 // @include       htt*://*.facebook.com/*
 // @match         http://*.facebook.com/*
 // @match         https://*.facebook.com/*
 // @include       htt*://instagram.com/*
 // @match         http://instagram.com/*
+// @include       htt*://twitter.com/*
+// @match         https://twitter.com/*
 // @include       htt*://weibo.com/p/*/album*
 // @match         http://weibo.com/p/*/album*
 // @include       htt*://*.weibo.com/*
@@ -35,27 +38,36 @@
 // @require       http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js
 // ==/UserScript==
 var dFAinit = function(){
-  if(document.querySelector('#dFA') || (location.href.indexOf('//www.facebook.com')<0 && location.href.indexOf('instagram.com')<0 && location.href.indexOf('weibo.com')<0) && location.href.indexOf('pinterest.com')<0)return;
+  var href = location.href;
+  if(document.querySelector('#dFA') || (href.indexOf('//www.facebook.com')<0 && href.indexOf('instagram.com')<0 && href.indexOf('twitter.com')<0 && href.indexOf('weibo.com')<0) && href.indexOf('pinterest.com')<0)return;
   var k = document.createElement('li');
-  k.innerHTML = '<a id="dFA" class="navSubmenu" onClick="dFAcore();" title="DownFbAlbum">DownFbAlbum</a>';
+  k.innerHTML = '<a id="dFA" class="navSubmenu" title="DownFbAlbum">DownFbAlbum</a>';
   var k2 = document.createElement('li');
-  k2.innerHTML = '<a class="navSubmenu" onClick="dFAcore(true);" title="DownFbAlbum(Setup)">DownFbAlbum(Setup)</a>';
-  var t = qS('.uiContextualLayerPositionerFixed ul') || qS('.Dropdown ul') || qS('.gn_topmenulist.gn_topmenulist_set ul') || qS('#pagelet_bluebar [role*="menu"]');
-  if(t){t.appendChild(k); t.appendChild(k2);}
-  if(location.href.indexOf('facebook.com') > 0){
+  k2.innerHTML = '<a id="dFAsetup" class="navSubmenu" title="DownFbAlbum(Setup)">DownFbAlbum(Setup)</a>';
+  var t = qS('.uiContextualLayerPositionerFixed ul') || qS('.Dropdown ul') || qS('.gn_topmenulist.gn_topmenulist_set ul') || qS('#pagelet_bluebar [role*="menu"]') || qS('.me.dropdown .dropdown-menu');
+  if(t){
+    t.appendChild(k); t.appendChild(k2);
+    k.addEventListener("click", function(){
+      dFAcore();
+    });
+    k2.addEventListener("click", function(){
+      dFAcore(true);
+    });
+  }
+  if(href.indexOf('facebook.com') > 0){
     if(!t && qS('#userNavigation')){
       // Handle async menu
       $('#pageLoginAnchor').on('click.dfainit', function(){
         setTimeout(dFAinit, 500);
       });
     }
-  }else if(location.href.indexOf('instagram.com') > 0){
+  }else if(href.indexOf('instagram.com') > 0){
     var o = window.WebKitMutationObserver || window.MutationObserver;
     if(o){
       var observer = new o(runLater);
       observer.observe(document.body, {subtree: true, childList: true});
     }
-  }else if(location.href.indexOf('pinterest.com') > 0){
+  }else if(href.indexOf('pinterest.com') > 0){
     if(!qS('#dfaButton')){
       var t = qS('.boardButtons');
       t.innerHTML += '<button id="dfaButton" onClick="dFAcore();" class="Module BoardFollowButton ui-FollowButton notNavigatable Button btn rounded primary boardFollowUnfollowButton hasText"><span class="buttonText">DownAlbum</span></button><button onClick="dFAcore(true);" class="Module BoardFollowButton ui-FollowButton notNavigatable Button btn rounded primary boardFollowUnfollowButton hasText"><span class="buttonText">DownAlbum(Setup)</span></button>';
@@ -760,6 +772,59 @@ function getInstagram(){
   }}else if(g.mode==2&&elms2&&g.loadCm){g.total=elms2.length;}
   if((g.mode!=2||g.loadCm)&&photodata.photos.length!=g.total){g.ajax=elms[elms.length-1].id;instaAjax();}else{output();}
 }
+function getTwitter(){
+  var xhr = new XMLHttpRequest();
+  xhr.onload = function() {
+    var r = JSON.parse(this.responseText);
+    g.ajax = r.min_position || '';
+    var doc = getDOM(r.items_html);
+    var elms = doc.querySelectorAll('.content');
+    var photodata = g.photodata;
+    var i, j, link, url, title, date;
+    for(i = 0; i < elms.length; i++){
+      link = elms[i].querySelectorAll('.media, .media-thumbnail');
+      for(j = 0; j < link.length; j++){
+        url = link[j].getAttribute('data-resolved-url-large') || link[j].getAttribute('data-url');
+        if (!url) {
+          continue;
+        }
+        title = elms[i].querySelector('.tweet-text').innerHTML || '';
+        title = title.replace(/href="\//g, 'href="https://twitter.com/');
+        date = elms[i].querySelector('._timestamp, .js-short-timestamp');
+        photodata.photos.push({
+          title: title,
+          url: url.replace(':large', '') + ':orig',
+          href: link[j].getAttribute('href'),
+          date: date ? parseTime(+date.getAttribute('data-time')) : '' 
+        });
+        if (!r.min_position) {
+          var max_id = (date.parentNode.getAttribute('href') || '').match(/\/(\d+)/);
+          if(max_id){
+            g.ajax = max_id[1];
+          }
+        }
+      }
+    }
+    console.log("Loaded", photodata.photos.length);
+    document.title = photodata.photos.length + g.total + ' || ' + g.photodata.aName;
+    if (!qS('#stopAjaxCkb')) {
+      var stopBtn = document.createElement('li');
+      stopBtn.id = 'stopAjax';
+      stopBtn.innerHTML = '<a>Stop <input id="stopAjaxCkb" type="checkbox"></a>';
+      qS('.me.dropdown .dropdown-menu').appendChild(stopBtn);
+    }
+    if (qS('#stopAjaxCkb') && qS('#stopAjaxCkb').checked) {
+      output();
+    } else if (r.has_more_items && g.ajax && !g.ajaxStop) {
+      setTimeout(getTwitter, 1000);
+    } else {
+      output();
+    }
+  };
+  var url = 'https://twitter.com/i/profiles/show/'+g.photodata.aName+'/media_timeline?include_available_features=1&include_entities=1' + (g.ajax ? ('&max_position='+g.ajax) : '');
+  xhr.open('GET', url);
+  xhr.send();
+}
 function getWeibo(){
   if(!GM_xmlhttpRequest){alert("This script required Greasemonkey/Tampermonkey!");return;}
   GM_xmlhttpRequest({
@@ -1042,6 +1107,23 @@ unsafeWindow.dFAcore = function(setup, bypass) {
     };
     xhr.open('GET', location.href);
     xhr.send();
+  }else if(location.href.match(/twitter.com/)){
+    g.id = qS('.ProfileAvatar img').getAttribute('src').match(/\d+/);
+    g.ajax = '';
+    var name = qS('h1 a');
+    var aTime = qS('.tweet-timestamp');
+    var total = getText('.PhotoRail-headingWithCount').replace(',', '').match(/\d+/);
+    g.total = total ? ('/' + total[0]) : '';
+    g.status = 
+    g.photodata = {
+      aName: name.getAttribute('href').slice(1),
+      aAuth: name.textContent,
+      aLink: location.href,
+      aTime: aTime ? aTime.getAttribute('data-original-title') : "",
+      photos: [],
+      aDes: getText('.ProfileHeaderCard-bio', true)
+    };
+    getTwitter();
   }else if(location.href.match(/weibo.com/)){
     try{
       aName='微博配圖';
