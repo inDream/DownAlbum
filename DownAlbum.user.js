@@ -744,36 +744,54 @@ function instaAjax(){
 }
 function getInstagram(){
   if(g.start!=2||g.start==3){return;}g.start=3;
-  var i,elms=g.Env.userMedia,photodata=g.photodata;
-  for(i=0;i<elms.length;i++){
-    var url=elms[i].images.standard_resolution.url;
-    g.stored.push(url);
-    var c = elms[i].comments, cList = [c.count];
-    for(var j=0; j<c.data.length; j++){
-      var p = c.data[j];if(p){
-      cList.push({name: p.from.full_name || p.from.username, url: 'http://instagram.com/'+p.from.username, text: p.text, date: parseTime(p.created_time), id: elms[i].link});}
+  var i, elms = g.Env.media, photodata = g.photodata, url;
+  if (g.Env.user.biography !== undefined && (g.mode!=2 || g.loadCm)) {
+    g.ajax = '';
+    instaAjax();
+  } else {
+    for(i=0;i<elms.length;i++){
+      var c = elms[i].comments;
+      if (elms[i].images || elms[i].videos) {
+        url = elms[i].images.standard_resolution.url;
+        g.stored.push(url);
+        var cList = [c.count];
+        for(var j=0; j<c.data.length; j++){
+          var p = c.data[j];if(p){
+          cList.push({name: p.from.full_name || p.from.username, url: 'http://instagram.com/'+p.from.username, text: p.text, date: parseTime(p.created_time), id: elms[i].link});}
+        }
+        if(elms[i].videos){
+          photodata.videos.push({
+            url: elms[i].videos.standard_resolution.url,
+            thumb: url
+          });
+        }
+      } else {
+        url = elms[i].display_src;
+        g.stored.push(url);
+      }
+      var date = elms[i].date || elms[i].created_time;
+      photodata.photos.push({
+        title: elms[i].caption?elms[i].caption.text:'',
+        url: url,
+        href: elms[i].link,
+        date: date ? parseTime(date) : '',
+        comments: c.count?cList:''
+      });
     }
-    photodata.photos.push({
-      title: elms[i].caption?elms[i].caption.text:'',
-      url: url,
-      href: elms[i].link,
-      date: elms[i].created_time?parseTime(elms[i].created_time):'',
-      comments: c.count?cList:''
-    });
+    var elms2=qSA('li.photo');
+    if(elms2&&!g.loadCm){ for(i=photodata.photos.length;i<elms2.length;i++){
+      var e = elms2[i].querySelector('.Image');
+      if(e){url=e.style.backgroundImage.slice(4,-1).replace('6.jpg','7.jpg');
+      g.stored.push(url);
+      photodata.photos.push({
+        title: '',
+        url: url,
+        date: elms2[i].querySelector('.photo-date').textContent,
+        href: elms2[i].querySelector('a').href||''
+      }); }
+    }}else if(g.mode==2&&elms2&&g.loadCm){g.total=elms2.length;}
+    if((g.mode!=2||g.loadCm)&&photodata.photos.length!=g.total){g.ajax=elms[elms.length-1].id;instaAjax();}else{output();}
   }
-  var elms2=qSA('li.photo');
-  if(elms2&&!g.loadCm){ for(i=photodata.photos.length;i<elms2.length;i++){
-    var e = elms2[i].querySelector('.Image');
-    if(e){var url=e.style.backgroundImage.slice(4,-1).replace('6.jpg','7.jpg');
-    g.stored.push(url);
-    photodata.photos.push({
-      title: '',
-      url: url,
-      date: elms2[i].querySelector('.photo-date').textContent,
-      href: elms2[i].querySelector('a').href||''
-    }); }
-  }}else if(g.mode==2&&elms2&&g.loadCm){g.total=elms2.length;}
-  if((g.mode!=2||g.loadCm)&&photodata.photos.length!=g.total){g.ajax=elms[elms.length-1].id;instaAjax();}else{output();}
 }
 function getTwitter(){
   var xhr = new XMLHttpRequest();
@@ -1073,38 +1091,45 @@ unsafeWindow.dFAcore = function(setup, bypass) {
           if(!s[i].src&&s[i].textContent.indexOf('_sharedData')>0){s=s[i].textContent;break;}
         }
         g.Env=JSON.parse(s.match(/({".*})/)[1]);g.stored=[];
-        if(!g.Env.entry_data.UserProfile){
+        var data = g.Env.entry_data;
+        if (data.UserProfile || data.ProfilePage) {
+          g.Env = (data.UserProfile || data.ProfilePage)[0];
+        } else {
           alert('Need to reload for required variable.');
           location.reload(); return;
         }
       }catch(e){alert('Cannot load required variable!');}
-      g.Env = g.Env.entry_data.UserProfile[0];
-      var userName = qS("h1 span a") || qS("h1 span");
+      var userName = qS(".-cx-PRIVATE-ProfilePage__username, h1 span a, h1 span");
       userName = userName?userName.textContent:"";
       if(userName && userName!=g.Env.user.username){
         alert('Need to reload for required variable.');
         location.reload(); return;
       }
       if(g.mode != 2){
-        g.total = qS('.sCount') ? +qS('.sCount').textContent.replace(/,/g,'') : g.Env.user.counts.media;
+        g.total = qS('.sCount, .-cx-PRIVATE-PostsStatistic__count') ?
+         +qS('.sCount, .-cx-PRIVATE-PostsStatistic__count').textContent.replace(/,/g,'') : 
+         (g.Env.user.counts.media || g.Env.user.media.count);
       }else{
-        g.total = g.Env.user.counts.media;
+        g.total = g.Env.user.counts.media || g.Env.user.media.count;
       }
       console.log(g.Env);
-      aName=g.Env.user.full_name;
+      aName = g.Env.user.full_name;
       if(!aName)aName='Instagram';
-      aAuth=g.Env.user.username;
-      aLink=g.Env.user.website;
+      aAuth = g.Env.user.username;
+      aLink = g.Env.user.website || g.Env.user.external_url;
       if(!aLink)aLink='http://instagram.com/'+aAuth;
-      g.status = {e: qS('.link-profile strong') || qS('.loginLink')};
+      g.status = {e: qS('.-cx-PRIVATE-Navigation__menuItems, .link-profile strong, .loginLink')};
       g.status.t = g.status.e.textContent;
+      g.Env.media = g.Env.user.media.nodes || g.Env.userMedia;
+      var aTime = g.Env.media[0].date || g.Env.media[0].created_time;
       g.photodata = {
-        aName:aName.replace(/'|"/g,'\"'),
-        aAuth:aAuth,
-        aLink:aLink,
-        aTime:'Last Update: '+parseTime(g.Env.userMedia[0].created_time),
+        aName: aName.replace(/'|"/g,'\"'),
+        aAuth: aAuth,
+        aLink: aLink,
+        aTime: 'Last Update: ' + parseTime(aTime),
         photos: [],
-        aDes:g.Env.user.bio.replace(/'|"/g,'\"')
+        videos: [],
+        aDes: (g.Env.user.bio || g.Env.user.biography || '').replace(/'|"/g,'\"')
       };
       getInstagram();
     };
