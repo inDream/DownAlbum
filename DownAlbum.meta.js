@@ -1,20 +1,25 @@
 // ==UserScript==
 // @name          Download FB Album mod
 // @author        indream
-// @version       0.15.2.4
+// @version       0.15.6.1
 // @description   Download Facebook & Instagram Album by One Click.
 // @namespace     DownAlbum
 // @updateURL     https://raw.githubusercontent.com/inDream/DownAlbum/master/DownAlbum.meta.js
 // @downloadURL   https://raw.githubusercontent.com/inDream/DownAlbum/master/DownAlbum.user.js
+// @grant         unsafeWindow
 // @include       htt*://*.facebook.com/*
 // @match         http://*.facebook.com/*
 // @match         https://*.facebook.com/*
 // @include       htt*://instagram.com/*
 // @match         http://instagram.com/*
+// @include       htt*://twitter.com/*
+// @match         https://twitter.com/*
 // @include       htt*://weibo.com/p/*/album*
 // @match         http://weibo.com/p/*/album*
 // @include       htt*://*.weibo.com/*
 // @match         http://*.weibo.com/*
+// @include       htt*://www.pinterest.com/*
+// @match         http://www.pinterest.com/*
 // @exclude       htt*://*static*.facebook.com*
 // @exclude       htt*://*channel*.facebook.com*
 // @exclude       htt*://developers.facebook.com/*
