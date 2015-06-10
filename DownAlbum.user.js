@@ -77,11 +77,14 @@ var dFAinit = function(){
 function runLater(){clearTimeout(window.addLinkTimer);window.addLinkTimer = setTimeout(addLink, 300);}
 function addLink(){
   dFAinit();
-  var k = qSA(".mediaPhoto");
-  for(var i = 0; i<k.length; i++)_addLink(k[i], k[i]);
-  k = qS(".LikeableFrame");
+  var k = qSA('.mediaPhoto, .-cx-PRIVATE-Post__media');
+  for(var i = 0; i<k.length; i++){
+    _addLink(k[i], k[i]);
+  }
+  k = qS('.LikeableFrame');
   if(k){
-    var target = qS('time.timestamp') || qS(".Info .FollowButtonContainer").parentNode;
+    var target = qS('.-cx-PRIVATE-PostLikers__likeCount') || qS('time.timestamp') || 
+      qS('.Info .FollowButtonContainer').parentNode;
     _addLink(k, target, true);
   }
 }
