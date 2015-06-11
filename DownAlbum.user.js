@@ -77,33 +77,43 @@ var dFAinit = function(){
 function runLater(){clearTimeout(window.addLinkTimer);window.addLinkTimer = setTimeout(addLink, 300);}
 function addLink(){
   dFAinit();
-  var k = qSA('.mediaPhoto, .-cx-PRIVATE-Post__media');
+  var k = qSA('.-cx-PRIVATE-Post__media');
   for(var i = 0; i<k.length; i++){
     _addLink(k[i], k[i]);
   }
-  k = qS('.LikeableFrame');
+  k = qS('.-cx-PRIVATE-Modal__root .ResponsiveBlock');
   if(k){
-    var target = qS('.-cx-PRIVATE-PostLikers__likeCount') || qS('time.timestamp') || 
-      qS('.Info .FollowButtonContainer').parentNode;
-    _addLink(k, target, true);
+    var target = qS('.-cx-PRIVATE-Post__media, .-cx-PRIVATE-Video__root');
+    if (target) {
+      _addLink(k, target);
+    }
   }
 }
 function _addLink(k, target, floatRight){
-  if(!target || (target.nextElementSibling && target.nextElementSibling.classList.contains("dLink")))return;
-  var tagged = k.querySelector('.UserTaggedImage');
-  if(tagged){
-    k = tagged;
-  }
-  var t = k.querySelector("div");
-  if(t && t.getAttribute("src")){
-    var link = document.createElement('div');
-    if(floatRight){
-      link.style.cssText = 'display: inline-block; float: right;';
-      link.className = "dLink";
-    }else{
-      link.className = "timelineLikeList dLink";
+  var t = k.querySelector('.-cx-PRIVATE-Photo__image, .vjs-tech');
+  var src = t.getAttribute("src");
+  var next = target.nextElementSibling;
+  if (next) {
+    if (next.childNodes[0].getAttribute('href') == src) {
+      return;
+    } else {
+      target.parentNode.removeChild(next);
     }
-    link.innerHTML = "<a href='" + t.getAttribute("src") + "' download class='llNameLink' title='(provided by Download FB Album mod)'>Download</a>";
+  }
+  if (t && src) {
+    var link = document.createElement('div');
+    link.className = 'dLink -cx-PRIVATE-PostInfo__root ' +
+      '-cx-PRIVATE-PostLikers__likeCount';
+    var title = '(provided by Download FB Album mod)';
+    var html = '<a href="' + src + '" download title="' + title + '">Download';
+    if (src.match('mp4')) {
+      var poster = t.getAttribute('poster');
+      html += ' Video</a><a href="' + poster + '" download  title="' + title +
+        '">Download Photo</a>';
+    } else {
+      html += '</a>';
+    }
+    link.innerHTML = html;
     target.insertAdjacentElement("afterEnd", link);
   }
 }
