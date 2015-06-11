@@ -79,17 +79,21 @@ function addLink(){
   dFAinit();
   var k = qSA('.-cx-PRIVATE-Post__media');
   for(var i = 0; i<k.length; i++){
-    _addLink(k[i], k[i]);
+    if (k[i].nextElementSibling) {
+      _addLink(k[i], k[i].nextElementSibling);
+    } else {
+      console.log(k[i]);
+    }
   }
   k = qS('.-cx-PRIVATE-Modal__root .ResponsiveBlock');
   if(k){
-    var target = qS('.-cx-PRIVATE-Post__media, .-cx-PRIVATE-Video__root');
+    var target = qS('.-cx-PRIVATE-Video__root');
     if (target) {
       _addLink(k, target);
     }
   }
 }
-function _addLink(k, target, floatRight){
+function _addLink(k, target) {
   var t = k.querySelector('.-cx-PRIVATE-Photo__image, .vjs-tech');
   var src = t.getAttribute("src");
   var next = target.nextElementSibling;
@@ -114,7 +118,15 @@ function _addLink(k, target, floatRight){
       html += '</a>';
     }
     link.innerHTML = html;
-    target.insertAdjacentElement("afterEnd", link);
+    if (target.insertAdjacentElement) {
+      target.insertAdjacentElement("afterEnd", link);
+    } else {
+      if (target.nextSibling) {
+        target.parentNode.insertBefore(link, target.nextSibling);
+      } else {
+        target.parentNode.appendChild(link);
+      }
+    }
   }
 }
 document.addEventListener("DOMContentLoaded", dFAinit, false);
