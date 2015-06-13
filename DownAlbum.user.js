@@ -1038,7 +1038,8 @@ function getPinterest_sub(){
     // Own Feed
   }
 }
-unsafeWindow.dFAcore = function(setup, bypass) {
+
+var dFAcore = function(setup, bypass) {
   g.start=1;g.settings={};
   if(!setup&&localStorage['dFASetting']){g.settings=localStorage['dFASetting']?JSON.parse(localStorage['dFASetting']):{};}
   g.mode=g.settings.mode||window.prompt('Please type your choice:\nNormal: 1/press Enter\nDownload without auto load: 2\nAutoload start from specific id: 3\nOptimization for large album: 4')||1;
@@ -1312,3 +1313,9 @@ switch(request.type){
     break;
     }
 };
+
+if (exportFunction) {
+  exportFunction(dFAcore, unsafeWindow, {defineAs: "dFAcore"});
+} else {
+  unsafeWindow.dFAcore = dFAcore;
+}
