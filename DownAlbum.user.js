@@ -37,14 +37,34 @@
 // @exclude       htt*://www.facebook.com/places/map*_iframe.php*
 // @require       http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js
 // ==/UserScript==
+
+var log = function(s) {
+  try {
+    console.log(s);
+  } catch(e) {
+    GM_log(s);
+  }
+};
+
 var dFAinit = function(){
   var href = location.href;
-  if(document.querySelector('#dFA') || (href.indexOf('//www.facebook.com')<0 && href.indexOf('instagram.com')<0 && href.indexOf('twitter.com')<0 && href.indexOf('weibo.com')<0) && href.indexOf('pinterest.com')<0)return;
-  var k = document.createElement('li');
-  k.innerHTML = '<a id="dFA" class="navSubmenu" title="DownFbAlbum">DownFbAlbum</a>';
-  var k2 = document.createElement('li');
-  k2.innerHTML = '<a id="dFAsetup" class="navSubmenu" title="DownFbAlbum(Setup)">DownFbAlbum(Setup)</a>';
-  var t = qS('.uiContextualLayerPositionerFixed ul') || qS('.Dropdown ul') || qS('.gn_topmenulist.gn_topmenulist_set ul') || qS('#pagelet_bluebar [role*="menu"]') || qS('.me.dropdown .dropdown-menu');
+  var site = href.match(/(www\.facebook|instagram|twitter|pinterest|weibo)\.com/);
+  if (document.querySelector('#dFA') || !site) {
+    return;
+  }
+  var k, k2;
+  if (site[0] == 'instagram.com') {
+    k = document.createElement('div');
+    k.className = '-cx-PRIVATE-IGButton__root -cx-PRIVATE-IGButton__sizeAuto';
+  } else {
+    k = document.createElement('li');
+  }
+  k2 = k.cloneNode();
+  k.innerHTML = '<a id="dFA" class="navSubmenu">DownFbAlbum</a>';
+  k2.innerHTML = '<a id="dFAsetup" class="navSubmenu">DownFbAlbum(Setup)</a>';
+  var t = qS('.uiContextualLayerPositionerFixed ul') || qS('.Dropdown ul') ||
+    qS('.gn_topmenulist.gn_topmenulist_set ul') || qS('#pagelet_bluebar [role*="menu"]') ||
+    qS('.me.dropdown .dropdown-menu') || qS('.-cx-PRIVATE-ProfilePage__usernameAndFollow');
   if(t){
     t.appendChild(k); t.appendChild(k2);
     k.addEventListener("click", function(){
@@ -82,7 +102,7 @@ function addLink(){
     if (k[i].nextElementSibling) {
       _addLink(k[i], k[i].nextElementSibling);
     } else {
-      console.log(k[i]);
+      log(k[i]);
     }
   }
   k = qS('.-cx-PRIVATE-Modal__root .ResponsiveBlock');
@@ -129,8 +149,6 @@ function _addLink(k, target) {
     }
   }
 }
-document.addEventListener("DOMContentLoaded", dFAinit, false);
-setTimeout(dFAinit, 2000);
 var g = {};
 function getParent(child, selector){
   var target = child;
@@ -251,7 +269,7 @@ function fbAjax(){
     g.photodata.photos[i].date=t.date;
     delete g.dataLoaded[src];
     g.ajaxLoaded++;
-    if(len<50||i%15==0)console.log('Loaded '+(i+1)+' of '+len+'. (cached)');
+    if(len<50||i%15==0)log('Loaded '+(i+1)+' of '+len+'. (cached)');
     g.statusEle.textContent='Loading '+(i+1)+' of '+len+'.';
     if(i+1!=len){document.title="("+(i+1)+"/"+(len)+") ||"+g.photodata.aName;fbAjax();
     }else{output();}
@@ -337,7 +355,7 @@ function fbAjax(){
       delete g.dataLoaded[src];
       g.ajaxLoaded++;
     }
-    if(len<50||i%15==0)console.log('Loaded '+(i+1)+' of '+len+'.');
+    if(len<50||i%15==0)log('Loaded '+(i+1)+' of '+len+'.');
     var t=g.statusEle;
     if(!t.nextElementSibling){var stopBtn=document.createElement('label');stopBtn.id='stopAjax';stopBtn.innerHTML='<a class="navItem"> | Stop</a><input id="stopAjaxCkb" type="checkbox">';t.parentNode.appendChild(stopBtn);}
     t.textContent='Loaded '+(i+1)+' of '+len+'.';
@@ -448,7 +466,7 @@ function getPhotos(){
     }catch(e){continue;}
   }
   if(qS('#stopAjaxCkb')&&qS('#stopAjaxCkb').checked){qS('#stopAjaxCkb').checked=false;}
-  console.log('export '+photodata.photos.length+' photos.');
+  log('export '+photodata.photos.length+' photos.');
   if(!g.notLoadCm){
     if(ajaxNeeded&&(g.loadCm||confirm("Try to load photo's caption?"))){fbAjax();}else{output();}
   }else{output();}
@@ -600,12 +618,12 @@ function fbAutoLoad(elms){
         query = JSON.parse(query.slice(query.indexOf("({")+1, query.lastIndexOf("})")+1));
         cursor = JSON.parse(cursor.slice(cursor.indexOf("({")+1, cursor.lastIndexOf("})")+1));
       }catch(e){
-        console.log(e);
+        log(e);
         try{
           query = JSON.parse(query.slice(query.indexOf("(")+1, query.lastIndexOf(")")));
           cursor = JSON.parse(cursor.slice(cursor.indexOf("(")+1, cursor.lastIndexOf(")")));
         }catch(e){
-          console.log(e);
+          log(e);
           fbAutoLoadFailed();
           return;
         }
@@ -714,7 +732,7 @@ function fbAutoLoad(elms){
     t.textContent='Loading album... ('+g.elms.length+')';
     document.title='('+g.elms.length+') ||'+g.photodata.aName;
 
-    if(!eCount){console.log('Loaded '+g.elms.length+' photos.');g.lastLoaded=1;}
+    if(!eCount){log('Loaded '+g.elms.length+' photos.');g.lastLoaded=1;}
     if(g.ajaxStartFrom){
       for(var a=0;a<g.elms.length;a++){
         if(g.elms[a].id.indexOf(g.ajaxStopAt)>-1){g.lastLoaded=1;break;}
@@ -754,7 +772,7 @@ function instaAjax(){
       comments: c.count?cList:''
       };
     }
-    console.log('Loaded '+photodata.photos.length+' of '+total+' photos.');
+    log('Loaded '+photodata.photos.length+' of '+total+' photos.');
     if(!g.status.e.nextElementSibling){var stopBtn=document.createElement('label');stopBtn.id='stopAjax';stopBtn.innerHTML='<a class="navItem"> | Stop</a><input id="stopAjaxCkb" type="checkbox">';g.status.e.parentNode.appendChild(stopBtn);}
     g.status.e.textContent='Loaded '+g.photodata.photos.length+' / '+total;
     document.title="("+g.photodata.photos.length+"/"+total+") ||"+g.photodata.aName;
@@ -848,7 +866,7 @@ function getTwitter(){
         }
       }
     }
-    console.log("Loaded", photodata.photos.length);
+    log("Loaded", photodata.photos.length);
     document.title = photodata.photos.length + g.total + ' || ' + g.photodata.aName;
     if (!qS('#stopAjaxCkb')) {
       var stopBtn = document.createElement('li');
@@ -907,7 +925,7 @@ function getWeibo(){
         });
       }
     }
-    console.log('Loaded '+photodata.photos.length+' photos.');
+    log('Loaded '+photodata.photos.length+' photos.');
     document.title="("+g.photodata.photos.length+") ||"+g.photodata.aName;
     if(!qS('#stopAjaxCkb')){var stopBtn=document.createElement('li');stopBtn.id='stopAjax';stopBtn.innerHTML='Stop <input id="stopAjaxCkb" type="checkbox">';qS('.gn_topmenulist ul').appendChild(stopBtn);}
     if(qS('#stopAjaxCkb')&&qS('#stopAjaxCkb').checked){output();}
@@ -926,7 +944,7 @@ function parsePinterest(list){
       date: new Date(list[j].created_at).toLocaleString()
     });
   }
-  console.log('Loaded ' + photodata.photos.length + ' photos.');
+  log('Loaded ' + photodata.photos.length + ' photos.');
 }
 function getPinterest(){
   var photodata = g.photodata;
@@ -936,7 +954,7 @@ function getPinterest(){
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
       var r = JSON.parse(this.responseText);
-      console.log(r);
+      log(r);
       var d = r.module.tree.children;
       for(var i = 0; i < d.length; i++){
         if(d[i].name == 'Grid'){
@@ -1135,7 +1153,7 @@ var dFAcore = function(setup, bypass) {
       }else{
         g.total = g.Env.user.counts.media || g.Env.user.media.count;
       }
-      console.log(g.Env);
+      log(g.Env);
       aName = g.Env.user.full_name;
       if(!aName)aName='Instagram';
       aAuth = g.Env.user.username;
@@ -1223,16 +1241,16 @@ function sendRequest(request, sender, sendResponse) {
 switch(request.type){
   case 'store':
     localStorage["downFbAlbum"]=request.data;
-    console.log(request.no+' photos data saved.'); break;
+    log(request.no+' photos data saved.'); break;
   case 'get':
     g.photodata=JSON.parse(localStorage["downFbAlbum"]);
     g.start=2;
-    console.log(g.photodata.photos.length+' photos got.');
+    log(g.photodata.photos.length+' photos got.');
     getPhotos();
     break;
   case 'export':
     if(!request.data){request.data=JSON.parse(localStorage["downFbAlbum"]);}
-    console.log('Exported '+request.data.photos.length+' photos.');
+    log('Exported '+request.data.photos.length+' photos.');
     var a,b=[],c=request.data;
     c.aName=(c.aName)?c.aName:"Facebook";
     var d = c.photos,totalCount = d.length;
@@ -1314,8 +1332,17 @@ switch(request.type){
     }
 };
 
-if (exportFunction) {
-  exportFunction(dFAcore, unsafeWindow, {defineAs: "dFAcore"});
+if (unsafeWindow !== undefined) {
+  console = unsafeWindow.console;
+  try {
+    exportFunction(g, unsafeWindow, {defineAs: "g"});
+    exportFunction(dFAcore, unsafeWindow, {defineAs: "dFAcore"});
+  } catch (e) {
+    unsafeWindow.dFAcore = dFAcore;
+    unsafeWindow.g = g;
+  }
+  document.addEventListener("DOMContentLoaded", dFAinit, false);
+  setTimeout(dFAinit, 2000);
 } else {
-  unsafeWindow.dFAcore = dFAcore;
+  alert("Cannot init script. Please try Greasemonkey/Scriptish.");
 }
