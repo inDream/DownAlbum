@@ -7,6 +7,7 @@
 // @updateURL     https://raw.githubusercontent.com/inDream/DownAlbum/master/DownAlbum.meta.js
 // @downloadURL   https://raw.githubusercontent.com/inDream/DownAlbum/master/DownAlbum.user.js
 // @grant         unsafeWindow
+// @grant         GM_xmlhttpRequest
 // @include       htt*://*.facebook.com/*
 // @match         http://*.facebook.com/*
 // @match         https://*.facebook.com/*
@@ -1335,8 +1336,10 @@ switch(request.type){
 if (unsafeWindow !== undefined) {
   console = unsafeWindow.console;
   try {
-    exportFunction(g, unsafeWindow, {defineAs: "g"});
-    exportFunction(dFAcore, unsafeWindow, {defineAs: "dFAcore"});
+    var expG = exportFunction(g, unsafeWindow, {defineAs: "g"});
+    unsafeWindow.g = expG;
+    var expCore = exportFunction(dFAcore, unsafeWindow, {defineAs: "dFAcore"});
+    unsafeWindow.dFAcore = expCore;
   } catch (e) {
     unsafeWindow.dFAcore = dFAcore;
     unsafeWindow.g = g;
