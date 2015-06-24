@@ -8,9 +8,12 @@
 // @downloadURL   https://raw.githubusercontent.com/inDream/DownAlbum/master/DownAlbum.user.js
 // @grant         unsafeWindow
 // @grant         GM_xmlhttpRequest
-// @include       htt*://*.facebook.com/*
-// @match         http://*.facebook.com/*
-// @match         https://*.facebook.com/*
+// @include       htt*://*.facebook.com/
+// @include       htt*://*.facebook.com/*/*
+// @match         http://*.facebook.com/
+// @match         http://*.facebook.com/*/*
+// @match         https://*.facebook.com/
+// @match         https://*.facebook.com/*/*
 // @include       htt*://instagram.com/*
 // @match         http://instagram.com/*
 // @include       htt*://twitter.com/*
@@ -36,6 +39,7 @@
 // @exclude       htt*://*.facebook.com/contact_importer/*
 // @exclude       htt*://*.facebook.com/ajax/*
 // @exclude       htt*://www.facebook.com/places/map*_iframe.php*
+// @exclude       https://www.facebook.com/xti.php
 // @require       http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js
 // ==/UserScript==
 
