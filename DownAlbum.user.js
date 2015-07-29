@@ -382,7 +382,11 @@ function fbAjax(){
 }
 function getPhotos(){
   if(g.start!=2||g.start==3){return;}
-  var scrollEle = !!(qS('#fbTimelinePhotosScroller *')||qS('.uiSimpleScrollingLoadingIndicator')||qS('.fbStarGrid~img')||qS('#browse_result_below_fold')||(!qS('#browse_end_of_results_footer')&&qS('#contentArea div.hidden_elem')&&location.href.match('search')));
+  var scrollEle = !!(qS('#fbTimelinePhotosScroller *') || 
+    qS('.uiSimpleScrollingLoadingIndicator') || qS('.fbStarGrid~img') ||
+    qS('.fbStarGridWrapper~img') || qS('#browse_result_below_fold') ||
+    (!qS('#browse_end_of_results_footer') && qS('#contentArea div.hidden_elem')
+    && location.href.match('search')));
   if(g.ajaxFailed&&g.mode!=2&&scrollEle){scrollTo(0, document.body.clientHeight);setTimeout(getPhotos,2000);return;}
   var i, photodata = g.photodata, testNeeded = 0, ajaxNeeded = 0;
   var elms = g.elms || qS('#album_pagelet') || qS('#static_set_pagelet') || qS('#pagelet_photos_stream') || qS('#group_photoset') || qS('#initial_browse_result') || qS('#contentArea');
