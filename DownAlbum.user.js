@@ -1161,12 +1161,12 @@ var dFAcore = function(setup, bypass) {
       g.status = {e: qS('.-cx-PRIVATE-Navigation__menuItems, .link-profile strong, .loginLink')};
       g.status.t = g.status.e.textContent;
       g.Env.media = g.Env.user.media.nodes || g.Env.userMedia;
-      var aTime = g.Env.media[0].date || g.Env.media[0].created_time;
+      var aTime = g.Env.media ? g.Env.media[0].date || g.Env.media[0].created_time : 0;
       g.photodata = {
         aName: aName.replace(/'|"/g,'\"'),
         aAuth: aAuth,
         aLink: aLink,
-        aTime: 'Last Update: ' + parseTime(aTime),
+        aTime: aTime ? 'Last Update: ' + parseTime(aTime) : '',
         photos: [],
         videos: [],
         aDes: (g.Env.user.bio || g.Env.user.biography || '').replace(/'|"/g,'\"')
