@@ -219,6 +219,9 @@ function getFbid(s){
         fbid = s.slice(s.indexOf('=') + 1, s.indexOf('&'));
       }catch(e){}
       return fbid ? fbid : false;
+    } else {
+      // id for page's photos
+      fbid = s.match(/[\w\d\.]+\/(\d+)/);
     }
   }
   return fbid.length ? fbid[1] : false;
