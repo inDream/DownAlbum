@@ -15,6 +15,7 @@
 // @include       htt*://weibo.com/p/*/album*
 // @include       htt*://*.weibo.com/*
 // @include       htt*://www.pinterest.com/*
+// @include       htt*://ask.fm/*
 // @exclude       htt*://*static*.facebook.com*
 // @exclude       htt*://*channel*.facebook.com*
 // @exclude       htt*://developers.facebook.com/*
@@ -47,7 +48,7 @@ var log = function(s) {
 
 var dFAinit = function(){
   var href = location.href;
-  var site = href.match(/(www\.facebook|instagram|twitter|pinterest|weibo)\.com/);
+  var site = href.match(/(www\.facebook|instagram|twitter|pinterest|weibo)\.com|ask\.fm/);
   if (document.querySelector('#dFA') || !site) {
     return;
   }
@@ -90,6 +91,14 @@ var dFAinit = function(){
     if(!qS('#dfaButton')){
       var t = qS('.boardButtons');
       t.innerHTML += '<button id="dfaButton" onClick="dFAcore();" class="Module BoardFollowButton ui-FollowButton notNavigatable Button btn rounded primary boardFollowUnfollowButton hasText"><span class="buttonText">DownAlbum</span></button><button onClick="dFAcore(true);" class="Module BoardFollowButton ui-FollowButton notNavigatable Button btn rounded primary boardFollowUnfollowButton hasText"><span class="buttonText">DownAlbum(Setup)</span></button>';
+    }
+  }else if(href.indexOf('ask.fm') > 0){
+    k = qS('#profile-button');
+    if (k) {
+      k.innerHTML += '<a class="link-green" onClick="dFAcore();">DownAlbum</a>' + 
+        '<a class="link-green" onClick="dFAcore(true);">DownAlbum(Setup)</a>';
+    } else {
+      setTimeout(dFAinit, 300);
     }
   }
 };
@@ -1065,20 +1074,69 @@ function getPinterest_sub(){
     // Own Feed
   }
 }
+function getAskFM() {
+  var url = 'http://ask.fm/' + g.username + '/more';
+  var xhr = new XMLHttpRequest();
+  xhr.onload = function() {
+    var html = this.response;
+    var last = html.match(/\.hide\(\)/);
+    html = html.split('\n')[0].slice(html.indexOf('after(') + 7, -3);
+    html = getDOM(unescape(html).replace(/\\n/g, '').replace(/\\"/g, '"'));
+    var elms = html.querySelectorAll('img');
+    var i, box, link, title;
+    var photodata = g.photodata;
+    for (var i = 0; i < elms.length; i++) {
+      box = getParent(elms[i], '.questionBox');
+      link = box.querySelector('.link-time');
+      title = 'Q: ' + JSON.parse('"' + 
+        box.querySelector('.question span').textContent.replace(/"/g, '\\"')
+         + '"') + ' <br>' + 'A: ' + JSON.parse('"' + 
+        box.querySelector('.answer').textContent.replace(/"/g, '\\"') + '"');
+      photodata.photos.push({
+        title: title,
+        url: elms[i].src.replace('preview', 'original'),
+        href: 'http://ask.fm' + link.href,
+        date: link.getAttribute('hint')
+      });
+    }
+    console.log('Loaded ' + photodata.photos.length + ' photos.');
+    if (!qS('#stopAjaxCkb')) {
+      var stopBtn = document.createElement('a');
+      stopBtn.id = 'stopAjax';
+      stopBtn.className = 'stasis-box';
+      stopBtn.innerHTML = 'Stop<input id="stopAjaxCkb" type="checkbox">';
+      qS('#statistics').appendChild(stopBtn);
+    }
+    g.count += html.querySelectorAll('.questionBox').length;
+    g.status.textContent =  g.count + '/' + g.total;
+    document.title = g.status.textContent + ' ||' + g.title;
+    if (g.count < g.total && !last && !qS('#stopAjaxCkb').checked) {
+      g.page++;
+      setTimeout(getAskFM, 500);
+    } else {
+      output();
+    }
+  };
+  var data = 'time=' + g.time +'&page=' + g.page +'&authenticity_token=' + g.token
+  xhr.open('POST', url);
+  xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  xhr.send(data);
+}
 
 var dFAcore = function(setup, bypass) {
   g.start=1;g.settings={};
-  if(!setup&&localStorage['dFASetting']){g.settings=localStorage['dFASetting']?JSON.parse(localStorage['dFASetting']):{};}
-  g.mode=g.settings.mode||window.prompt('Please type your choice:\nNormal: 1/press Enter\nDownload without auto load: 2\nAutoload start from specific id: 3\nOptimization for large album: 4')||1;
-  if(g.mode==null){return;}
-  if(g.mode==3){g.ajaxStartFrom=window.prompt('Please enter the fbid:\ni.e. 123456 if photo link is:\nfacebook.com/photo.php?fbid=123456');if(!g.ajaxStartFrom){return;}}
-  if(g.mode==4){g.largeAlbum=true;g.mode=window.prompt('Please type your choice:\nNormal: 1/press Enter\nDownload without auto load: 2\nAutoload start from specific id: 3');}
-  g.loadCm=g.settings.notLoadCm?0:(g.settings.loadCm||confirm("Try to load photo's caption?"));
-  g.notLoadCm=g.settings.notLoadCm||!g.loadCm;
-  g.largeAlbum=g.settings.largeAlbum||g.largeAlbum;
+  if (location.href.match('facebook\.com')) {
+    if(!setup&&localStorage['dFASetting']){g.settings=localStorage['dFASetting']?JSON.parse(localStorage['dFASetting']):{};}
+    g.mode=g.settings.mode||window.prompt('Please type your choice:\nNormal: 1/press Enter\nDownload without auto load: 2\nAutoload start from specific id: 3\nOptimization for large album: 4')||1;
+    if(g.mode==null){return;}
+    if(g.mode==3){g.ajaxStartFrom=window.prompt('Please enter the fbid:\ni.e. 123456 if photo link is:\nfacebook.com/photo.php?fbid=123456');if(!g.ajaxStartFrom){return;}}
+    if(g.mode==4){g.largeAlbum=true;g.mode=window.prompt('Please type your choice:\nNormal: 1/press Enter\nDownload without auto load: 2\nAutoload start from specific id: 3');}
+    g.loadCm=g.settings.notLoadCm?0:(g.settings.loadCm||confirm("Try to load photo's caption?"));
+    g.notLoadCm=g.settings.notLoadCm||!g.loadCm;
+    g.largeAlbum=g.settings.largeAlbum||g.largeAlbum;
+  }
   g.newWin=g.settings.notNewWin?0:(g.settings.newWin||confirm("Open page in new window?"));
-  g.notNewWin=g.settings.notNewWin||!g.newWin;
-  g.settings={mode:g.mode,loadCm:g.loadCm,largeAlbum:g.largeAlbum,notLoadCm:g.notLoadCm,newWin:g.newWin,notNewWin:g.notNewWin};
+  g.settings={mode:g.mode,loadCm:g.loadCm,largeAlbum:g.largeAlbum,notLoadCm:g.notLoadCm,newWin:g.newWin};
   localStorage['dFASetting']=JSON.stringify(g.settings);
   var aName=document.title,aAuth="",aDes="",aTime="";g.start=2;
   g.timeOffset=new Date().getTimezoneOffset()/60*-3600000;
@@ -1244,6 +1302,36 @@ var dFAcore = function(setup, bypass) {
       aDes: aDes
     };
     getPinterest();
+  }else if(location.href.match(/ask.fm/)){
+    var token = '';
+    var k = qSA('script');
+    for(var i = 0; i < k.length; i++){
+      if (k[i].textContent.match('AUTH_TOKEN')) {
+        try {
+          token = k[i].textContent.split('\n')[1].match(/"(.*)"/)[1];
+        } catch (e) {
+          alert('Cannot get token');
+        }
+        break;
+      }
+    }
+    g.count = 0;
+    g.page = 0;
+    g.time = qS('#time').value;
+    g.token = encodeURIComponent(token);
+    g.status = qS('#profile_answer_counter');
+    g.total = +getText('#profile_answer_counter');
+    g.title = document.title;
+    g.username = getText('.username span').slice(1)
+    g.photodata = {
+      aName: getText('.link-profile-name'),
+      aAuth: getText('.username span'),
+      aLink: location.href,
+      aTime: aTime,
+      photos: [],
+      aDes: getText('.profile-bio')
+    };
+    getAskFM();
   }
 };
 function sendRequest(request, sender, sendResponse) {

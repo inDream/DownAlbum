@@ -7,19 +7,15 @@
 // @updateURL     https://raw.githubusercontent.com/inDream/DownAlbum/master/DownAlbum.meta.js
 // @downloadURL   https://raw.githubusercontent.com/inDream/DownAlbum/master/DownAlbum.user.js
 // @grant         unsafeWindow
-// @include       htt*://*.facebook.com/*
-// @match         http://*.facebook.com/*
-// @match         https://*.facebook.com/*
+// @grant         GM_xmlhttpRequest
+// @include       htt*://*.facebook.com/
+// @include       htt*://*.facebook.com/*/*
 // @include       htt*://instagram.com/*
-// @match         http://instagram.com/*
 // @include       htt*://twitter.com/*
-// @match         https://twitter.com/*
 // @include       htt*://weibo.com/p/*/album*
-// @match         http://weibo.com/p/*/album*
 // @include       htt*://*.weibo.com/*
-// @match         http://*.weibo.com/*
 // @include       htt*://www.pinterest.com/*
-// @match         http://www.pinterest.com/*
+// @include       htt*://ask.fm/*
 // @exclude       htt*://*static*.facebook.com*
 // @exclude       htt*://*channel*.facebook.com*
 // @exclude       htt*://developers.facebook.com/*
@@ -35,5 +31,9 @@
 // @exclude       htt*://*.facebook.com/contact_importer/*
 // @exclude       htt*://*.facebook.com/ajax/*
 // @exclude       htt*://www.facebook.com/places/map*_iframe.php*
+// @exclude       https://www.facebook.com/xti.php
+// @exclude       https://*.ak.facebook.com/*
+// @exclude       https://www.facebook.com/ajax/pagelet/generic.php/*
+// @exclude       https://www.facebook.com/*/plugins/*
 // @require       http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js
 // ==/UserScript==
