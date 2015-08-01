@@ -1125,8 +1125,10 @@ function getAskFM() {
 
 var dFAcore = function(setup, bypass) {
   g.start=1;g.settings={};
+  if(!setup&&localStorage['dFASetting']){
+    g.settings=localStorage['dFASetting']?JSON.parse(localStorage['dFASetting']):{};
+  }
   if (location.href.match('facebook\.com')) {
-    if(!setup&&localStorage['dFASetting']){g.settings=localStorage['dFASetting']?JSON.parse(localStorage['dFASetting']):{};}
     g.mode=g.settings.mode||window.prompt('Please type your choice:\nNormal: 1/press Enter\nDownload without auto load: 2\nAutoload start from specific id: 3\nOptimization for large album: 4')||1;
     if(g.mode==null){return;}
     if(g.mode==3){g.ajaxStartFrom=window.prompt('Please enter the fbid:\ni.e. 123456 if photo link is:\nfacebook.com/photo.php?fbid=123456');if(!g.ajaxStartFrom){return;}}
@@ -1135,7 +1137,7 @@ var dFAcore = function(setup, bypass) {
     g.notLoadCm=g.settings.notLoadCm||!g.loadCm;
     g.largeAlbum=g.settings.largeAlbum||g.largeAlbum;
   }
-  g.newWin=g.settings.notNewWin?0:(g.settings.newWin||confirm("Open page in new window?"));
+  g.newWin=g.settings.newWin||confirm("Open page in new window?");
   g.settings={mode:g.mode,loadCm:g.loadCm,largeAlbum:g.largeAlbum,notLoadCm:g.notLoadCm,newWin:g.newWin};
   localStorage['dFASetting']=JSON.stringify(g.settings);
   var aName=document.title,aAuth="",aDes="",aTime="";g.start=2;
