@@ -151,7 +151,10 @@ function _addLink(k, target) {
 var g = {};
 function getParent(child, selector){
   var target = child;
-  while(target && !target.querySelector(selector) && target.parentNode != document.body){
+  while(target && !target.querySelector(selector)){
+    if (target.parentNode.tagName == 'BODY') {
+      return target;
+    }
     target = target.parentNode;
   }
   return target ? target.querySelector(selector) : null;
