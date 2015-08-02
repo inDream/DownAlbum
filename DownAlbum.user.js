@@ -161,7 +161,7 @@ var g = {};
 function getParent(child, selector){
   var target = child;
   while(target && !target.querySelector(selector)){
-    if (target.parentNode.tagName == 'BODY') {
+    if (target.parentNode && target.parentNode.tagName == 'BODY') {
       return target;
     }
     target = target.parentNode;
