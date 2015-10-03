@@ -109,27 +109,23 @@ function addLink(){
   for(var i = 0; i<k.length; i++){
     if (k[i].nextElementSibling) {
       _addLink(k[i], k[i].nextElementSibling);
-    } else {
-      log(k[i]);
-    }
-  }
-  k = qS('.-cx-PRIVATE-Modal__root .ResponsiveBlock');
-  if(k){
-    var target = qS('.-cx-PRIVATE-Video__root');
-    if (target) {
-      _addLink(k, target);
     }
   }
 }
 function _addLink(k, target) {
-  var t = k.querySelector('.-cx-PRIVATE-Photo__image, .vjs-tech');
-  var src = t.getAttribute("src");
-  var next = target.nextElementSibling;
-  if (next) {
-    if (next.childNodes[0].getAttribute('href') == src) {
+  var t = k.querySelector('.-cx-PRIVATE-Photo__image, video');
+  if (t) {
+    var src = t.getAttribute("src");
+    if (qS('.dLink [src="' + src + '"]')) {
       return;
-    } else {
-      target.parentNode.removeChild(next);
+    }
+    var next = target.nextElementSibling;
+    if (next) {
+      if (next.childNodes[0].getAttribute('href') == src) {
+        return;
+      } else {
+        target.parentNode.removeChild(next);
+      }
     }
   }
   if (t && src) {
