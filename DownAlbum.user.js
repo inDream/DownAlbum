@@ -457,7 +457,8 @@ function getPhotos(){
       }
       ajax=location.protocol+'//www.facebook.com/ajax/pagelet/generic.php/PhotoViewerInitPagelet?ajaxpipe=1&ajaxpipe_token='+g.Env.ajaxpipe_token+'&no_script_path=1&data='+JSON.stringify(q)+'&__user='+g.Env.user+'&__a=1&__adt=2';
     }
-    url=url.match(/&src.(.*)/)[1].replace("s720x720/","").replace(/&smallsrc=.*\?/, '?');
+    url = url.match(/&src.(.*)/)[1]
+      .replace(/s\d{3,4}x\d{3,4}\//g, '').replace(/&smallsrc=.*\?/, '?');
     if(url.match(/\?/)){
       var b=url.split('?'), t='', a=b[1].split('&');
       for(var ii=0;ii<a.length;ii++){
@@ -669,7 +670,15 @@ function fbAutoLoad(elms){
     }
     aInfo = query;
   }else if(!g.newL){
-    p=JSON.parse(qS('#pagelet_timeline_main_column').dataset.gt).profile_owner;
+    var ele = qS('#pagelet_timeline_main_column');
+    if (ele) {
+      p = JSON.parse(ele.dataset.gt).profile_owner;
+    } else if (ele = qS('#pagesHeaderLikeButton [data-profileid]')) {
+      p = ele.dataset.profileid;
+    } else {
+      alert('Cannot get profile id!');
+      return;
+    }
     aInfo={"scroll_load":true,"last_fbid":l,"fetch_size":32,"profile_id":+p,"tab_key":"photos"+(isPS?'_stream':''),"sk":"photos"+(isPS?'_stream':'')};
   }else{
     p = qS('#pagelet_timeline_medley_photos a[aria-selected="true"]').getAttribute('aria-controls').match(/.*_(.*)/)[1];
