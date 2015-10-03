@@ -967,7 +967,7 @@ function parsePinterest(list){
       title: list[j].description + '<br><a taget="_blank" href="' + 
         list[j].link + '">Pinned from ' + list[j].domain + '</a>',
       url: list[j].images.orig.url,
-      href: 'http://www.pinterest.com/pin/' + list[j].id + '/',
+      href: 'https://www.pinterest.com/pin/' + list[j].id + '/',
       date: new Date(list[j].created_at).toLocaleString()
     });
   }
@@ -1010,7 +1010,7 @@ function getPinterest(){
       "render_type": 1,
       "error_strategy": 0
     };
-    var url = 'http://www.pinterest.com/resource/BoardResource/get/?source_url=';
+    var url = 'https://www.pinterest.com/resource/BoardResource/get/?source_url=';
     data = '%2F' + board[1] + '%2F' + board[2] + '%2F&data=' + escape(JSON.stringify(data));
     url = url + data + '&_=' + (+new Date());
     xhr.open('GET', url);
@@ -1059,7 +1059,7 @@ function getPinterest_sub(){
       },
       "module_path": "Button(class_name=primary, text=Close)"
     };
-    var url = 'http://www.pinterest.com/resource/BoardFeedResource/get/';
+    var url = 'https://www.pinterest.com/resource/BoardFeedResource/get/';
     var data = 'source_url=%2F' + board[1] + '%2F' + board[2] + 
       '%2F&data=' + escape(JSON.stringify(data)) + '&_=' + (+new Date());
     xhr.open('POST', url);
