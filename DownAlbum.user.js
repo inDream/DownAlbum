@@ -866,9 +866,10 @@ function getTwitter(){
     var photodata = g.photodata;
     var i, j, link, url, title, date;
     for(i = 0; i < elms.length; i++){
-      link = elms[i].querySelectorAll('.media, .media-thumbnail');
+      link = elms[i].querySelectorAll('.media, .media-thumbnail, .js-old-photo');
       for(j = 0; j < link.length; j++){
-        url = link[j].getAttribute('data-resolved-url-large') || link[j].getAttribute('data-url');
+        url = link[j].getAttribute('data-resolved-url-large') || 
+          link[j].getAttribute('data-url') || link[j].getAttribute('data-image-url');
         if (!url) {
           continue;
         }
@@ -890,13 +891,15 @@ function getTwitter(){
       }
     }
     log("Loaded", photodata.photos.length);
-    document.title = photodata.photos.length + g.total + ' || ' + g.photodata.aName;
     if (!qS('#stopAjaxCkb')) {
-      var stopBtn = document.createElement('li');
+      var stopBtn = document.createElement('ul');
       stopBtn.id = 'stopAjax';
-      stopBtn.innerHTML = '<a>Stop <input id="stopAjaxCkb" type="checkbox"></a>';
-      qS('.me.dropdown .dropdown-menu').appendChild(stopBtn);
+      stopBtn.className = 'nav secondary-nav';
+      stopBtn.innerHTML = '<span class="dfaCounter"></span>|| <a>Stop <input id="stopAjaxCkb" type="checkbox"></a>';
+      qS('.topbar .pull-right').appendChild(stopBtn);
     }
+    document.title = photodata.photos.length + g.total + ' || ' + g.photodata.aName;
+    qS('.dfaCounter').textContent = g.photodata.photos.length + g.total;
     if (qS('#stopAjaxCkb') && qS('#stopAjaxCkb').checked) {
       output();
     } else if (r.has_more_items && g.ajax && !g.ajaxStop) {
