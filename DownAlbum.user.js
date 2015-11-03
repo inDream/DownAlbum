@@ -959,6 +959,9 @@ function getWeibo(){
 function parsePinterest(list){
   var photodata = g.photodata;
   for(var j = 0; j < list.length; j++){
+    if (list[j].name) {
+      continue;
+    }
     photodata.photos.push({
       title: list[j].description + '<br><a taget="_blank" href="' + 
         list[j].link + '">Pinned from ' + list[j].domain + '</a>',
