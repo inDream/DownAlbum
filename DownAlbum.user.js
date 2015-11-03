@@ -802,7 +802,7 @@ function instaAjax(){
     if(qS('#stopAjaxCkb')&&qS('#stopAjaxCkb').checked){output();}
     else if(total>photodata.photos.length&&g.ajax){instaAjax();}else{output();}
   }
-  xhr.open("GET", location.protocol+'//instagram.com/'+g.Env.user.username+'/media?max_id='+g.ajax);
+  xhr.open("GET", location.protocol+'//instagram.com/'+g.Env.user.username+'/media/?max_id='+g.ajax);
   xhr.send();
 }
 function getInstagram(){
