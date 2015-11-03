@@ -1366,6 +1366,7 @@ switch(request.type){
       var href=d[i].href?d[i].href:'',title=d[i].title||'',tag=d[i].tag||'',comments=d[i].comments||'',tagIndi='',dateInd='',commentInd='';
       href=href?' href="'+href+'" target="_blank"':'';
       if(tag){
+        tag = tag.replace(/href="/g, 'target="_blank" href="https://www.facebook.com');
         tag='<div class="loadedTag">'+tag+'</div>';
         tagIndi='<i class="tagArrow tagInd"></i>';
       }
