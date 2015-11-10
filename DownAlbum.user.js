@@ -48,7 +48,7 @@ var log = function(s) {
 
 var dFAinit = function(){
   var href = location.href;
-  var site = href.match(/(www\.facebook|instagram|twitter|pinterest|weibo)\.com|ask\.fm/);
+  var site = href.match(/(facebook|instagram|twitter|pinterest|weibo)\.com|ask\.fm/);
   if (document.querySelector('#dFA') || !site) {
     return;
   }
