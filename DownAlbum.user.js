@@ -11,6 +11,7 @@
 // @include       htt*://*.facebook.com/
 // @include       htt*://*.facebook.com/*/*
 // @include       htt*://instagram.com/*
+// @include       htt*://*.instagram.com/*
 // @include       htt*://twitter.com/*
 // @include       htt*://weibo.com/p/*/album*
 // @include       htt*://*.weibo.com/*
