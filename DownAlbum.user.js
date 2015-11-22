@@ -1161,7 +1161,7 @@ var dFAcore = function(setup, bypass) {
   if(location.href.match(/.*facebook.com/)){
     if(qS('.fbPhotoAlbumTitle')||qS('.fbxPhotoSetPageHeader')){
     aName=getText('.fbPhotoAlbumTitle')||getText("h2")||document.title;
-    aAuth=getText("h2")||getText('.fbStickyHeaderBreadcrumb .uiButtonText')||getText(".fbxPhotoSetPageHeaderByline a");
+    aAuth=getText('#fb-timeline-cover-name')||getText("h2")||getText('.fbStickyHeaderBreadcrumb .uiButtonText')||getText(".fbxPhotoSetPageHeaderByline a");
     if(!aAuth){aName=getText('.fbPhotoAlbumTitle'); aAuth=getText('h2');}
     aDes=getText('.fbPhotoCaptionText',1);
     try{aTime=qS('#globalContainer abbr').title;
