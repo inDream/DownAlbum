@@ -238,6 +238,26 @@ function getFbid(s){
   }
   return fbid.length ? fbid[1] : false;
 }
+function extractJSON(str) {
+  // http://stackoverflow.com/questions/10574520/
+  var firstOpen, firstClose, candidate;
+  firstOpen = str.indexOf('{', firstOpen + 1);
+  do {
+    firstClose = str.lastIndexOf('}');
+    if (firstClose <= firstOpen) {
+      return null;
+    }
+    do {
+      candidate = str.substring(firstOpen, firstClose + 1);
+      try {
+        var res = JSON.parse(candidate);
+        return res;
+      } catch (e) {}
+      firstClose = str.substr(0, firstClose).lastIndexOf('}');
+    } while (firstClose > firstOpen);
+    firstOpen = str.indexOf('{', firstOpen + 1);
+  } while (firstOpen != -1);
+}
 function output(){
   g.photodata.dTime = (new Date).toLocaleString();
   if(location.href.match(/.*facebook.com/)){
@@ -583,6 +603,13 @@ function fbAjaxAttachment(){
     output();
   }
 }
+function fbAutoLoadFailed(){
+  if(confirm('Cannot load required variable, refresh page to retry?')){
+    location.reload();
+  }else{
+    g.lastLoaded=1;getPhotos();
+  }
+}
 function fbAutoLoad(elms){
   var l; if(g.ajaxStartFrom){
     l=g.ajaxStartFrom;
@@ -632,19 +659,11 @@ function fbAutoLoad(elms){
         }
       query = temp[0];
       var cursor = temp[1];
-      try{
-        query = JSON.parse(query.slice(query.indexOf("({")+1, query.lastIndexOf("})")+1));
-        cursor = JSON.parse(cursor.slice(cursor.indexOf("({")+1, cursor.lastIndexOf("})")+1));
-      }catch(e){
-        log(e);
-        try{
-          query = JSON.parse(query.slice(query.indexOf("(")+1, query.lastIndexOf(")")));
-          cursor = JSON.parse(cursor.slice(cursor.indexOf("(")+1, cursor.lastIndexOf(")")));
-        }catch(e){
-          log(e);
-          fbAutoLoadFailed();
-          return;
-        }
+      query = extractJSON(query);
+      cursor = extractJSON(cursor);
+      if (!query || !cursor) {
+        fbAutoLoadFailed();
+        return;
       }
       var rq = query.jsmods.require;
       for(i=0; i<rq.length; i++){
