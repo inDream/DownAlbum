@@ -453,10 +453,14 @@ function getPhotos(){
     fbAutoLoad(elms);return;
   }
   for (i = 0;i<elms.length;i++) {
-    var test1 = (getParent(elms[i],'.mainWrapper')&&getParent(elms[i],'.mainWrapper').querySelector('.shareSubtext')&&elms[i].childNodes[0]&&elms[i].childNodes[0].tagName=='IMG');
-    var test2 = (getParent(elms[i],'.timelineUnitContainer')&&getParent(elms[i],'.timelineUnitContainer').querySelector('.shareUnit'));
-    var test3 = (elms[i].querySelector('img')&&!elms[i].querySelector('img').scrollHeight);
-    if(testNeeded&&(test1||test2||test3)){continue;}
+    if (testNeeded) {
+      var test1 = (getParent(elms[i],'.mainWrapper')&&getParent(elms[i],'.mainWrapper').querySelector('.shareSubtext')&&elms[i].childNodes[0]&&elms[i].childNodes[0].tagName=='IMG');
+      var test2 = (getParent(elms[i],'.timelineUnitContainer')&&getParent(elms[i],'.timelineUnitContainer').querySelector('.shareUnit'));
+      var test3 = (elms[i].querySelector('img')&&!elms[i].querySelector('img').scrollHeight);
+      if (test1 || test2 || test3) {
+        continue;
+      }
+    }
     try{
     var url=unescape(elms[i].getAttribute('ajaxify')), href = elms[i].href, downurl;
     var fbid = getFbid(href);
