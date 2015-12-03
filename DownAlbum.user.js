@@ -806,20 +806,25 @@ function instaAjax(){
     if(elms[0].id.indexOf('_')<0)elms=elms[3];
     g.ajax=res.more_available?elms[elms.length-1].id:null;
     for(var i=0;i<elms.length;i++){
-      var j = null, url = parseFbSrc(elms[i].images.standard_resolution.url);
-      g.stored.forEach(function(v,k){if(v==url)j=k;});j=!j?photodata.photos.length:j;
+      var url = parseFbSrc(elms[i].images.standard_resolution.url);
       var c = elms[i].comments, cList = [c.count];
       for(var k=0; k<c.data.length; k++){
         var p = c.data[k];if(p){
         cList.push({name: p.from.full_name || p.from.username, url: 'http://instagram.com/'+p.from.username, text: p.text, date: parseTime(p.created_time), id: elms[i].link});}
       }
-      photodata.photos[j]={
-      title: elms[i].caption?elms[i].caption.text:'',
-      url: url,
-      href: elms[i].link,
-      date: elms[i].created_time?parseTime(elms[i].created_time):'',
-      comments: c.count?cList:''
-      };
+      if(elms[i].videos){
+        photodata.videos.push({
+          url: elms[i].videos.standard_resolution.url,
+          thumb: url
+        });
+      }
+      photodata.photos.push({
+        title: elms[i].caption?elms[i].caption.text:'',
+        url: url,
+        href: elms[i].link,
+        date: elms[i].created_time?parseTime(elms[i].created_time):'',
+        comments: c.count?cList:''
+      });
     }
     log('Loaded '+photodata.photos.length+' of '+total+' photos.');
     if(!g.status.e.nextElementSibling){var stopBtn=document.createElement('label');stopBtn.id='stopAjax';stopBtn.innerHTML='<a class="navItem"> | Stop</a><input id="stopAjaxCkb" type="checkbox">';g.status.e.parentNode.appendChild(stopBtn);}
@@ -827,8 +832,8 @@ function instaAjax(){
     document.title="("+g.photodata.photos.length+"/"+total+") ||"+g.photodata.aName;
     if(qS('#stopAjaxCkb')&&qS('#stopAjaxCkb').checked){output();}
     else if(total>photodata.photos.length&&g.ajax){instaAjax();}else{output();}
-  }
-  xhr.open("GET", location.protocol+'//instagram.com/'+g.Env.user.username+'/media/?max_id='+g.ajax);
+  };
+  xhr.open("GET", 'https://www.instagram.com/'+g.Env.user.username+'/media/?max_id='+g.ajax);
   xhr.send();
 }
 function getInstagram(){
