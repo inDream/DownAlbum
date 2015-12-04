@@ -1328,11 +1328,10 @@ var dFAcore = function(setup, bypass) {
         location.reload(); return;
       }
       if(g.mode != 2){
-        g.total = qS('.sCount, .-cx-PRIVATE-PostsStatistic__count') ?
-         +qS('.sCount, .-cx-PRIVATE-PostsStatistic__count').textContent.replace(/,/g,'') : 
-         (g.Env.user.counts.media || g.Env.user.media.count);
+        g.total = qS('header li span span[class]') ?
+         +getText('header li span span[class]') : g.Env.user.media.count;
       }else{
-        g.total = g.Env.user.counts.media || g.Env.user.media.count;
+        g.total = g.Env.user.media.count;
       }
       log(g.Env);
       aName = g.Env.user.full_name;
@@ -1340,9 +1339,9 @@ var dFAcore = function(setup, bypass) {
       aAuth = g.Env.user.username;
       aLink = g.Env.user.website || g.Env.user.external_url;
       if(!aLink)aLink='http://instagram.com/'+aAuth;
-      g.status = {e: qS('.-cx-PRIVATE-Navigation__menuItems, .link-profile strong, .loginLink')};
+      g.status = {e: qS('a[data-reactid*="$profileLink"]')};
       g.status.t = g.status.e.textContent;
-      g.Env.media = g.Env.user.media.nodes || g.Env.userMedia;
+      g.Env.media = g.Env.user.media.nodes;
       var aTime = g.Env.media ? g.Env.media[0].date || g.Env.media[0].created_time : 0;
       g.photodata = {
         aName: aName.replace(/'|"/g,'\"'),
