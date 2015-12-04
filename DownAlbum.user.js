@@ -106,15 +106,16 @@ var dFAinit = function(){
 function runLater(){clearTimeout(window.addLinkTimer);window.addLinkTimer = setTimeout(addLink, 300);}
 function addLink(){
   dFAinit();
-  var k = qSA('.-cx-PRIVATE-Post__media');
+  var k = qSA('article>div:nth-of-type(1)');
   for(var i = 0; i<k.length; i++){
     if (k[i].nextElementSibling) {
       _addLink(k[i], k[i].nextElementSibling);
     }
   }
 }
+
 function _addLink(k, target) {
-  var t = k.querySelector('.-cx-PRIVATE-Photo__image, video');
+  var t = k.querySelector('img, video');
   if (t) {
     var src = parseFbSrc(t.getAttribute("src"));
     if (qS('.dLink [src="' + src + '"]')) {
@@ -122,7 +123,8 @@ function _addLink(k, target) {
     }
     var next = target.nextElementSibling;
     if (next) {
-      if (next.childNodes[0].getAttribute('href') == src) {
+      if (next.childNodes[0] &&
+        next.childNodes[0].getAttribute('href') == src) {
         return;
       } else {
         target.parentNode.removeChild(next);
@@ -131,8 +133,7 @@ function _addLink(k, target) {
   }
   if (t && src) {
     var link = document.createElement('div');
-    link.className = 'dLink -cx-PRIVATE-PostInfo__root ' +
-      '-cx-PRIVATE-PostLikers__likeCount';
+    link.className = 'dLink';
     var title = '(provided by Download FB Album mod)';
     var html = '<a href="' + src + '" download title="' + title + '">Download';
     if (src.match('mp4')) {
