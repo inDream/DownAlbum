@@ -106,23 +106,28 @@ var dFAinit = function(){
 function runLater(){clearTimeout(window.addLinkTimer);window.addLinkTimer = setTimeout(addLink, 300);}
 function addLink(){
   dFAinit();
-  var k = qSA('article>div:nth-of-type(1)');
+  var k = qSA('article>div:nth-of-type(1), header>div:nth-of-type(1)');
   for(var i = 0; i<k.length; i++){
     if (k[i].nextElementSibling) {
       _addLink(k[i], k[i].nextElementSibling);
     }
   }
+  var k = qSA('header');
+  for(var i = 0; i<k.length; i++){
+    _addLink(k[i], k[i]);
+  }
 }
 
 function _addLink(k, target) {
+  var isProfile = (k.tagName == 'HEADER' || k.parentNode.tagName == 'HEADER');
   var t = k.querySelector('img, video');
   if (t) {
     var src = parseFbSrc(t.getAttribute("src"));
-    if (qS('.dLink [src="' + src + '"]')) {
+    if (qS('.dLink [href="' + src + '"]')) {
       return;
     }
     var next = target.nextElementSibling;
-    if (next) {
+    if (next && !isProfile) {
       if (next.childNodes[0] &&
         next.childNodes[0].getAttribute('href') == src) {
         return;
@@ -144,7 +149,9 @@ function _addLink(k, target) {
       html += '</a>';
     }
     link.innerHTML = html;
-    if (target.insertAdjacentElement) {
+    if (isProfile) {
+      k.appendChild(link);
+    } else if (target.insertAdjacentElement) {
       target.insertAdjacentElement("afterEnd", link);
     } else {
       if (target.nextSibling) {
