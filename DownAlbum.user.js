@@ -974,10 +974,12 @@ function getTwitter(){
     var photodata = g.photodata;
     var i, j, link, url, title, date;
     for(i = 0; i < elms.length; i++){
-      link = elms[i].querySelectorAll('.media, .media-thumbnail, .js-old-photo');
+      link = elms[i].querySelectorAll('.media, .media-thumbnail, .js-old-photo, div[data-image-url]');
+      if (!link.length) {
+        link = elms[i].querySelectorAll('img[src*=media]');
+      }
       for(j = 0; j < link.length; j++){
-        url = link[j].getAttribute('data-resolved-url-large') || 
-          link[j].getAttribute('data-url') || link[j].getAttribute('data-image-url');
+        url = link[j].getAttribute('data-image-url') || link[j].src;
         if (!url) {
           continue;
         }
