@@ -8,7 +8,7 @@
 // @downloadURL   https://raw.githubusercontent.com/inDream/DownAlbum/master/DownAlbum.user.js
 // @grant         unsafeWindow
 // @grant         GM_xmlhttpRequest
-// @include       htt*://*.facebook.com/
+// @include       htt*://*.facebook.com/*
 // @include       htt*://*.facebook.com/*/*
 // @include       htt*://instagram.com/*
 // @include       htt*://*.instagram.com/*
@@ -53,7 +53,7 @@ var dFAinit = function(){
   if (document.querySelector('#dFA') || !site) {
     return;
   }
-  var k, k2;
+  var k, k2, klass;
   if (site[0] == 'instagram.com') {
     k = document.createElement('div');
     k.className = '-cx-PRIVATE-IGButton__root -cx-PRIVATE-IGButton__sizeAuto';
@@ -64,7 +64,7 @@ var dFAinit = function(){
   k.innerHTML = '<a id="dFA" class="navSubmenu">DownFbAlbum</a>';
   k2.innerHTML = '<a id="dFAsetup" class="navSubmenu">DownFbAlbum(Setup)</a>';
   var t = qS('.uiContextualLayerPositionerFixed ul') || qS('.Dropdown ul') ||
-    qS('.gn_topmenulist.gn_topmenulist_set ul') || qS('#pagelet_bluebar [role*="menu"]') ||
+    qS('.gn_topmenulist.gn_topmenulist_set ul') || qS('.uiContextualLayer [role="menu"]') ||
     qS('.me.dropdown .dropdown-menu') || qS('.-cx-PRIVATE-ProfilePage__usernameAndFollow');
   if(t){
     t.appendChild(k); t.appendChild(k2);
@@ -76,9 +76,9 @@ var dFAinit = function(){
     });
   }
   if(href.indexOf('facebook.com') > 0){
-    if(!t && qS('#userNavigation')){
+    if(!t && qS('#userNavigation, #logoutMenu')){
       // Handle async menu
-      $('#pageLoginAnchor').on('click.dfainit', function(){
+      $('#pageLoginAnchor, #logoutMenu').on('click.dfainit', function(){
         setTimeout(dFAinit, 500);
       });
     }
