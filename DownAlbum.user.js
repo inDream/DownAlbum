@@ -55,8 +55,9 @@ var dFAinit = function(){
   }
   var k, k2, klass;
   if (site[0] == 'instagram.com') {
+    klass = qS('header div:nth-of-type(2) div span');
     k = document.createElement('div');
-    k.className = '-cx-PRIVATE-IGButton__root -cx-PRIVATE-IGButton__sizeAuto';
+    k.className = klass ? klass.className : '';
   } else {
     k = document.createElement('li');
   }
@@ -65,7 +66,7 @@ var dFAinit = function(){
   k2.innerHTML = '<a id="dFAsetup" class="navSubmenu">DownFbAlbum(Setup)</a>';
   var t = qS('.uiContextualLayerPositionerFixed ul') || qS('.Dropdown ul') ||
     qS('.gn_topmenulist.gn_topmenulist_set ul') || qS('.uiContextualLayer [role="menu"]') ||
-    qS('.me.dropdown .dropdown-menu') || qS('.-cx-PRIVATE-ProfilePage__usernameAndFollow');
+    qS('.me.dropdown .dropdown-menu') || qS('header div:nth-of-type(2) div');
   if(t){
     t.appendChild(k); t.appendChild(k2);
     k.addEventListener("click", function(){
