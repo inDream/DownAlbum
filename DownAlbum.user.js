@@ -36,6 +36,7 @@
 // @exclude       https://*.ak.facebook.com/*
 // @exclude       https://www.facebook.com/ajax/pagelet/generic.php/*
 // @exclude       https://www.facebook.com/*/plugins/*
+// @exclude       https://www.facebook.com/xti.php*
 // @require       http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js
 // ==/UserScript==
 
