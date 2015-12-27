@@ -122,6 +122,10 @@ function addLink(){
 
 function _addLink(k, target) {
   var isProfile = (k.tagName == 'HEADER' || k.parentNode.tagName == 'HEADER');
+  var tParent = target.parentNode;
+  if (tParent.querySelectorAll('img').length > 2) {
+    return;
+  }
   var t = k.querySelector('img, video');
   if (t) {
     var src = parseFbSrc(t.getAttribute("src"));
@@ -134,7 +138,7 @@ function _addLink(k, target) {
         next.childNodes[0].getAttribute('href') == src) {
         return;
       } else {
-        target.parentNode.removeChild(next);
+        tParent.removeChild(next);
       }
     }
   }
@@ -157,9 +161,9 @@ function _addLink(k, target) {
       target.insertAdjacentElement("afterEnd", link);
     } else {
       if (target.nextSibling) {
-        target.parentNode.insertBefore(link, target.nextSibling);
+        tParent.insertBefore(link, target.nextSibling);
       } else {
-        target.parentNode.appendChild(link);
+        tParent.appendChild(link);
       }
     }
   }
