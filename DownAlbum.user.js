@@ -132,13 +132,14 @@ function _addLink(k, target) {
     if (qS('.dLink [href="' + src + '"]')) {
       return;
     }
-    var next = target.nextElementSibling;
-    if (next && !isProfile) {
+    var next = isProfile ? target.querySelector('.dLink') : 
+      target.nextElementSibling;
+    if (next) {
       if (next.childNodes[0] &&
         next.childNodes[0].getAttribute('href') == src) {
         return;
       } else {
-        tParent.removeChild(next);
+        (isProfile ? target : tParent).removeChild(next);
       }
     }
   }
