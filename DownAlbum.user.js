@@ -180,8 +180,9 @@ function getParent(child, selector){
   }
   return target ? target.querySelector(selector) : null;
 }
-function getText(s, html){
-  var q = qSA(s)[0], t = 'textContent';
+function getText(s, html, parent){
+  var q = parent ? parent.querySelector(s) : qS(s);
+  var t = 'textContent';
   if(q && q.querySelectorAll('br').length){t = 'innerHTML';}
   if(q && html && q.querySelectorAll('a').length){t = 'innerHTML';}
   return q ? q[t] : "";
@@ -1202,52 +1203,66 @@ function getPinterest_sub(){
   }
 }
 function getAskFM() {
-  var url = 'http://ask.fm/' + g.username + '/more';
+  var url = 'https://ask.fm/' + g.username + '/answers/more?page=' + g.page;
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
-    var html = this.response;
-    var last = html.match(/\.hide\(\)/);
-    html = html.split('\n')[0].slice(html.indexOf('after(') + 7, -3);
-    html = getDOM(unescape(html).replace(/\\n/g, '').replace(/\\"/g, '"'));
+    var html = getDOM(this.response);
+    var hasMore = html.querySelector('.viewMore');
     var elms = html.querySelectorAll('img');
-    var i, box, link, title;
+    var i, box, link, title, url, video;
     var photodata = g.photodata;
     for (var i = 0; i < elms.length; i++) {
-      box = getParent(elms[i], '.questionBox');
-      link = box.querySelector('.link-time');
-      title = 'Q: ' + JSON.parse('"' + 
-        box.querySelector('.question span').textContent.replace(/"/g, '\\"')
-         + '"') + ' <br>' + 'A: ' + JSON.parse('"' + 
-        box.querySelector('.answer').textContent.replace(/"/g, '\\"') + '"');
+      box = getParent(elms[i], '.item');
+      if (box.className == 'viewMore') {
+        continue;
+      }
+      video = box.querySelector('video');
+      if (video) {
+        url = elms[i].src;
+        photodata.videos.push({
+          url: video.src,
+          thumb: url
+        });
+      } else {
+        url = elms[i].parentNode.getAttribute('data-url') ||
+          elms[i].getAttribute('data-src');
+      }
+      link = box.querySelector('.streamItemsAge');
+      console.log(link)
+      title = 'Q: ' +  
+        getText('.streamItemContent-question', 0, box) +
+        ' <br>' + 'A: ' + getText('.streamItemContent-answer', 0, box);
       photodata.photos.push({
         title: title,
-        url: elms[i].src.replace('preview', 'original'),
-        href: 'http://ask.fm' + link.href,
-        date: link.getAttribute('hint')
+        url: url,
+        href: 'https://ask.fm' + link.getAttribute('href'),
+        date: link.getAttribute('data-hint')
       });
     }
     console.log('Loaded ' + photodata.photos.length + ' photos.');
     if (!qS('#stopAjaxCkb')) {
       var stopBtn = document.createElement('a');
       stopBtn.id = 'stopAjax';
-      stopBtn.className = 'stasis-box';
-      stopBtn.innerHTML = 'Stop<input id="stopAjaxCkb" type="checkbox">';
-      qS('#statistics').appendChild(stopBtn);
+      stopBtn.className = 'blockLink bold';
+      stopBtn.innerHTML = 'Stop<input id="stopAjaxCkb" style="-webkit-appearance: checkbox;" type="checkbox">';
+      qS('#profileFooter').appendChild(stopBtn);
     }
-    g.count += html.querySelectorAll('.questionBox').length;
+    g.count += html.querySelectorAll('.item').length;
     g.status.textContent =  g.count + '/' + g.total;
     document.title = g.status.textContent + ' ||' + g.title;
-    if (g.count < g.total && !last && !qS('#stopAjaxCkb').checked) {
+    if (g.count < g.total && hasMore && !qS('#stopAjaxCkb').checked) {
       g.page++;
       setTimeout(getAskFM, 500);
     } else {
-      output();
+      if (photodata.photos.length) {
+        output();
+      } else {
+        alert('No photos loaded.');
+      }
     }
   };
-  var data = 'time=' + g.time +'&page=' + g.page +'&authenticity_token=' + g.token
-  xhr.open('POST', url);
-  xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-  xhr.send(data);
+  xhr.open('GET', url);
+  xhr.send();
 }
 
 var dFAcore = function(setup, bypass) {
@@ -1432,33 +1447,20 @@ var dFAcore = function(setup, bypass) {
     };
     getPinterest();
   }else if(location.href.match(/ask.fm/)){
-    var token = '';
-    var k = qSA('script');
-    for(var i = 0; i < k.length; i++){
-      if (k[i].textContent.match('AUTH_TOKEN')) {
-        try {
-          token = k[i].textContent.split('\n')[1].match(/"(.*)"/)[1];
-        } catch (e) {
-          alert('Cannot get token');
-        }
-        break;
-      }
-    }
     g.count = 0;
     g.page = 0;
-    g.time = qS('#time').value;
-    g.token = encodeURIComponent(token);
-    g.status = qS('#profile_answer_counter');
-    g.total = +getText('#profile_answer_counter');
+    g.status = qS('#profileName');
+    g.total = +getText('#profileTabAnswerCount');
     g.title = document.title;
-    g.username = getText('.username span').slice(1)
+    g.username = getText('#profileName span:nth-of-type(2) span').slice(1)
     g.photodata = {
-      aName: getText('.link-profile-name'),
-      aAuth: getText('.username span'),
+      aName: getText('#profileName span:nth-of-type(1)'),
+      aAuth: g.username,
       aLink: location.href,
       aTime: aTime,
       photos: [],
-      aDes: getText('.profile-bio')
+      videos: [],
+      aDes: getText('#sidebarBio', 1)
     };
     getAskFM();
   }
