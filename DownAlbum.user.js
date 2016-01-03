@@ -819,12 +819,6 @@ function instaAjax(){
   xhr.onload = function() {
     var total=g.total, photodata=g.photodata,
     res=JSON.parse(this.response),elms=res.items;
-    if (!elms) {
-      g.ajax = g.Env.media[0].id;
-      _instaQueryAdd(g.Env.media.slice(0, 1));
-      instaQuery();
-      return;
-    }
     if(elms[0].id.indexOf('_')<0)elms=elms[3];
     g.ajax=res.more_available?elms[elms.length-1].id:null;
     for(var i=0;i<elms.length;i++){
@@ -896,6 +890,27 @@ function _instaQueryAdd(elms) {
     });
   }
 }
+function instaQueryInit() {
+  var xhr = new XMLHttpRequest();
+  xhr.onload = function() {
+    var res = {};
+    try {
+      res = JSON.parse(this.response);
+    } catch(e) {
+      alert('Fallback to old api!');
+    }
+    if (res.media) {
+      _instaQueryAdd([res.media]);
+      instaQuery();
+    } else {
+      g.ajax = '';
+      instaAjax();
+    }
+  };
+  xhr.open('GET', 'https://www.instagram.com/p/' + g.Env.media[0].code +
+    '/?__a=1');
+  xhr.send();
+}
 function instaQuery() {
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
@@ -910,7 +925,7 @@ function instaQuery() {
     if(qS('#stopAjaxCkb')&&qS('#stopAjaxCkb').checked){output();}
     else if(total>photodata.photos.length&&g.ajax){instaQuery();}else{output();}
   };
-  xhr.open("POST", 'https://www.instagram.com/query/');
+  xhr.open('POST', 'https://www.instagram.com/query/');
   xhr.setRequestHeader('Accept', 'application/json, text/javascript, */*; q=0.01');
   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
   xhr.setRequestHeader('X-CSRFToken', g.token);
@@ -922,8 +937,8 @@ function getInstagram(){
   if(g.start!=2||g.start==3){return;}g.start=3;
   var i, elms = g.Env.media, photodata = g.photodata, url;
   if (g.Env.user.biography !== undefined && (g.mode!=2 || g.loadCm)) {
-    g.ajax = '';
-    instaAjax();
+    g.ajax = g.Env.media[0].id;
+    instaQueryInit();
   } else {
     for(i=0;i<elms.length;i++){
       var c = elms[i].comments;
