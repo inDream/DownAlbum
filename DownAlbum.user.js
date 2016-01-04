@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Download FB Album mod
 // @author        indream
-// @version       0.15.12.4
+// @version       0.16.1.1
 // @description   Download Facebook & Instagram Album by One Click.
 // @namespace     DownAlbum
 // @updateURL     https://raw.githubusercontent.com/inDream/DownAlbum/master/DownAlbum.meta.js
@@ -190,7 +190,7 @@ function photosOfHelper() {
       userId = cover.href.match(/set=([\w\d\.]+)/)[1].split('.')[3];
     }
   } catch(e) {}
-  
+
   if (userId) {
     location.href = 'https://www.facebook.com/search/' + userId +
       '/photos-of/intersect';
