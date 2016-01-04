@@ -78,6 +78,12 @@ var dFAinit = function(){
     });
   }
   if(href.indexOf('facebook.com') > 0){
+    if (t) {
+      var pBtn = document.createElement('li');
+      pBtn.innerHTML = '<a id="photosOf" class="navSubmenu">[FB] Open "Photos of"</a>';
+      t.appendChild(pBtn);
+      pBtn.addEventListener('click', photosOfHelper);
+    }
     if(!t && qS('#userNavigation, #logoutMenu')){
       // Handle async menu
       $('#pageLoginAnchor, #logoutMenu').on('click.dfainit', function(){
@@ -167,6 +173,27 @@ function _addLink(k, target) {
         tParent.appendChild(link);
       }
     }
+  }
+}
+function photosOfHelper() {
+  var userId;
+  var timeline = qS('#pagelet_timeline_main_column');
+  try {
+    if (timeline) {
+      userId = JSON.parse(timeline.getAttribute('data-gt')).profile_owner;
+    }
+  } catch(e) {}
+
+  var cover = qS('.coverWrap') || qS('.coverImage');
+  try {
+    if (cover && !userId) {
+      userId = cover.href.match(/set=([\w\d\.]+)/)[1].split('.')[3];
+    }
+  } catch(e) {}
+  
+  if (userId) {
+    location.href = 'https://www.facebook.com/search/' + userId +
+      '/photos-of/intersect';
   }
 }
 var g = {};
