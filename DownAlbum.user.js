@@ -1384,7 +1384,7 @@ var dFAcore = function(setup, bypass) {
     g.photodata = {
       aName:aName.replace(/'|"/g,'\"'),
       aAuth:aAuth.replace(/'|"/g,'\"'),
-      aLink:(window.location+"").split("&")[0],
+      aLink:window.location.href,
       aTime:aTime,
       photos: [],
       aDes:aDes,
