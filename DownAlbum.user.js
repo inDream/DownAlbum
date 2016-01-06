@@ -339,6 +339,10 @@ function fbAjax(){
     if(i + 1 < len){g.ajaxLoaded++; fbAjax();}else{output();}
     return;
   }
+  if (g.urlLoaded[src]) {
+    g.photodata.photos[i].url = g.urlLoaded[src];
+    delete g.urlLoaded[src];
+  }
   if(g.dataLoaded[src]!==undefined){
     var t=g.dataLoaded[src];
     if(t.title)g.photodata.photos[i].title=t.title;
@@ -363,6 +367,20 @@ function fbAjax(){
       content=JSON.parse(content);
       var require=content.payload.jsmods.require;
       if(require&&(content.id=='pagelet_photo_viewer'||require[0][1]=='addPhotoFbids')){list=require[0][3][0];}
+      for (var ii = 0; ii < require.length; ii++) {
+        if (require[ii][1] == 'storeFromData') {
+          var image = require[ii][3][0].image;
+          if (image) {
+            var keys = Object.keys(image);
+            for (var j = 0; j < keys.length; j++) {
+              var pid = keys[j];
+              if (image[pid].url) {
+                g.urlLoaded[pid] = image[pid].url;
+              }
+            }
+          }
+        }
+      }
       if(t.indexOf('fbPhotosPhotoTagboxBase')>0||t.indexOf('fbPhotosPhotoCaption')>0){
         var markup=content.payload.jsmods.markup;
         for(var ii=0;ii<markup.length;ii++){
@@ -423,6 +441,10 @@ function fbAjax(){
           }
         }
       };
+    }
+    if (g.urlLoaded[src]) {
+      g.photodata.photos[i].url = g.urlLoaded[src];
+      delete g.urlLoaded[src];
     }
     if(g.dataLoaded[src]!==undefined){
       var t=g.dataLoaded[src];
@@ -1356,7 +1378,7 @@ var dFAcore = function(setup, bypass) {
         }
       }
     }catch(e){console.warn(e);alert('Cannot load required variable');}
-    g.ajaxLoaded=0;g.dataLoaded={};g.ajaxRetry=0;g.elms='';g.lastLoaded=0;g.ajaxStarted=0;
+    g.ajaxLoaded=0;g.dataLoaded={};g.ajaxRetry=0;g.elms='';g.lastLoaded=0;g.ajaxStarted=0;g.urlLoaded={};
     g.statusEle = qS('.navItem.middleItem a') || qS('ul[role="navigation"] li:nth-of-type(2) a');
     g.statusText=g.statusEle.innerHTML;g.downloaded={};g.profilesList={};g.commentsList={count:0};
     g.photodata = {
