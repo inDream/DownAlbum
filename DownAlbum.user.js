@@ -497,15 +497,15 @@ function getPhotos(){
     if(grid.length>1){
       var tmp = [];
       for(var eLen = 0; eLen<grid.length; eLen++){
-        var tmpE = grid[eLen].querySelectorAll('a.uiMediaThumb[ajaxify]');
+        var tmpE = grid[eLen].querySelectorAll(g.thumbSelector);
         for(var tmpLen = 0; tmpLen<tmpE.length; tmpLen++){
           tmp.push(tmpE[tmpLen]);
         }
       }
       elms = tmp; ajaxNeeded=1;
-    }else{elms=grid[0].querySelectorAll('a.uiMediaThumb[ajaxify]');ajaxNeeded=1;}
+    }else{elms=grid[0].querySelectorAll(g.thumbSelector);ajaxNeeded=1;}
   }else if(elms){
-    var temp = elms.querySelectorAll('a.uiMediaThumb[ajaxify]');ajaxNeeded=1;
+    var temp = elms.querySelectorAll(g.thumbSelector);ajaxNeeded=1;
     if(!temp.length){
       elms = elms.querySelectorAll(selector);testNeeded=1;
     }else{
@@ -527,7 +527,10 @@ function getPhotos(){
       }
     }
     try{
-    var url=unescape(elms[i].getAttribute('ajaxify')), href = elms[i].href, downurl;
+    var ajaxify = elms[i].getAttribute('ajaxify');
+    var parentSrc = elms[i].parentNode.getAttribute('data-starred-src')
+    var url = ajaxify ? unescape(ajaxify) : parentSrc;
+    var href = elms[i].href, downurl;
     var fbid = getFbid(href);
     if(href.match('opaqueCursor')){
       if(fbid){
@@ -539,14 +542,22 @@ function getPhotos(){
       href=href.slice(0, href.indexOf('&'));
     }
     if(!g.notLoadCm){
-      var ajax=url.slice(url.indexOf("?")+1,url.indexOf("&src")).split("&");
-      var q={};for(var j=0;j<ajax.length;j++){var d=ajax[j].split("=");q[d[0]]=d[1];}
-      if(!q.fbid && fbid){
-        q.fbid = fbid;
+      var q = {};
+      if (ajaxify) {
+        var ajax=url.slice(url.indexOf("?")+1,url.indexOf("&src")).split("&");
+        for(var j=0;j<ajax.length;j++){var d=ajax[j].split("=");q[d[0]]=d[1];}
+        if(!q.fbid && fbid){
+          q.fbid = fbid;
+        }
+      } else {
+        var fset = elms[i].href.match(/\/photos\/([\.\d\w-]+)\//)[1];
+        q = {fbid: fbid, set: fset, type: '3'};
       }
-      ajax=location.protocol+'//www.facebook.com/ajax/pagelet/generic.php/PhotoViewerInitPagelet?ajaxpipe=1&ajaxpipe_token='+g.Env.ajaxpipe_token+'&no_script_path=1&data='+JSON.stringify(q)+'&__user='+g.Env.user+'&__a=1&__adt=2';
+      ajax='https://www.facebook.com/ajax/pagelet/generic.php/PhotoViewerInitPagelet?ajaxpipe=1&ajaxpipe_token='+g.Env.ajaxpipe_token+'&no_script_path=1&data='+JSON.stringify(q)+'&__user='+g.Env.user+'&__a=1&__adt=2';
     }
-    url = parseFbSrc(url.match(/&src.(.*)/)[1]).replace(/&smallsrc=.*\?/, '?');
+    if (ajaxify) {
+      url = parseFbSrc(url.match(/&src.(.*)/)[1]).replace(/&smallsrc=.*\?/, '?');
+    }
     if(url.match(/\?/)){
       var b=url.split('?'), t='', a=b[1].split('&');
       for(var ii=0;ii<a.length;ii++){
@@ -814,7 +825,7 @@ function fbAutoLoad(elms){
         content=JSON.parse(content);
         var d=document.createElement('div');
         d.innerHTML=content.payload.content.content;
-        var e=d.querySelectorAll('a.uiMediaThumb[ajaxify]');
+        var e=d.querySelectorAll(g.thumbSelector);
         if(!e||!e.length)continue;
         eCount+=e.length;
         var old=elms?Array.prototype.slice.call(elms,0):'';
@@ -827,7 +838,7 @@ function fbAutoLoad(elms){
         e = htmlBase.querySelectorAll('a[ajaxify]');
         if(e.length)g.cursor = parseQuery(e[e.length-1].href).opaqueCursor;
       }else{
-        e = htmlBase.querySelectorAll('a.uiMediaThumb[ajaxify]');
+        e = htmlBase.querySelectorAll(g.thumbSelector);
       }
       var map = {};
       for(k = 0; k < e.length; k++){
@@ -1379,6 +1390,8 @@ var dFAcore = function(setup, bypass) {
       }
     }catch(e){console.warn(e);alert('Cannot load required variable');}
     g.ajaxLoaded=0;g.dataLoaded={};g.ajaxRetry=0;g.elms='';g.lastLoaded=0;g.ajaxStarted=0;g.urlLoaded={};
+    g.thumbSelector = 'a.uiMediaThumb[ajaxify], a.uiMediaThumb[rel="theater"],' +
+      'a.uiMediaThumbMedium';
     g.statusEle = qS('.navItem.middleItem a') || qS('ul[role="navigation"] li:nth-of-type(2) a');
     g.statusText=g.statusEle.innerHTML;g.downloaded={};g.profilesList={};g.commentsList={count:0};
     g.photodata = {
