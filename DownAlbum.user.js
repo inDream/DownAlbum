@@ -305,16 +305,6 @@ function output(){
   g.photodata.dTime = (new Date).toLocaleString();
   if(location.href.match(/.*facebook.com/)){
     document.title = document.title.match(/(?:.*\|\|)*(.*)/)[1];
-    var photos = g.photodata.photos;
-    for(var i=0; i<photos.length;i++){
-      try{
-        var id = photos[i].href.match(/fbid=(.*)/);
-        if(!id)id = photos[i].href.match(/\/(\d+)\//);
-        id = id[1];
-        if(g.commentsList[id])photos[i].comments = g.commentsList[id];
-      }catch(e){}
-      delete photos[i].ajax;
-    }
     var t=g.statusEle;
     t.innerHTML=g.statusText;
     var b=qS('#stopAjax');
@@ -330,6 +320,29 @@ function output(){
   }
   sendRequest({type:'export',data:g.photodata});
 }
+function handleFbAjax(fbid) {
+  var d = g.dataLoaded[fbid];
+  if (d !== undefined) {
+    var photos = g.photodata.photos;
+    var i = g.ajaxLoaded;
+    if (g.urlLoaded[fbid]) {
+      photos[i].url = g.urlLoaded[fbid];
+      delete g.urlLoaded[fbid];
+    }
+    if (g.commentsList[fbid]) {
+      photos[i].comments = g.commentsList[fbid];
+      delete g.commentsList[fbid];
+    }
+    photos[i].title = d.title;
+    photos[i].tag = d.tag;
+    photos[i].date = d.date;
+    delete g.dataLoaded[fbid];
+    delete photos[i].ajax;
+    g.ajaxLoaded++;
+    return true;
+  }
+  return false;
+}
 function fbAjax(){
   var len=g.photodata.photos.length,i=g.ajaxLoaded;
   var src;
@@ -339,17 +352,7 @@ function fbAjax(){
     if(i + 1 < len){g.ajaxLoaded++; fbAjax();}else{output();}
     return;
   }
-  if (g.urlLoaded[src]) {
-    g.photodata.photos[i].url = g.urlLoaded[src];
-    delete g.urlLoaded[src];
-  }
-  if(g.dataLoaded[src]!==undefined){
-    var t=g.dataLoaded[src];
-    if(t.title)g.photodata.photos[i].title=t.title;
-    g.photodata.photos[i].tag=t.tag;
-    g.photodata.photos[i].date=t.date;
-    delete g.dataLoaded[src];
-    g.ajaxLoaded++;
+  if (handleFbAjax(src)) {
     if(len<50||i%15==0)log('Loaded '+(i+1)+' of '+len+'. (cached)');
     g.statusEle.textContent='Loading '+(i+1)+' of '+len+'.';
     if(i+1!=len){document.title="("+(i+1)+"/"+(len)+") ||"+g.photodata.aName;fbAjax();
@@ -442,18 +445,7 @@ function fbAjax(){
         }
       };
     }
-    if (g.urlLoaded[src]) {
-      g.photodata.photos[i].url = g.urlLoaded[src];
-      delete g.urlLoaded[src];
-    }
-    if(g.dataLoaded[src]!==undefined){
-      var t=g.dataLoaded[src];
-      if(t.title)g.photodata.photos[i].title=t.title;
-      g.photodata.photos[i].tag=t.tag;
-      g.photodata.photos[i].date=t.date;
-      delete g.dataLoaded[src];
-      g.ajaxLoaded++;
-    }
+    handleFbAjax(src);
     if(len<50||i%15==0)log('Loaded '+(i+1)+' of '+len+'.');
     var t=g.statusEle;
     if(!t.nextElementSibling){var stopBtn=document.createElement('label');stopBtn.id='stopAjax';stopBtn.innerHTML='<a class="navItem"> | Stop</a><input id="stopAjaxCkb" type="checkbox">';t.parentNode.appendChild(stopBtn);}
