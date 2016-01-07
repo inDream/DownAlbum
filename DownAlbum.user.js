@@ -269,14 +269,14 @@ function getFbid(s){
           fbid = s.match(/([0-9]{5,})/);
         }
       }
-    }else if(s.match('&')){
+    }else if(s.match('&') && s.indexOf('/photos/') == -1){
       try{
         fbid = s.slice(s.indexOf('=') + 1, s.indexOf('&'));
       }catch(e){}
       return fbid ? fbid : false;
     } else {
       // id for page's photos
-      fbid = s.match(/[\w\d\.]+\/(\d+)/);
+      fbid = s.match(/[\w\d\.-]+\/(\d+)/);
     }
   }
   return fbid.length ? fbid[1] : false;
@@ -395,7 +395,6 @@ function fbAjax(){
             var c=h.querySelectorAll(".fbPhotosPhotoCaption");
             var b=h.querySelectorAll(".fbPhotosPhotoTagboxes");
             var a=h.querySelectorAll("abbr");
-            var f=h.querySelectorAll(".uiLinkSubtle[href*=fbid]");
             if(!c.length){continue;}
             for(var kk=0;kk<c.length;kk++){
               var s=c[kk].querySelector(".hasCaption");
@@ -403,14 +402,10 @@ function fbAjax(){
               var tag=b[kk].querySelector('.tagBox');
               tag=!tag?'':b[kk].outerHTML;
               var date=(a&&a[kk])?parseTime(a[kk].dataset.utime):'';
-              var fbid;
-              if(f[kk]){
-                fbid = getFbid(f[kk].href);
-                if(fbid){
-                  g.dataLoaded[fbid]={tag:tag,title:s,date:date};
-                }
-              }
-              if(!fbid && list[kk]){
+              var fbid = getFbid(a[kk].parentNode.href);
+              if (fbid && fbid.length > 1) {
+                g.dataLoaded[fbid]={tag:tag,title:s,date:date};
+              } else if (list[kk]) {
                 g.dataLoaded[list[kk]]={tag:tag,title:s,date:date};
               }
             }
