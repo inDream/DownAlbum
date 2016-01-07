@@ -276,7 +276,7 @@ function getFbid(s){
       return fbid ? fbid : false;
     } else {
       // id for page's photos
-      fbid = s.match(/[\w\d\.-]+\/(\d+)/);
+      fbid = s.match(/\/photos\/[\w\d\.-]+\/(\d+)/);
     }
   }
   return fbid.length ? fbid[1] : false;
@@ -402,12 +402,7 @@ function fbAjax(){
               var tag=b[kk].querySelector('.tagBox');
               tag=!tag?'':b[kk].outerHTML;
               var date=(a&&a[kk])?parseTime(a[kk].dataset.utime):'';
-              var fbid = getFbid(a[kk].parentNode.href);
-              if (fbid && fbid.length > 1) {
-                g.dataLoaded[fbid]={tag:tag,title:s,date:date};
-              } else if (list[kk]) {
-                g.dataLoaded[list[kk]]={tag:tag,title:s,date:date};
-              }
+              g.dataLoaded[list[kk]]={tag:tag,title:s,date:date};
             }
           }
         }
@@ -530,15 +525,16 @@ function getPhotos(){
     }
     if(!g.notLoadCm){
       var q = {};
+      var ajax = '';
       if (ajaxify) {
-        var ajax=url.slice(url.indexOf("?")+1,url.indexOf("&src")).split("&");
-        for(var j=0;j<ajax.length;j++){var d=ajax[j].split("=");q[d[0]]=d[1];}
-        if(!q.fbid && fbid){
-          q.fbid = fbid;
-        }
+        ajax = url.slice(url.indexOf("?")+1,url.indexOf("&src")).split("&");
       } else {
-        var fset = elms[i].href.match(/\/photos\/([\.\d\w-]+)\//)[1];
-        q = {fbid: fbid, set: fset, type: '3'};
+        ajax = elms[i].href.slice(elms[i].href.indexOf('?') + 1).split('&');
+        q = {set: elms[i].href.match(/\/photos\/([\.\d\w-]+)\//)[1]};
+      }
+      for(var j=0;j<ajax.length;j++){var d=ajax[j].split("=");q[d[0]]=d[1];}
+      if(!q.fbid && fbid){
+        q.fbid = fbid;
       }
       ajax='https://www.facebook.com/ajax/pagelet/generic.php/PhotoViewerInitPagelet?ajaxpipe=1&ajaxpipe_token='+g.Env.ajaxpipe_token+'&no_script_path=1&data='+JSON.stringify(q)+'&__user='+g.Env.user+'&__a=1&__adt=2';
     }
