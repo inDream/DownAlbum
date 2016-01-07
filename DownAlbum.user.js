@@ -1332,15 +1332,13 @@ var dFAcore = function(setup, bypass) {
   if(!setup&&localStorage['dFASetting']){
     g.settings=localStorage['dFASetting']?JSON.parse(localStorage['dFASetting']):{};
   }
-  if (location.href.match('facebook\.com')) {
-    g.mode=g.settings.mode||window.prompt('Please type your choice:\nNormal: 1/press Enter\nDownload without auto load: 2\nAutoload start from specific id: 3\nOptimization for large album: 4')||1;
-    if(g.mode==null){return;}
-    if(g.mode==3){g.ajaxStartFrom=window.prompt('Please enter the fbid:\ni.e. 123456 if photo link is:\nfacebook.com/photo.php?fbid=123456');if(!g.ajaxStartFrom){return;}}
-    if(g.mode==4){g.largeAlbum=true;g.mode=window.prompt('Please type your choice:\nNormal: 1/press Enter\nDownload without auto load: 2\nAutoload start from specific id: 3');}
-    g.loadCm=g.settings.notLoadCm?0:(g.settings.loadCm||confirm("Try to load photo's caption?"));
-    g.notLoadCm=g.settings.notLoadCm||!g.loadCm;
-    g.largeAlbum=g.settings.largeAlbum||g.largeAlbum;
-  }
+  g.mode=g.settings.mode||window.prompt('Please type your choice:\nNormal: 1/press Enter\nDownload without auto load: 2\nAutoload start from specific id: 3\nOptimization for large album: 4')||1;
+  if(g.mode==null){return;}
+  if(g.mode==3){g.ajaxStartFrom=window.prompt('Please enter the fbid:\ni.e. 123456 if photo link is:\nfacebook.com/photo.php?fbid=123456');if(!g.ajaxStartFrom){return;}}
+  if(g.mode==4){g.largeAlbum=true;g.mode=window.prompt('Please type your choice:\nNormal: 1/press Enter\nDownload without auto load: 2\nAutoload start from specific id: 3');}
+  g.loadCm=g.settings.notLoadCm?0:(g.settings.loadCm||confirm("Try to load photo's caption?"));
+  g.notLoadCm=g.settings.notLoadCm||!g.loadCm;
+  g.largeAlbum=g.settings.largeAlbum||g.largeAlbum;
   g.newWin=g.settings.newWin||confirm("Open page in new window?");
   g.settings={mode:g.mode,loadCm:g.loadCm,largeAlbum:g.largeAlbum,notLoadCm:g.notLoadCm,newWin:g.newWin};
   localStorage['dFASetting']=JSON.stringify(g.settings);
@@ -1376,6 +1374,10 @@ var dFAcore = function(setup, bypass) {
         }
       }
     }catch(e){console.warn(e);alert('Cannot load required variable');}
+    if (!g.loadCm) {
+      g.loadCm = confirm('Load caption to correct photos url?');
+      g.notLoadCm = !g.loadCm;
+    }
     g.ajaxLoaded=0;g.dataLoaded={};g.ajaxRetry=0;g.elms='';g.lastLoaded=0;g.ajaxStarted=0;g.urlLoaded={};
     g.thumbSelector = 'a.uiMediaThumb[ajaxify], a.uiMediaThumb[rel="theater"],' +
       'a.uiMediaThumbMedium';
