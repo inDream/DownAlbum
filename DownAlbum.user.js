@@ -718,10 +718,14 @@ function fbAutoLoad(elms){
     if(!g.query){
       var s=qSA("script"), temp=[];
       for(var i=0;i<s.length;i++){
-          if(s[i].textContent.indexOf('encoded_query')>0){temp[0]=s[i].textContent;}
-          if(s[i].textContent.indexOf('cursor')>0){temp[1]=s[i].textContent;}
-          if(temp.length==2)break;
+        if (s[i].textContent.indexOf('encoded_query') > 0) {
+          temp[0] = s[i].textContent;
         }
+        if(s[i].textContent.indexOf('"cursor"') > 0 && 
+          s[i].textContent.indexOf('"cursor":null') == -1) {
+          temp[1] = s[i].textContent;
+        }
+      }
       query = temp[0];
       var cursor = temp[1];
       query = extractJSON(query);
@@ -780,7 +784,7 @@ function fbAutoLoad(elms){
     ajaxAlbum=location.protocol+'//www.facebook.com/ajax/pagelet/generic.php/'+targetURL+'Pagelet?ajaxpipe=1&ajaxpipe_token='+g.Env.ajaxpipe_token+'&no_script_path=1&data='+JSON.stringify(aInfo)+'&__user='+g.Env.user+'&__a=1&__adt=2';
   }else{
     var req = 5+(qSA('.fbStarGrid>div').length-8)/8*2
-    var tab=qSA('#pagelet_timeline_medley_photos a[aria-role="tab"]');
+    var tab=qSA('#pagelet_timeline_medley_photos a[role="tab"]');
     var pType = +p.split(':')[2], targetURL = "";
     switch(pType){
       case 4: targetURL = 'TimelinePhotos'; break;
@@ -1390,7 +1394,7 @@ var dFAcore = function(setup, bypass) {
       aDes:aDes,
       largeAlbum:g.largeAlbum
     };
-    g.newL = !!(qSA('#pagelet_timeline_medley_photos a[aria-role="tab"]').length);
+    g.newL = !!(qSA('#pagelet_timeline_medley_photos a[role="tab"]').length);
     if(location.href.match('messages')){
       getFbMessagesPhotos();
     }else{
