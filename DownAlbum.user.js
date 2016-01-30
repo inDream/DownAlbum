@@ -249,8 +249,12 @@ function parseQuery(s){
   }
   return data;
 }
-function parseFbSrc(s) {
-  return s.replace(/\w\d{3,4}x\d{3,4}\//g, '');
+function parseFbSrc(s, fb) {
+  if (fb) {
+    return s.replace(/s\d{3,4}x\d{3,4}\//g, '');
+  } else {
+    
+  }
 }
 function getFbid(s){
   var fbid = s.match(/fbid=(\d+)/);
@@ -532,7 +536,7 @@ function getPhotos(){
       var ajax = '';
       if (url.indexOf('&src') != -1) {
         ajax = url.slice(url.indexOf("?")+1,url.indexOf("&src")).split("&");
-        url = parseFbSrc(url.match(/&src.(.*)/)[1]).replace(/&smallsrc=.*\?/, '?');
+        url = parseFbSrc(url.match(/&src.(.*)/)[1]).replace(/&smallsrc=.*\?/, '?', true);
       } else {
         ajax = elms[i].href.slice(elms[i].href.indexOf('?') + 1).split('&');
         var pset = elms[i].href.match(/\/photos\/([\.\d\w-]+)\//);
