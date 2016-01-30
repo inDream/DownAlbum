@@ -250,7 +250,7 @@ function parseQuery(s){
   return data;
 }
 function parseFbSrc(s) {
-  return s.replace(/s\d{3,4}x\d{3,4}\//g, '');
+  return s.replace(/\w\d{3,4}x\d{3,4}\//g, '');
 }
 function getFbid(s){
   var fbid = s.match(/fbid=(\d+)/);
