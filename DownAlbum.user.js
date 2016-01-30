@@ -510,7 +510,8 @@ function getPhotos(){
     }
     try{
     var ajaxify = unescape(elms[i].getAttribute('ajaxify')) || '';
-    var parentSrc = elms[i].parentNode.getAttribute('data-starred-src');
+    var parentSrc = elms[i].parentNode ?
+      elms[i].parentNode.getAttribute('data-starred-src') : '';
     var bg = elms[i].childNodes[0];
     bg = bg ? bg.style.backgroundImage.slice(5, -2) : '';
     var url = ajaxify.indexOf('&src') != -1 ? ajaxify : (parentSrc || bg);
