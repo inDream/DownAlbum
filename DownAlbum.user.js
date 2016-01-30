@@ -473,7 +473,7 @@ function getPhotos(){
   var i, photodata = g.photodata, testNeeded = 0, ajaxNeeded = 0;
   var elms = g.elms || qS('#album_pagelet') || qS('#static_set_pagelet') || qS('#pagelet_photos_stream') || qS('#group_photoset') || qS('#initial_browse_result') || qS('#contentArea');
   var grid = qSA('.fbStarGrid');
-  var selector = 'a:not(.notifMainLink):not(.hidden_elem):not(.egoPhotoImage):not(.uiBlingBox):not(.tickerFullPhoto):not(.pronoun-link):not(.uiVideoLink):not([class*="emuEventfad"])[rel="theater"][ajaxify]';
+  var selector = 'a[rel="theater"]';
   if(g.elms){ajaxNeeded=1;}
   else if(grid.length){
     if(grid.length>1){
