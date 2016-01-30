@@ -1045,7 +1045,7 @@ function getTwitter(){
     var photodata = g.photodata;
     var i, j, link, url, title, date;
     for(i = 0; i < elms.length; i++){
-      link = elms[i].querySelectorAll('.media, .media-thumbnail, .js-old-photo, div[data-image-url]');
+      link = elms[i].querySelectorAll('.js-adaptive-photo, [data-image-url]');
       if (!link.length) {
         link = elms[i].querySelectorAll('img[src*=media]');
       }
@@ -1064,7 +1064,8 @@ function getTwitter(){
           date: date ? parseTime(+date.getAttribute('data-time')) : '' 
         });
         if (!r.min_position) {
-          var max_id = (date.parentNode.getAttribute('href') || '').match(/\/(\d+)/);
+          var max_id = (date.parentNode.getAttribute('href') || '')
+            .match(/status\/(\d+)/);
           if(max_id){
             g.ajax = max_id[1];
           }
