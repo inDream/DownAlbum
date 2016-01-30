@@ -95,6 +95,7 @@ var dFAinit = function(){
     if(o){
       var observer = new o(runLater);
       observer.observe(document.body, {subtree: true, childList: true});
+      runLater();
     }
   }else if(href.indexOf('pinterest.com') > 0){
     if(!qS('#dfaButton')){
@@ -113,7 +114,6 @@ var dFAinit = function(){
 };
 function runLater(){clearTimeout(window.addLinkTimer);window.addLinkTimer = setTimeout(addLink, 300);}
 function addLink(){
-  dFAinit();
   var k = qSA('article>div:nth-of-type(1), header>div:nth-of-type(1)');
   for(var i = 0; i<k.length; i++){
     if (k[i].nextElementSibling) {
