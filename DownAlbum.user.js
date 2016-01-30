@@ -1305,13 +1305,6 @@ function getAskFM() {
       });
     }
     console.log('Loaded ' + photodata.photos.length + ' photos.');
-    if (!qS('#stopAjaxCkb')) {
-      var stopBtn = document.createElement('a');
-      stopBtn.id = 'stopAjax';
-      stopBtn.className = 'blockLink bold';
-      stopBtn.innerHTML = 'Stop<input id="stopAjaxCkb" style="-webkit-appearance: checkbox;" type="checkbox">';
-      qS('#profileFooter').appendChild(stopBtn);
-    }
     g.count += html.querySelectorAll('.item').length;
     g.status.textContent =  g.count + '/' + g.total;
     document.title = g.status.textContent + ' ||' + g.title;
@@ -1518,8 +1511,16 @@ var dFAcore = function(setup, bypass) {
   }else if(location.href.match(/ask.fm/)){
     g.count = 0;
     g.page = 0;
-    g.status = qS('#profileName');
-    g.total = +getText('#profileTabAnswerCount');
+    var status = document.createElement('div');
+    status.id = 'dfaContainer';
+    status.className = 'side-section';
+    status.innerHTML = '<h3><span id="dfaStatus"></span>  ' +
+      '<label id="stopAjax">Stop <input id="stopAjaxCkb" style="' +
+      '-webkit-appearance: checkbox;display: inline;width: auto;"' +
+      ' type="checkbox"></label></h3>';
+    qS('.sticky-anchor').appendChild(status);
+    g.status = qS('#dfaStatus');
+    g.total = +getText('.profileTabAnswerCount');
     g.title = document.title;
     g.username = getText('#profileName span:nth-of-type(2) span').slice(1)
     g.photodata = {
