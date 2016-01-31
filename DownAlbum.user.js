@@ -92,7 +92,8 @@ var dFAinit = function(){
     }
   }else if(href.indexOf('instagram.com') > 0){
     var o = window.WebKitMutationObserver || window.MutationObserver;
-    if(o){
+    if(o && !window.addedObserver){
+      window.addedObserver = true;
       var observer = new o(runLater);
       observer.observe(document.body, {subtree: true, childList: true});
       runLater();
@@ -114,6 +115,7 @@ var dFAinit = function(){
 };
 function runLater(){clearTimeout(window.addLinkTimer);window.addLinkTimer = setTimeout(addLink, 300);}
 function addLink(){
+  dFAinit();
   var k = qSA('article>div:nth-of-type(1), header>div:nth-of-type(1)');
   for(var i = 0; i<k.length; i++){
     if (k[i].nextElementSibling) {
@@ -253,7 +255,7 @@ function parseFbSrc(s, fb) {
   if (fb) {
     return s.replace(/s\d{3,4}x\d{3,4}\//g, '');
   } else {
-    
+    return s.replace(/\w\d{3,4}x\d{3,4}\//g, '');
   }
 }
 function getFbid(s){
