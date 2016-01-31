@@ -1384,7 +1384,8 @@ var dFAcore = function(setup, bypass) {
     g.ajaxLoaded=0;g.dataLoaded={};g.ajaxRetry=0;g.elms='';g.lastLoaded=0;g.ajaxStarted=0;g.urlLoaded={};
     g.thumbSelector = 'a.uiMediaThumb[ajaxify], a.uiMediaThumb[rel="theater"],' +
       'a.uiMediaThumbMedium';
-    g.statusEle = qS('.navItem.middleItem a') || qS('ul[role="navigation"] li:nth-of-type(2) a');
+    g.statusEle = qS('.navItem.middleItem a') ||
+      qS('ul[role="navigation"] li:nth-of-type(2) a') || qS('[data-click="home_icon"] a');
     g.statusText=g.statusEle.innerHTML;g.downloaded={};g.profilesList={};g.commentsList={count:0};
     g.photodata = {
       aName:aName.replace(/'|"/g,'\"'),
