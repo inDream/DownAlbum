@@ -480,12 +480,12 @@ function getPhotos(){
   var elms = g.elms || qS('#album_pagelet') || qS('#static_set_pagelet') || qS('#pagelet_photos_stream') || qS('#group_photoset') || qS('#initial_browse_result') || qS('#contentArea');
   var grid = qSA('.fbStarGrid');
   var selector = 'a[rel="theater"]';
+  var tmp = [], tmpE, eLen;
   if(g.elms){ajaxNeeded=1;}
   else if(grid.length){
     if(grid.length>1){
-      var tmp = [];
-      for(var eLen = 0; eLen<grid.length; eLen++){
-        var tmpE = grid[eLen].querySelectorAll(g.thumbSelector);
+      for(eLen = 0; eLen<grid.length; eLen++){
+        tmpE = grid[eLen].querySelectorAll(g.thumbSelector);
         for(var tmpLen = 0; tmpLen<tmpE.length; tmpLen++){
           tmp.push(tmpE[tmpLen]);
         }
@@ -495,7 +495,14 @@ function getPhotos(){
   }else if(elms){
     var temp = elms.querySelectorAll(g.thumbSelector);ajaxNeeded=1;
     if(!temp.length){
-      elms = elms.querySelectorAll(selector);testNeeded=1;
+      testNeeded = 1;
+      tmpE = elms.querySelectorAll(selector);
+      for(eLen = 0; eLen < tmpE.length; eLen++){
+        if (tmpE[eLen].querySelector('img')) {
+          tmp.push(tmpE[eLen]);
+        }
+      }
+      elms = tmp;
     }else{
       elms = temp;
     }
@@ -829,9 +836,15 @@ function fbAutoLoad(elms){
       }
     }else{
       htmlBase.innerHTML = JSON.parse(r.slice(9)).payload;
-      var e, temp = [];
+      var e = [], temp = [];
       if(g.query){
-        e = htmlBase.querySelectorAll('a[ajaxify]');
+        temp = htmlBase.querySelectorAll('a[rel="theater"]');
+        for(k = 0; k < temp.length; k++){
+          if (temp[k].querySelector('img')) {
+            e.push(temp[k]);
+          }
+        }
+        temp = [];
         if(e.length)g.cursor = parseQuery(e[e.length-1].href).opaqueCursor;
       }else{
         e = htmlBase.querySelectorAll(g.thumbSelector);
