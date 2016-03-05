@@ -56,7 +56,7 @@ var dFAinit = function(){
   }
   var k, k2, klass;
   if (site[0] == 'instagram.com') {
-    klass = qS('header div:nth-of-type(2) div span');
+    klass = qS('header div:nth-of-type(2) div span button').parentNode;
     k = document.createElement('div');
     k.className = klass ? klass.className : '';
   } else {
