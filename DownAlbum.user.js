@@ -719,12 +719,17 @@ function fbAutoLoad(elms){
   }else if(isAl){
     p=p.match(/set=([a\.\d]*)&/)[1] || p.slice(p.indexOf('=')+1,p.indexOf('&'));
     aInfo={"scroll_load":true,"last_fbid":l,"fetch_size":32,"profile_id":+p.slice(p.lastIndexOf('.')+1),"viewmode":null,"set":p,"type":"1"};
-    if(location.href.match(/collection_token/)){
-      var token = qS("div[aria-role='tabpanel']").id.split("_")[4];
-      var tokens = token.split(':');
-      if(token){
-        aInfo.collection_token = token[1];
-        aInfo.profile_id = tokens[0];
+    
+    var token = qS("div[aria-role='tabpanel']").id.split("_")[4];
+    var user = token.split(':')[0];
+    var tnext = qS('.fbPhotoAlbumTitle').nextSibling;
+    var isCollab = tnext.className != 'fbPhotoAlbumActions' &&
+      tnext.querySelectorAll('[data-hovercard]').length > 1;
+    
+    if(token){
+      if (location.href.match(/collection_token/) || isCollab) {
+        aInfo.collection_token = token;
+        aInfo.profile_id = user;
       }
     }
   }else if(isGraph){
