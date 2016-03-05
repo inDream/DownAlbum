@@ -938,26 +938,31 @@ function instaAjax(){
   xhr.open("GET", 'https://www.instagram.com/'+g.Env.user.username+'/media/?max_id='+g.ajax);
   xhr.send();
 }
-function buildIgQuery(max_id) {
+function buildIgQuery(max_id, loadCm) {
+  var comments = '';
+  if (loadCm) {
+    comments = 'comments { count, nodes{created_at, text, user{username}} }, ';
+  }
   return 'q=ig_user(' + g.Env.user.id + ') {media.after(' + max_id + ', 33) ' +
-    '{count, nodes {caption, code, comments { count, ' +
-    'nodes{created_at, text, user{username}} }, date, display_src, id, ' +
+    '{count, nodes {caption, code, ' + comments + 'date, display_src, id, ' +
     'is_video, likes {count}, video_url }, page_info } }&ref=users%3A%3Ashow';
 }
 function _instaQueryAdd(elms) {
   for (var i = 0; i < elms.length; i++) {
     var url = parseFbSrc(elms[i].display_src);
-    var c = elms[i].comments, cList = [c.count];
-    if (c.nodes) {
-      for(var k = 0; k < c.nodes.length; k++){
-        var p = c.nodes[k];
-        if (p) {
-          cList.push({
-            name: p.user.username,
-            url: 'http://instagram.com/' + p.user.username,
-            text: p.text,
-            date: parseTime(p.created_at)
-          });
+    if (g.loadCm) {
+      var c = elms[i].comments, cList = [c.count];
+      if (c.nodes) {
+        for(var k = 0; k < c.nodes.length; k++){
+          var p = c.nodes[k];
+          if (p) {
+            cList.push({
+              name: p.user.username,
+              url: 'http://instagram.com/' + p.user.username,
+              text: p.text,
+              date: parseTime(p.created_at)
+            });
+          }
         }
       }
     }
@@ -972,7 +977,7 @@ function _instaQueryAdd(elms) {
       url: url,
       href: 'https://www.instagram.com/p/' + elms[i].code + '/',
       date: elms[i].date ? parseTime(elms[i].date) : '',
-      comments: c.nodes ? cList : ''
+      comments: g.loadCm && c.nodes ? cList : ''
     });
   }
 }
@@ -1000,6 +1005,13 @@ function instaQueryInit() {
 function instaQuery() {
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
+    if (this.response[0] == '<') {
+      if (confirm('Cannot load comments, continue?')) {
+        g.loadCm = false;
+        instaQuery();
+      }
+      return;
+    }
     var total=g.total, photodata=g.photodata,
     res=JSON.parse(this.response),elms=res.media.nodes;
     g.ajax = res.media.page_info.has_next_page ? elms[elms.length-1].id : null;
@@ -1017,7 +1029,7 @@ function instaQuery() {
   xhr.setRequestHeader('X-CSRFToken', g.token);
   xhr.setRequestHeader('X-Instagram-Ajax', 1);
   xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-  xhr.send(buildIgQuery(g.ajax));
+  xhr.send(buildIgQuery(g.ajax, g.loadCm));
 }
 function getInstagram(){
   if(g.start!=2||g.start==3){return;}g.start=3;
@@ -1473,6 +1485,7 @@ var dFAcore = function(setup, bypass) {
       g.status = {e: qS('div[data-reactid*="$searchBox"]~a~a, a[data-reactid*="$profileLink"]')};
       g.status.t = g.status.e.textContent;
       g.Env.media = g.Env.user.media.nodes;
+      g.loadCm = true;
       var aTime = g.Env.media ? g.Env.media[0].date || g.Env.media[0].created_time : 0;
       g.photodata = {
         aName: aName.replace(/'|"/g,'\"'),
