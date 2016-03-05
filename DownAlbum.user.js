@@ -241,7 +241,19 @@ function quickSelect(s){
 }
 function qS(s){var k = document[quickSelect(s) || 'querySelector'](s);return k&&k.length ? k[0] : k;}
 function qSA(s){return document[quickSelect(s) || 'querySelectorAll'](s);}
-function parseTime(t){return new Date(t*1000+g.timeOffset).toJSON().replace('T',' ').split('.')[0];}
+function padZero(str, len) {
+  str = str.toString();
+  while (str.length < len) {
+    str = '0' + str;
+  }
+  return str;
+}
+function parseTime(t){
+  var d = new Date(t * 1000 + g.timeOffset);
+  return d.getFullYear() + '-' + padZero(d.getMonth() + 1, 2) + '-' +
+    padZero(d.getDate(), 2) + ' ' + padZero(d.getHours(), 2) + ':' +
+    padZero(d.getMinutes(), 2) + ':' + padZero(d.getSeconds(), 2);
+}
 function parseQuery(s){
   var data = {};
   var n = s.split("&");
