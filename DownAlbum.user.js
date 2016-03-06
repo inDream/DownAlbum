@@ -733,12 +733,13 @@ function fbAutoLoad(elms){
     aInfo={"scroll_load":true,"last_fbid":l,"fetch_size":32,"profile_id":+p.slice(p.lastIndexOf('.')+1),"viewmode":null,"set":p,"type":"1"};
     
     var token = qS("div[aria-role='tabpanel']").id.split("_")[4];
-    var user = token.split(':')[0];
-    var tnext = qS('.fbPhotoAlbumTitle').nextSibling;
-    var isCollab = tnext.className != 'fbPhotoAlbumActions' &&
-      tnext.querySelectorAll('[data-hovercard]').length > 1;
-    
-    if(token){
+    if (token && token.id) {
+      token = token.id.split("_")[4];
+      var user = token.split(':')[0];
+      var tnext = qS('.fbPhotoAlbumTitle').nextSibling;
+      var isCollab = tnext.className != 'fbPhotoAlbumActions' &&
+        tnext.querySelectorAll('[data-hovercard]').length > 1;
+      
       if (location.href.match(/collection_token/) || isCollab) {
         aInfo.collection_token = token;
         aInfo.profile_id = user;
