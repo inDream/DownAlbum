@@ -462,7 +462,28 @@ function fbAjax(){
       output();
     }else{
       if(i==g.ajaxLoaded){g.ajaxRetry++}
-      if(g.ajaxRetry>5){if(confirm('Retried 5 times.\nTry again->OK\nOutput loaded photos->Cancel')){g.ajaxRetry=0;}else{output();return;}}
+      if (g.ajaxRetry > 5) {
+        if (g.ajaxAutoNext) {
+          g.ajaxRetry = 0;
+          g.ajaxLoaded++;
+        } else {
+          var retryReply = prompt('Retried 5 times.\nTry again->OK\n' +
+            'Try next photo->Type 1\nAlways try next->Type 2\n' +
+            'Output loaded photos->Cancel');
+          if (retryReply !== null) {
+            g.ajaxRetry = 0;
+            if (+retryReply === 2){
+              g.ajaxAutoNext = true;
+              g.ajaxLoaded++;
+            } else {
+              g.ajaxLoaded++;
+            }
+          } else {
+            output();
+            return;
+          }
+        }
+      }
       document.title="("+(i+1)+"/"+(len)+") ||"+g.photodata.aName;fbAjax();
     }
   };
