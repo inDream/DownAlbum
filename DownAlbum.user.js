@@ -1270,10 +1270,6 @@ function getPinterest(){
     url = url + data + '&_=' + (+new Date());
     xhr.open('GET', url);
     xhr.setRequestHeader('Accept', 'application/json, text/javascript, */*; q=0.01');
-    var appVer = qS('#jsInit').textContent.match(/app_version": "(\w+)/);
-    appVer = appVer ? appVer[1] : '';
-    g.appVer = appVer;
-    xhr.setRequestHeader('X-APP-VERSION', appVer);
     xhr.setRequestHeader('X-NEW-APP', 1);
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
     xhr.send();
@@ -1327,7 +1323,6 @@ function getPinterest_sub(){
         g.token = token;
       }
       xhr.setRequestHeader('X-CSRFToken', token);
-      xhr.setRequestHeader('X-APP-VERSION', g.appVer);
       xhr.setRequestHeader('X-NEW-APP', 1);
       xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
       xhr.send(data);
