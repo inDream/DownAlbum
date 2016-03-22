@@ -101,7 +101,14 @@ var dFAinit = function(){
   }else if(href.indexOf('pinterest.com') > 0){
     if(!qS('#dfaButton')){
       var t = qS('.boardButtons');
-      t.innerHTML += '<button id="dfaButton" onClick="dFAcore();" class="Module BoardFollowButton ui-FollowButton notNavigatable Button btn rounded primary boardFollowUnfollowButton hasText"><span class="buttonText">DownAlbum</span></button><button onClick="dFAcore(true);" class="Module BoardFollowButton ui-FollowButton notNavigatable Button btn rounded primary boardFollowUnfollowButton hasText"><span class="buttonText">DownAlbum(Setup)</span></button>';
+      klass = 'Module BoardFollowButton ui-FollowButton notNavigatable Button btn rounded primary boardFollowUnfollowButton hasText'
+      t.innerHTML += '<button id="dfaButton" class="' + klass + '"><span class="buttonText">DownAlbum</span></button><button id="dfaSetButton" class="' + klass + '"><span class="buttonText">DownAlbum(Setup)</span></button>';
+      qS('#dfaButton').addEventListener("click", function(){
+        dFAcore();
+      });
+      qS('#dfaSetButton').addEventListener("click", function(){
+        dFAcore(true);
+      });
     }
   }else if(href.indexOf('ask.fm') > 0){
     k = qS('#profile-button');
