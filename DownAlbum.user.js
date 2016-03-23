@@ -1506,7 +1506,21 @@ var dFAcore = function(setup, bypass) {
       aAuth = g.Env.user.username;
       aLink = g.Env.user.website || g.Env.user.external_url;
       if(!aLink)aLink='http://instagram.com/'+aAuth;
-      g.status = {e: qS('div[data-reactid*="$searchBox"]~a~a, a[data-reactid*="$profileLink"]')};
+      g.status = {e: qS('div[data-reactid*="$searchBox"]~a~a, ' +
+        'a[data-reactid*="$profileLink"]')};
+      var coreAct = qS('.coreSpriteActivity');
+      if (!g.status.e) {
+        if (coreAct) {
+          var div = document.createElement('div');
+          div.innerHTML = '<span id="dfaStatus"></span>';
+          var parent = coreAct.parentNode.parentNode;
+          parent.appendChild(div);
+          parent.insertBefore(div, parent.childNodes[0]);
+          g.status.e = qS('#dfaStatus');
+        } else {
+          g.status.e = qS('h1');
+        }
+      }
       g.status.t = g.status.e.textContent;
       g.Env.media = g.Env.user.media.nodes;
       g.loadCm = true;
