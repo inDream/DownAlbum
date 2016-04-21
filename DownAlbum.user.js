@@ -1065,6 +1065,7 @@ function getInstagram(){
   var i, elms = g.Env.media, photodata = g.photodata, url;
   if (g.Env.user.biography !== undefined && (g.mode!=2 || g.loadCm)) {
     g.ajax = g.Env.media[0].id;
+    g.loadCm = false;
     instaQueryInit();
   } else {
     for(i=0;i<elms.length;i++){
