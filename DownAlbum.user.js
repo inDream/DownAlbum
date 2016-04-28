@@ -368,6 +368,34 @@ function handleFbAjax(fbid) {
   }
   return false;
 }
+function handleFbAjaxComment(data) {
+  var comments = data.comments, profiles = data.profiles;
+  var commentsList = [data.feedbacktargets[0].commentcount];
+  var fbid = comments[0].ftentidentifier;
+  var timeFix = new Date(parseTime(data.servertime)) - new Date();
+  for (var j = 0; j < profiles.length; j++) {
+    try {
+      var p = profiles[j];
+      g.profilesList[p.id] = {name: p.name, url: p.uri};
+    } catch(e) {}
+  }
+  for (j = 0; j < comments.length; j++){
+    try {
+      var c = comments[j];
+      p = g.profilesList[c.author];
+      commentsList.push({
+        fbid: fbid,
+        id: c.legacyid,
+        name: p.name,
+        url: p.url,
+        text: c.body.text,
+        date: parseTime(c.timestamp.time)
+      });
+    } catch(e) {}
+  }
+  g.commentsList[fbid] = commentsList;
+  g.commentsList.count++;
+}
 function fbAjax(){
   var len=g.photodata.photos.length,i=g.ajaxLoaded;
   var src;
@@ -396,6 +424,13 @@ function fbAjax(){
       var require=content.payload.jsmods.require;
       if(require&&(content.id=='pagelet_photo_viewer'||require[0][1]=='addPhotoFbids')){list=require[0][3][0];}
       for (var ii = 0; ii < require.length; ii++) {
+        if(!require[ii] || !require[ii].length)continue;
+        if(require[ii].length > 2 && require[ii][0] == 'UFIController'){
+          var inst = require[ii][3];
+          if(inst.length && inst[2].comments && inst[2].comments.length){
+            handleFbAjaxComment(inst[2]);
+          }
+        }
         if (require[ii][1] == 'storeFromData') {
           var image = require[ii][3][0].image;
           if (image) {
@@ -432,30 +467,14 @@ function fbAjax(){
           }
         }
       };
+      // Fallback to old comment
       var instances = content.payload.jsmods.instances;
-      for(var ii=0; instances && ii<instances.length; ii++){
+      for(ii=0; instances && ii<instances.length; ii++){
         if(!instances[ii] || !instances[ii].length || !instances[ii][1])continue;
         if(instances[ii] && instances[ii].length>2 && instances[ii][1].length && instances[ii][1][0]=="UFIController"){
-          var inst = instances[ii][2];
+          inst = instances[ii][2];
           if(inst.length && inst[2].comments && inst[2].comments.length){
-            var comments = inst[2].comments, profiles = inst[2].profiles;
-            var commentsList = [inst[2].feedbacktargets[0].commentcount];
-            var fbid = comments[0].ftentidentifier;
-            var timeFix = new Date(parseTime(inst[2].servertime))-new Date();
-            for(var j=0; j<profiles.length; j++){
-              try{
-                var p = profiles[j];
-                g.profilesList[p.id] = {name: p.name, url: p.uri};
-              }catch(e){}
-            }
-            for(var j=0; j<comments.length; j++){
-              try{
-                var c = comments[j], p = g.profilesList[c.author];
-                commentsList.push({fbid: fbid,id: c.legacyid, name: p.name, url: p.url, text: c.body.text, date: parseTime(c.timestamp.time)})
-              }catch(e){}
-            }
-            g.commentsList[fbid] = commentsList;
-            g.commentsList.count++;
+            handleFbAjaxComment(inst[2]);
           }
         }
       };
