@@ -1386,7 +1386,6 @@ function getAskFM() {
           elms[i].getAttribute('data-src');
       }
       link = box.querySelector('.streamItemsAge');
-      console.log(link)
       title = 'Q: ' +  
         getText('.streamItemContent-question', 0, box) +
         ' <br>' + 'A: ' + getText('.streamItemContent-answer', 0, box);
@@ -1631,7 +1630,7 @@ var dFAcore = function(setup, bypass) {
     g.status = qS('#dfaStatus');
     g.total = +getText('.profileTabAnswerCount');
     g.title = document.title;
-    g.username = getText('#profileName span:nth-of-type(2) span').slice(1)
+    g.username = getText('#profileName span:nth-of-type(2)').slice(1)
     g.photodata = {
       aName: getText('#profileName span:nth-of-type(1)'),
       aAuth: g.username,
