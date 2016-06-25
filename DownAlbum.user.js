@@ -1341,17 +1341,30 @@ function parsePinterest(list){
   log('Loaded ' + photodata.photos.length + ' photos.');
 }
 function getPinterest(){
-  var photodata = g.photodata;
   var board = location.pathname.match(/\/(\S+)\/(\S+)\//);
   if(board){
     // User's board
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
-      var r = JSON.parse(this.responseText);
-      log(r);
-      var d = r.module.tree.children;
-      for(var i = 0; i < d.length; i++){
-        if(d[i].name == 'Grid'){
+      var html = this.response;
+      var doc = getDOM(html);
+      var s = doc.querySelectorAll('script');
+      for (var i = 0; i < s.length; i++) {
+        if (!s[i].src && s[i].textContent.indexOf('bookmarks":["') > 0) {
+          s = s[i].textContent;
+          break;
+        }
+      }
+      var r = JSON.parse(s);
+      var d = r.tree.children;
+      for (i = 0; i < d.length; i++) {
+        if (d[i].name == 'BoardPage') {
+          break;
+        }
+      }
+      d = d[i].children;
+      for (i = 0; i < d.length; i++) {
+        if (d[i].name == 'Grid') {
           parsePinterest(d[i].data);
           g.bookmarks = d[i].resource.options;
           g.options = d[i].options;
@@ -1359,31 +1372,7 @@ function getPinterest(){
       }
       getPinterest_sub();
     };
-    var data = {
-      "options": {
-        "username": board[1],
-        "field_set_key": "detailed",
-        "slug": board[2]
-      },
-      "context": {},
-      "module": {
-        "name": "BoardPage",
-        "options": {
-          "inviter_user_id": null,
-          "show_follow_memo": null,
-          "tab": "pins"
-        }
-      },
-      "render_type": 1,
-      "error_strategy": 0
-    };
-    var url = 'https://www.pinterest.com/resource/BoardResource/get/?source_url=';
-    data = '%2F' + board[1] + '%2F' + board[2] + '%2F&data=' + escape(JSON.stringify(data));
-    url = url + data + '&_=' + (+new Date());
-    xhr.open('GET', url);
-    xhr.setRequestHeader('Accept', 'application/json, text/javascript, */*; q=0.01');
-    xhr.setRequestHeader('X-NEW-APP', 1);
-    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    xhr.open('GET', location.href);
     xhr.send();
   }else{
     // Own Feed
@@ -1423,8 +1412,9 @@ function getPinterest_sub(){
       "module_path": "Button(class_name=primary, text=Close)"
     };
     var url = 'https://www.pinterest.com/resource/BoardFeedResource/get/';
-    var data = 'source_url=%2F' + board[1] + '%2F' + board[2] + 
-      '%2F&data=' + escape(JSON.stringify(data)) + '&_=' + (+new Date());
+    var data = 'source_url=' + 
+      encodeURIComponent('/' + board[1] + '/' + board[2] + '/') + 
+      '&data=' + escape(JSON.stringify(data)) + '&_=' + (+new Date());
     xhr.open('POST', url);
     xhr.setRequestHeader('Accept', 'application/json, text/javascript, */*; q=0.01');
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
