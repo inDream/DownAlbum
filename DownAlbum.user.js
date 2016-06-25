@@ -569,6 +569,13 @@ function getPhotos(){
   }
   else{elms=qSA(selector);testNeeded=1;}
   if(qSA('.fbPhotoStarGridElement')){ajaxNeeded=1;}
+
+  var pageOthers = qSA('.uiLayer a[rel="theater"]');
+  if (qS('[aria-labelledby="pages_name"]') && pageOthers.length) {
+    elms = pageOthers;
+    g.pagePosted = !pageOthers.length;
+  }
+
   if(g.mode!=2&&!g.lastLoaded&&scrollEle&&(!qS('#stopAjaxCkb')||!qS('#stopAjaxCkb').checked)){
     fbAutoLoad(elms);return;
   }
@@ -742,11 +749,14 @@ function fbAjaxAttachment(){
     output();
   }
 }
-function fbLoadPage() {
+function fbLoadPage(posted) {
   var xhr = new XMLHttpRequest();
+  var key = posted ? '_posted_photos1B25GG' : '_photos_by_others4vtdVT';
+  var type = posted ? 'PagePhotosTabAllPhotosView_react_PageRelayQL' :
+    'MediaPageRoute';
   xhr.onload = function() {
     var r = extractJSON(this.responseText);
-    var d = r.q0.response[g.pageId]._posted_photos1B25GG;
+    var d = r.q0.response[g.pageId][key];
     var images = d.edges, img, e = [];
     var doc = document.createElement('div');
     for (var i = 0; i < images.length; i++) {
@@ -775,7 +785,7 @@ function fbLoadPage() {
   xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
   var q = JSON.stringify({q0 : {
     priority: 0,
-    q: 'Query PagePhotosTabAllPhotosView_react_PageRelayQL {node(' + g.pageId +
+    q: 'Query ' + type + ' {node(' + g.pageId +
       ') {@F3}} QueryFragment F0 : Feedback {does_viewer_like,id} ' +
       'QueryFragment F1 : Photo {id,album {id,name},feedback ' +
       '{id,can_viewer_comment,can_viewer_like,likers {count},' +
@@ -783,13 +793,12 @@ function fbLoadPage() {
       'cover-fill-cropped).height(201).width(201) as _image1LP0rd {uri}' +
       ',url,id,@F1} QueryFragment F3 : ' +
       'Page {id,posted_photos.after(' + g.last_fbid +
-      ').first(28) as _posted_photos1B25GG {edges {node {id,@F2},cursor},' +
+      ').first(28) as ' + key + ' {edges {node {id,@F2},cursor},' +
       'page_info {has_next_page,has_previous_page}}}',
     query_params: {}
   }});
   var data = '__user=' + g.Env.user + '&method=GET&response_format=json' +
-    '&fb_dtsg=' + g.fb_dtsg +
-    '&batch_name=PagePhotosTabAllPhotosView_react_PageRelayQL&queries=' + q;
+    '&fb_dtsg=' + g.fb_dtsg + '&batch_name=' + type + '&queries=' + q;
   xhr.send(data);
 }
 function fbAutoLoadFailed(){
@@ -805,11 +814,8 @@ function fbAutoLoad(elms){
     g.elms = [];
     l = g.ajaxStartFrom;
   }else{
-    for(var i = elms.length - 1; i > elms.length - 5; i--){
+    for(var i = elms.length - 1; i > elms.length - 5 && !l; i--){
       l = getFbid(elms[i].href);
-      if(l){
-        break;
-      }
     }
     if(!l){
       alert("Autoload failed!");g.lastLoaded=1;getPhotos();
@@ -849,7 +855,7 @@ function fbAutoLoad(elms){
       }
       g.fb_dtsg = s[4];
       g.elms = Array.prototype.slice.call(elms, 0);
-      fbLoadPage();
+      fbLoadPage(g.pagePosted);
       return;
     }
   }
