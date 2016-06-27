@@ -310,21 +310,30 @@ function extractJSON(str) {
   // http://stackoverflow.com/questions/10574520/
   var firstOpen, firstClose, candidate;
   firstOpen = str.indexOf('{', firstOpen + 1);
+  var countOpen = 0, countClose = 0;
   do {
+    countOpen++;
     firstClose = str.lastIndexOf('}');
     if (firstClose <= firstOpen) {
       return null;
     }
+    countClose = 0;
     do {
+      countClose++;
       candidate = str.substring(firstOpen, firstClose + 1);
+      var res;
       try {
-        var res = JSON.parse(candidate);
+        res = JSON.parse(candidate);
+        return res;
+      } catch (e) {}
+      try {
+        res = eval("(" + candidate + ")");
         return res;
       } catch (e) {}
       firstClose = str.substr(0, firstClose).lastIndexOf('}');
-    } while (firstClose > firstOpen);
+    } while (firstClose > firstOpen && countClose < 20);
     firstOpen = str.indexOf('{', firstOpen + 1);
-  } while (firstOpen != -1);
+  } while (firstOpen != -1 && countOpen < 20);
 }
 function output(){
   g.photodata.dTime = (new Date).toLocaleString();
