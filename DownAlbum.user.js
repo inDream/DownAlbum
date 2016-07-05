@@ -546,7 +546,7 @@ function getPhotos(){
     qS('#mainContainer span[aria-busy="true"]'));
   if(g.ajaxFailed&&g.mode!=2&&scrollEle){scrollTo(0, document.body.clientHeight);setTimeout(getPhotos,2000);return;}
   var i, photodata = g.photodata, testNeeded = 0, ajaxNeeded = 0;
-  var elms = g.elms || qS('#album_pagelet') || qS('#static_set_pagelet') || qS('#pagelet_photos_stream') || qS('#group_photoset') || qS('#initial_browse_result') || qS('#contentArea');
+  var elms = g.elms || qS('#album_pagelet') || qS('#static_set_pagelet') || qS('#pagelet_photos_stream') || qS('#group_photoset') || qS('#initial_browse_result') || qS('#contentArea') || qS('._2eec');
   var grid = qSA('.fbStarGrid');
   var selector = 'a[rel="theater"]';
   var tmp = [], tmpE, eLen;
@@ -842,8 +842,18 @@ function fbAutoLoad(elms){
   var p=location.href+'&';var isAl=p.match(/media\/set|set=a/),aInfo={},isPS=p.match(/photos_stream/),isGp=p.match(/group/),isGraph=p.match(/search/);
   var isPage = qS('[aria-labelledby="pages_name"]');
   if (isPage) {
-    var pageId = qS('.profilePicThumb').getAttribute('href');
-    g.pageId = pageId.split('/')[3].split('.')[3];
+    var pageId = qS('.profilePicThumb');
+    if (pageId){
+      g.pageId = pageId.getAttribute('href').split('/')[3].split('.')[3];
+    } else {
+      pageId = qS('[property="al:ios:url"]');
+      if (pageId){
+        g.pageId = pageId.getAttribute('content').split('/')[3].split('=')[1];
+      } else {
+        fbAutoLoadFailed();
+        return;
+      }
+    }
     if (p.match(/album_id=/)) {
       isAl = true;
       p = qS('.uiMediaThumb').getAttribute('href').split('/')[3];
