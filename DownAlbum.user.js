@@ -63,8 +63,8 @@ var dFAinit = function(){
     k = document.createElement('li');
   }
   k2 = k.cloneNode();
-  k.innerHTML = '<a id="dFA" class="navSubmenu">DownFbAlbum</a>';
-  k2.innerHTML = '<a id="dFAsetup" class="navSubmenu">DownFbAlbum(Setup)</a>';
+  k.innerHTML = '<a id="dFA" class="navSubmenu">DownAlbum</a>';
+  k2.innerHTML = '<a id="dFAsetup" class="navSubmenu">DownAlbum(Setup)</a>';
   var t = qS('.uiContextualLayerPositionerFixed ul') || qS('.Dropdown ul') ||
     qS('.gn_topmenulist.gn_topmenulist_set ul') || qS('.uiContextualLayer [role="menu"]') ||
     qS('.me.dropdown .dropdown-menu') || qS('header div:nth-of-type(2) div');
@@ -256,7 +256,7 @@ function padZero(str, len) {
   return str;
 }
 function parseTime(t){
-  var d = new Date(t * 1000 + g.timeOffset);
+  var d = new Date(t * 1000);
   return d.getFullYear() + '-' + padZero(d.getMonth() + 1, 2) + '-' +
     padZero(d.getDate(), 2) + ' ' + padZero(d.getHours(), 2) + ':' +
     padZero(d.getMinutes(), 2) + ':' + padZero(d.getSeconds(), 2);
@@ -378,13 +378,13 @@ function handleFbAjax(fbid) {
   return false;
 }
 function handleFbAjaxComment(data) {
-  var comments = data.comments, profiles = data.profiles;
+  var comments = data.comments, profiles = Object.keys(data.profiles);
   var commentsList = [data.feedbacktargets[0].commentcount];
   var fbid = comments[0].ftentidentifier;
   var timeFix = new Date(parseTime(data.servertime)) - new Date();
   for (var j = 0; j < profiles.length; j++) {
     try {
-      var p = profiles[j];
+      var p = data.profiles[profiles[j]];
       g.profilesList[p.id] = {name: p.name, url: p.uri};
     } catch(e) {}
   }
@@ -1741,16 +1741,16 @@ var dFAcore = function(setup, bypass) {
 function sendRequest(request, sender, sendResponse) {
 switch(request.type){
   case 'store':
-    localStorage["downFbAlbum"]=request.data;
+    localStorage["downAlbum"]=request.data;
     log(request.no+' photos data saved.'); break;
   case 'get':
-    g.photodata=JSON.parse(localStorage["downFbAlbum"]);
+    g.photodata=JSON.parse(localStorage["downAlbum"]);
     g.start=2;
     log(g.photodata.photos.length+' photos got.');
     getPhotos();
     break;
   case 'export':
-    if(!request.data){request.data=JSON.parse(localStorage["downFbAlbum"]);}
+    if(!request.data){request.data=JSON.parse(localStorage["downAlbum"]);}
     log('Exported '+request.data.photos.length+' photos.');
     var a,b=[],c=request.data;
     c.aName=(c.aName)?c.aName:"Facebook";
