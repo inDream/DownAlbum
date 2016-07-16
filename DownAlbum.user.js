@@ -1369,7 +1369,7 @@ function getPinterest(){
       var doc = getDOM(html);
       var s = doc.querySelectorAll('script');
       for (var i = 0; i < s.length; i++) {
-        if (!s[i].src && s[i].textContent.indexOf('bookmarks":["') > 0) {
+        if (!s[i].src && s[i].textContent.match(/bookmarks":\W*\["/)) {
           s = s[i].textContent;
           break;
         }
