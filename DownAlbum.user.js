@@ -15,6 +15,7 @@
 // @include       htt*://twitter.com/*
 // @include       htt*://weibo.com/p/*/album*
 // @include       htt*://*.weibo.com/*
+// @include       htt*://weibo.com/*
 // @include       htt*://www.pinterest.com/*
 // @include       htt*://ask.fm/*
 // @exclude       htt*://*static*.facebook.com*
@@ -100,8 +101,8 @@ var dFAinit = function(){
     }
   }else if(href.indexOf('pinterest.com') > 0){
     if(!qS('#dfaButton')){
-      var t = qS('.boardButtons');
-      klass = 'Module BoardFollowButton ui-FollowButton notNavigatable Button btn rounded primary boardFollowUnfollowButton hasText'
+      var t = qS('.boardFollowButtonWrapper');
+      klass = 'Button boardFollowUnfollowButton';
       t.innerHTML += '<button id="dfaButton" class="' + klass + '"><span class="buttonText">DownAlbum</span></button><button id="dfaSetButton" class="' + klass + '"><span class="buttonText">DownAlbum(Setup)</span></button>';
       qS('#dfaButton').addEventListener("click", function(){
         dFAcore();
@@ -111,7 +112,7 @@ var dFAinit = function(){
       });
     }
   }else if(href.indexOf('ask.fm') > 0){
-    k = qS('#profile-button');
+    k = qS('.profileButton').parentNode;
     if (k) {
       k.innerHTML += '<a class="link-green" onClick="dFAcore();">DownAlbum</a>' + 
         '<a class="link-green" onClick="dFAcore(true);">DownAlbum(Setup)</a>';
@@ -1566,6 +1567,11 @@ var dFAcore = function(setup, bypass) {
     g.statusEle = qS('[role="navigation"] :nth-of-type(2) a') ||
       qS('[data-click="home_icon"] a') || 
       qS('[href="https://www.facebook.com/?ref=tn_tnmn"]');
+    if (!g.statusEle) {
+      var status = document.createElement('div');
+      document.body.appendChild(status);
+      g.statusEle = status;
+    }
     g.statusText=g.statusEle.innerHTML;g.downloaded={};g.profilesList={};g.commentsList={count:0};
     g.photodata = {
       aName:aName.replace(/'|"/g,'\"'),
@@ -1725,9 +1731,12 @@ var dFAcore = function(setup, bypass) {
     g.status = qS('#dfaStatus');
     g.total = +getText('.profileTabAnswerCount');
     g.title = document.title;
-    g.username = getText('#profileName span:nth-of-type(2)').slice(1)
+    g.username = getText('.profile-name span:nth-of-type(2)').slice(1);
+    if (!g.username) {
+      g.username = location.href.split('/')[3];
+    }
     g.photodata = {
-      aName: getText('#profileName span:nth-of-type(1)'),
+      aName: getText('.profile-name span:nth-of-type(1)'),
       aAuth: g.username,
       aLink: location.href,
       aTime: aTime,
