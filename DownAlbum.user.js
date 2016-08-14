@@ -336,19 +336,35 @@ function extractJSON(str) {
     firstOpen = str.indexOf('{', firstOpen + 1);
   } while (firstOpen != -1 && countOpen < 20);
 }
+function createDialog() {
+  var d = document.createElement('div');
+  var s = document.createElement('style');
+  s.textContent = '#daContainer {position: fixed; width: 360px; \
+    top: 20%; left: 50%; margin-left: -180px; background: #FFF; \
+    padding: 1em; border-radius: 0.5em; line-height: 2em; z-index: 9999;\
+    box-shadow: 1px 3px 3px 0 rgba(0,0,0,.2),1px 3px 15px 2px rgba(0,0,0,.2);}\
+    #daHeader {font-size: 1.5rem; font-weight: 700; background: #FFF; \
+    padding: 1rem 0.5rem; color: rgba(0,0,0,.85); \
+    border-bottom: 1px solid rgba(34,36,38,.15);} \
+    #daContent {font-size: 1.2em; line-height: 1.4; padding: .5rem;} \
+    #stopAjaxCkb {display: inline-block; -webkit-appearance: checkbox; \
+    width: auto;}';
+  document.head.appendChild(s);
+  d.id = 'daContainer';
+  d.innerHTML = '<div id="daHeader">DownAlbum</div><div id="daContent">' +
+    'Status: <span class="daCounter"></span><br>' +
+    '<label>Stop <input id="stopAjaxCkb" type="checkbox"></label><br>' +
+    '<a href="javascript:;" class="daClose">Close</a></div>';
+  document.body.appendChild(d);
+  qS('.daClose').addEventListener('click', function() {
+    document.body.removeChild(qS('#daContainer'));
+  });
+}
 function output(){
   g.photodata.dTime = (new Date).toLocaleString();
   if(location.href.match(/.*facebook.com/)){
     document.title = document.title.match(/(?:.*\|\|)*(.*)/)[1];
-    var t=g.statusEle;
-    t.innerHTML=g.statusText;
-    var b=qS('#stopAjax');
-    if(b){t.parentNode.removeChild(b);}
-  }else if(location.href.match(/.*instagram.com/)){
-    g.status.e.textContent = g.status.t;
-    var ajaxCkb = qS('#stopAjax');
   }
-  if(ajaxCkb)ajaxCkb.parentNode.removeChild(ajaxCkb);
   document.title=g.photodata.aName;
   if(g.photodata.photos.length>1000 && !g.largeAlbum){
     if(confirm('Large amount of photos may crash the browser:\nOK->Use Large Album Optimize Cancel->Continue'))g.photodata.largeAlbum = true;
@@ -491,9 +507,7 @@ function fbAjax(){
     }
     handleFbAjax(src);
     if(len<50||i%15==0)log('Loaded '+(i+1)+' of '+len+'.');
-    var t=g.statusEle;
-    if(!t.nextElementSibling){var stopBtn=document.createElement('label');stopBtn.id='stopAjax';stopBtn.innerHTML='<a class="navItem"> | Stop</a><input id="stopAjaxCkb" type="checkbox">';t.parentNode.appendChild(stopBtn);}
-    t.textContent='Loaded '+(i+1)+' of '+len+'.';
+    g.statusEle.textContent = 'Loaded ' + (i+1) + ' of ' + len;
     if(i+1>=len){
       output();
     }else{
@@ -778,9 +792,7 @@ function fbLoadPage(posted) {
     }
     g.elms = g.elms.concat(e);
 
-    var t = g.statusEle;
-    if(!t.nextElementSibling){var stopBtn=document.createElement('label');stopBtn.id='stopAjax';stopBtn.innerHTML='<a class="navItem"> | Stop</a><input id="stopAjaxCkb" type="checkbox">';t.parentNode.appendChild(stopBtn);}
-    t.textContent = 'Loading album... (' + g.elms.length + ')';
+    g.statusEle.textContent = 'Loading album... (' + g.elms.length + ')';
     document.title = '(' + g.elms.length + ') ||' + g.photodata.aName;
 
     if (d.page_info.has_next_page && !qS('#stopAjaxCkb').checked) {
@@ -1035,9 +1047,7 @@ function fbAutoLoad(elms){
       var old=elms?Array.prototype.slice.call(elms,0):'';
       g.elms=old?old.concat(Array.prototype.slice.call(e,0)):e;
     }
-    var t=g.statusEle;
-    if(!t.nextElementSibling){var stopBtn=document.createElement('label');stopBtn.id='stopAjax';stopBtn.innerHTML='<a class="navItem"> | Stop</a><input id="stopAjaxCkb" type="checkbox">';t.parentNode.appendChild(stopBtn);}
-    t.textContent='Loading album... ('+g.elms.length+')';
+    g.statusEle.textContent = 'Loading album... (' + g.elms.length + ')';
     document.title='('+g.elms.length+') ||'+g.photodata.aName;
 
     if(!eCount){log('Loaded '+g.elms.length+' photos.');g.lastLoaded=1;}
@@ -1082,8 +1092,7 @@ function instaAjax(){
       });
     }
     log('Loaded '+photodata.photos.length+' of '+total+' photos.');
-    if(!g.status.e.nextElementSibling){var stopBtn=document.createElement('label');stopBtn.id='stopAjax';stopBtn.innerHTML='<a class="navItem"> | Stop</a><input id="stopAjaxCkb" type="checkbox">';g.status.e.parentNode.appendChild(stopBtn);}
-    g.status.e.textContent='Loaded '+g.photodata.photos.length+' / '+total;
+    g.statusEle.textContent='Loaded '+g.photodata.photos.length+' / '+total;
     document.title="("+g.photodata.photos.length+"/"+total+") ||"+g.photodata.aName;
     if(qS('#stopAjaxCkb')&&qS('#stopAjaxCkb').checked){output();}
     else if(total>photodata.photos.length&&g.ajax){instaAjax();}else{output();}
@@ -1170,8 +1179,7 @@ function instaQuery() {
     g.ajax = res.media.page_info.has_next_page ? elms[elms.length-1].id : null;
     _instaQueryAdd(elms);
     console.log('Loaded '+photodata.photos.length+' of '+total+' photos.');
-    if(!g.status.e.nextElementSibling){var stopBtn=document.createElement('label');stopBtn.id='stopAjax';stopBtn.innerHTML='<a class="navItem"> | Stop</a><input id="stopAjaxCkb" type="checkbox">';g.status.e.parentNode.appendChild(stopBtn);}
-    g.status.e.textContent='Loaded '+g.photodata.photos.length+' / '+total;
+    g.statusEle.textContent = 'Loaded ' + g.photodata.photos.length + ' / '+ total;
     document.title="("+g.photodata.photos.length+"/"+total+") ||"+g.photodata.aName;
     if(qS('#stopAjaxCkb')&&qS('#stopAjaxCkb').checked){output();}
     else if(total>photodata.photos.length&&g.ajax){instaQuery();}else{output();}
@@ -1276,15 +1284,8 @@ function getTwitter(){
       }
     }
     log("Loaded", photodata.photos.length);
-    if (!qS('#stopAjaxCkb')) {
-      var stopBtn = document.createElement('ul');
-      stopBtn.id = 'stopAjax';
-      stopBtn.className = 'nav secondary-nav';
-      stopBtn.innerHTML = '<span class="dfaCounter"></span>|| <a>Stop <input id="stopAjaxCkb" type="checkbox"></a>';
-      qS('.topbar .pull-right').appendChild(stopBtn);
-    }
     document.title = photodata.photos.length + g.total + ' || ' + g.photodata.aName;
-    qS('.dfaCounter').textContent = g.photodata.photos.length + g.total;
+    g.statusEle.textContent = g.photodata.photos.length + g.total;
     if (qS('#stopAjaxCkb') && qS('#stopAjaxCkb').checked) {
       output();
     } else if (r.has_more_items && g.ajax && !g.ajaxStop) {
@@ -1338,7 +1339,7 @@ function getWeibo(){
     }
     log('Loaded '+photodata.photos.length+' photos.');
     document.title="("+g.photodata.photos.length+") ||"+g.photodata.aName;
-    if(!qS('#stopAjaxCkb')){var stopBtn=document.createElement('li');stopBtn.id='stopAjax';stopBtn.innerHTML='Stop <input id="stopAjaxCkb" type="checkbox">';qS('.gn_topmenulist ul').appendChild(stopBtn);}
+    g.statusEle.textContent = 'Loaded ' + g.photodata.photos.length;
     if(qS('#stopAjaxCkb')&&qS('#stopAjaxCkb').checked){output();}
     else if(g.ajax){setTimeout(getWeibo, 2000);}else{output();}
   }
@@ -1413,8 +1414,7 @@ function getPinterest_sub(){
       g.bookmarks = d.resource.options;
 
       document.title="("+g.photodata.photos.length+") ||"+g.photodata.aName;
-      if(!qS('#stopAjaxCkb')){var stopBtn=document.createElement('button');stopBtn.id='stopAjax';stopBtn.innerHTML='<span class="dfaCounter"></span>|| Stop <input id="stopAjaxCkb" type="checkbox">';qS('.boardButtons').appendChild(stopBtn);}
-      qS('.dfaCounter').textContent = g.photodata.photos.length + '/' + getText('.pinsAndFollowerCount .value');
+      g.statusEle.textContent = g.photodata.photos.length + '/' + g.total;
       if(qS('#stopAjaxCkb')&&qS('#stopAjaxCkb').checked){output();}
       else if(g.bookmarks.bookmarks[0] != '-end-'){
         getPinterest_sub();
@@ -1456,7 +1456,8 @@ function getPinterest_sub(){
   }
 }
 function getAskFM() {
-  var url = 'https://ask.fm/' + g.username + '/answers/more?page=' + g.page;
+  var url = location.protocol + '//ask.fm/' + g.username + 
+    '/answers/more?page=' + g.page;
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
     var html = getDOM(this.response);
@@ -1493,8 +1494,8 @@ function getAskFM() {
     }
     console.log('Loaded ' + photodata.photos.length + ' photos.');
     g.count += html.querySelectorAll('.item').length;
-    g.status.textContent =  g.count + '/' + g.total;
-    document.title = g.status.textContent + ' ||' + g.title;
+    g.statusEle.textContent = g.count + '/' + g.total;
+    document.title = g.statusEle.textContent + ' ||' + g.title;
     if (g.count < g.total && hasMore && !qS('#stopAjaxCkb').checked) {
       g.page++;
       setTimeout(getAskFM, 500);
@@ -1527,6 +1528,8 @@ var dFAcore = function(setup, bypass) {
   localStorage['dFASetting']=JSON.stringify(g.settings);
   var aName=document.title,aAuth="",aDes="",aTime="";g.start=2;
   g.timeOffset=new Date().getTimezoneOffset()/60*-3600000;
+  createDialog();
+  g.statusEle = qS('.daCounter');
   if(location.href.match(/.*facebook.com/)){
     if(qS('.fbPhotoAlbumTitle')||qS('.fbxPhotoSetPageHeader')){
     aName=getText('.fbPhotoAlbumTitle')||getText("h2")||document.title;
@@ -1564,15 +1567,7 @@ var dFAcore = function(setup, bypass) {
     g.ajaxLoaded=0;g.dataLoaded={};g.ajaxRetry=0;g.elms='';g.lastLoaded=0;g.urlLoaded={};
     g.thumbSelector = 'a.uiMediaThumb[ajaxify], a.uiMediaThumb[rel="theater"],' +
       'a.uiMediaThumbMedium';
-    g.statusEle = qS('[role="navigation"] :nth-of-type(2) a') ||
-      qS('[data-click="home_icon"] a') || 
-      qS('[href="https://www.facebook.com/?ref=tn_tnmn"]');
-    if (!g.statusEle) {
-      var status = document.createElement('div');
-      document.body.appendChild(status);
-      g.statusEle = status;
-    }
-    g.statusText=g.statusEle.innerHTML;g.downloaded={};g.profilesList={};g.commentsList={count:0};
+    g.downloaded={};g.profilesList={};g.commentsList={count:0};
     g.photodata = {
       aName:aName.replace(/'|"/g,'\"'),
       aAuth:aAuth.replace(/'|"/g,'\"'),
@@ -1626,22 +1621,6 @@ var dFAcore = function(setup, bypass) {
       aAuth = g.Env.user.username;
       aLink = g.Env.user.website || g.Env.user.external_url;
       if(!aLink)aLink='http://instagram.com/'+aAuth;
-      g.status = {e: qS('div[data-reactid*="$searchBox"]~a~a, ' +
-        'a[data-reactid*="$profileLink"]')};
-      var coreAct = qS('.coreSpriteActivity');
-      if (!g.status.e) {
-        if (coreAct) {
-          var div = document.createElement('div');
-          div.innerHTML = '<span id="dfaStatus"></span>';
-          var parent = coreAct.parentNode.parentNode;
-          parent.appendChild(div);
-          parent.insertBefore(div, parent.childNodes[0]);
-          g.status.e = qS('#dfaStatus');
-        } else {
-          g.status.e = qS('h1');
-        }
-      }
-      g.status.t = g.status.e.textContent;
       g.Env.media = g.Env.user.media.nodes;
       g.loadCm = true;
       var aTime = g.Env.media ? g.Env.media[0].date || g.Env.media[0].created_time : 0;
@@ -1665,7 +1644,6 @@ var dFAcore = function(setup, bypass) {
     var aTime = qS('.tweet-timestamp');
     var total = getText('.PhotoRail-headingWithCount').replace(',', '').match(/\d+/);
     g.total = total ? ('/' + total[0]) : '';
-    g.status = 
     g.photodata = {
       aName: name.getAttribute('href').slice(1),
       aAuth: name.textContent,
@@ -1716,19 +1694,11 @@ var dFAcore = function(setup, bypass) {
       photos: [],
       aDes: aDes
     };
+    g.total = getText('.pinsAndFollowerCount .value') || getText('.value');
     getPinterest();
   }else if(location.href.match(/ask.fm/)){
     g.count = 0;
     g.page = 0;
-    var status = document.createElement('div');
-    status.id = 'dfaContainer';
-    status.className = 'side-section';
-    status.innerHTML = '<h3><span id="dfaStatus"></span>  ' +
-      '<label id="stopAjax">Stop <input id="stopAjaxCkb" style="' +
-      '-webkit-appearance: checkbox;display: inline;width: auto;"' +
-      ' type="checkbox"></label></h3>';
-    qS('.sticky-anchor').appendChild(status);
-    g.status = qS('#dfaStatus');
     g.total = +getText('.profileTabAnswerCount');
     g.title = document.title;
     g.username = getText('.profile-name span:nth-of-type(2)').slice(1);
@@ -1834,11 +1804,11 @@ switch(request.type){
     tHTML=tHTML+'<center id="aTime">'+c.aTime+'</center><br><center id="aDes">'+c.aDes+'</center><center>Download at: '+c.dTime+'</center><br><div id="output" class="cName"></div><div class="wrapper"><div id="bd"><div id="container" class="masonry">';
     tHTML=tHTML+b.join("")+'</div></div></div><script src="'+location.protocol+'//dl.dropbox.com/u/4013937/jquery.min.js"></script></body></html>';
     if(g.newWin){
-      var w = window.open("data:text/html;charset=utf-8," + encodeURIComponent(tHTML),"_blank"); w.focus();
+      var w = window.open("data:text/html;charset=utf-8," + encodeURIComponent(tHTML),"_blank"); if (w) {w.focus();}
     }else{
       try{document.write(tHTML); document.close();}catch(e){
       alert('Cannot write content, open in new window instead.');
-      var w = window.open("data:text/html;charset=utf-8," + encodeURIComponent(tHTML),"_blank"); w.focus();
+      var w = window.open("data:text/html;charset=utf-8," + encodeURIComponent(tHTML),"_blank"); if (w) {w.focus();}
     }}
     break;
     }
