@@ -335,6 +335,10 @@ function extractJSON(str) {
   } while (firstOpen != -1 && countOpen < 20);
 }
 function createDialog() {
+  if (qS('#daContainer')) {
+    qS('#daContainer').style = '';
+    return;
+  }
   var d = document.createElement('div');
   var s = document.createElement('style');
   s.textContent = '#daContainer {position: fixed; width: 360px; \
@@ -354,9 +358,13 @@ function createDialog() {
     '<label>Stop <input id="stopAjaxCkb" type="checkbox"></label><br>' +
     '<a href="javascript:;" class="daClose">Close</a></div>';
   document.body.appendChild(d);
-  qS('.daClose').addEventListener('click', function() {
-    document.body.removeChild(qS('#daContainer'));
-  });
+  qS('.daClose').addEventListener('click', hideDialog);
+}
+function hideDialog() {
+  qS('#daContainer').style = 'display: none;';
+}
+function closeDialog() {
+  document.body.removeChild(qS('#daContainer'));
 }
 function output(){
   g.photodata.dTime = (new Date).toLocaleString();
@@ -1355,6 +1363,17 @@ function parsePinterest(list){
 function getPinterest(){
   var board = location.pathname.match(/\/(\S+)\/(\S+)\//);
   if(board){
+    if (board[1] === 'pin') {
+      var img = qS('.pinImage');
+      if (img) {
+        var link = document.createElement('a');
+        link.href = img.getAttribute('src');
+        link.download = '';
+        link.click();
+        closeDialog();
+      }
+      return;
+    }
     // User's board
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
