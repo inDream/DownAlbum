@@ -1200,6 +1200,10 @@ function getInstagram(){
   if(g.start!=2||g.start==3){return;}g.start=3;
   var i, elms = g.Env.media, photodata = g.photodata, url;
   if (g.Env.user.biography !== undefined && (g.mode!=2 || g.loadCm)) {
+    if (!g.Env.media) {
+      closeDialog();
+      return alert('Cannot download private account.');
+    }
     g.ajax = g.Env.media[0].id;
     g.loadCm = false;
     instaQueryInit();
@@ -1369,13 +1373,13 @@ function getPinterest(){
   var board = location.pathname.match(/\/(\S+)\/(\S+)\//);
   if(board){
     if (board[1] === 'pin') {
+      closeDialog();
       var img = qS('.pinImage');
       if (img) {
         var link = document.createElement('a');
         link.href = img.getAttribute('src');
         link.download = '';
         link.click();
-        closeDialog();
       }
       return;
     }
