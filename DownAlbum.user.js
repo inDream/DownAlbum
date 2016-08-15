@@ -703,14 +703,7 @@ function getFbMessagesPhotos(){
     var elms = g.elms.length ? g.elms : [];
     var payload = JSON.parse(this.response.slice(9)).payload;
     if(payload.imagesData){
-      for(var i in payload.imagesData){
-        if(payload.imagesData.hasOwnProperty(i)){
-          elms.push({
-            fbid: i,
-            url: payload.imagesData[i].URI
-          });
-        }
-      }
+      elms = elms.concat(payload.imagesData);
       if(elms.length){
         g.elms = elms;
         if(payload.moreImagesToLoad){
