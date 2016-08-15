@@ -303,7 +303,7 @@ function getFbid(s){
       fbid = s.match(/\/photos\/[\w\d\.-]+\/(\d+)/);
     }
   }
-  return fbid.length ? fbid[1] : false;
+  return fbid && fbid.length ? fbid[1] : false;
 }
 function extractJSON(str) {
   // http://stackoverflow.com/questions/10574520/
@@ -454,6 +454,11 @@ function fbAjax(){
       if(!content.length||t.indexOf('JSONPTransport')<0){continue;}
       content=JSON.parse(content);
       var require=content.payload.jsmods.require;
+      if (!content.payload || !content.payload.jsmods || 
+        !content.payload.jsmods.require) {
+        alert('Autoload failed, go to photo tab and try again.');
+        return output();
+      }
       if(require&&(content.id=='pagelet_photo_viewer'||require[0][1]=='addPhotoFbids')){list=require[0][3][0];}
       for (var ii = 0; ii < require.length; ii++) {
         if(!require[ii] || !require[ii].length)continue;
