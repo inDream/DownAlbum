@@ -1422,7 +1422,7 @@ function getPinterest_sub(){
       },
       "module_path": "Button(class_name=primary, text=Close)"
     };
-    var url = 'https://www.pinterest.com/resource/BoardFeedResource/get/';
+    var url = location.origin + '/resource/BoardFeedResource/get/';
     var data = 'source_url=' + 
       encodeURIComponent('/' + board[1] + '/' + board[2] + '/') + 
       '&data=' + escape(JSON.stringify(data)) + '&_=' + (+new Date());
