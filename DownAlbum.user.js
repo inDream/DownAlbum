@@ -368,7 +368,7 @@ function closeDialog() {
   document.body.removeChild(qS('#daContainer'));
 }
 function output(){
-  g.photodata.dTime = (new Date).toLocaleString();
+  g.photodata.dTime = (new Date()).toLocaleString();
   if(location.href.match(/.*facebook.com/)){
     document.title = document.title.match(/(?:.*\|\|)*(.*)/)[1];
   }
@@ -1184,6 +1184,10 @@ function instaQueryInit() {
 function instaQuery() {
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
+    if (xhr.status === 429) {
+      alert('Too many request, Please try again later.');
+      return output();
+    }
     if (this.response[0] == '<') {
       if (confirm('Cannot load comments, continue?')) {
         g.loadCm = false;
@@ -1198,8 +1202,13 @@ function instaQuery() {
     console.log('Loaded '+photodata.photos.length+' of '+total+' photos.');
     g.statusEle.textContent = 'Loaded ' + g.photodata.photos.length + ' / '+ total;
     document.title="("+g.photodata.photos.length+"/"+total+") ||"+g.photodata.aName;
-    if(qS('#stopAjaxCkb')&&qS('#stopAjaxCkb').checked){output();}
-    else if(total>photodata.photos.length&&g.ajax){instaQuery();}else{output();}
+    if (qS('#stopAjaxCkb') && qS('#stopAjaxCkb').checked) {
+      output();
+    } else if (total > photodata.photos.length && g.ajax) {
+      setTimeout(instaQuery, 1000);
+    } else {
+      output();
+    }
   };
   xhr.open('POST', 'https://www.instagram.com/query/');
   xhr.setRequestHeader('Accept', 'application/json, text/javascript, */*; q=0.01');
@@ -1396,7 +1405,12 @@ function getPinterest(){
       }
       return;
     }
-    // User's board
+    if (board[1] === 'search') {
+      g.resource = 'SearchResource';
+    } else {
+      g.resource = 'BoardFeedResource';
+    }
+    // User's board / Search
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
       var html = this.response;
@@ -1410,14 +1424,16 @@ function getPinterest(){
       }
       var r = JSON.parse(s);
       var d = r.tree.children;
+      var names = ['BoardPage', 'SearchPage'];
       for (i = 0; i < d.length; i++) {
-        if (d[i].name == 'BoardPage') {
+        if (names.indexOf(d[i].name) !== -1) {
           break;
         }
       }
       d = d[i].children;
+      var resources = ['Grid', 'SearchPageContent'];
       for (i = 0; i < d.length; i++) {
-        if (d[i].name == 'Grid') {
+        if (resources.indexOf(d[i].name) !== -1) {
           parsePinterest(d[i].data);
           g.bookmarks = d[i].resource.options;
           g.options = d[i].options;
@@ -1436,7 +1452,7 @@ function getPinterest_sub(){
   var photodata = g.photodata;
   var board = location.pathname.match(/\/(\S+)\/(\S+)\//);
   if(board){
-    // User's board
+    // User's board / Search
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
       var r = JSON.parse(this.responseText);
@@ -1449,7 +1465,7 @@ function getPinterest_sub(){
       g.statusEle.textContent = g.photodata.photos.length + '/' + g.total;
       if(qS('#stopAjaxCkb')&&qS('#stopAjaxCkb').checked){output();}
       else if(g.bookmarks.bookmarks[0] != '-end-'){
-        getPinterest_sub();
+        setTimeout(getPinterest_sub, 1000);
       }else{
         output();
       }
@@ -1463,7 +1479,7 @@ function getPinterest_sub(){
       },
       "module_path": "Button(class_name=primary, text=Close)"
     };
-    var url = location.origin + '/resource/BoardFeedResource/get/';
+    var url = location.origin + '/resource/' + g.resource + '/get/';
     var data = 'source_url=' + 
       encodeURIComponent('/' + board[1] + '/' + board[2] + '/') + 
       '&data=' + escape(JSON.stringify(data)) + '&_=' + (+new Date());
@@ -1616,6 +1632,9 @@ var dFAcore = function(setup, bypass) {
       getPhotos();
     }
   }else if(location.href.match(/.*instagram.com/)){
+    if (location.pathname === '/') {
+      return alert('Please go to profile page.');
+    }
     var xhr = new XMLHttpRequest();
     xhr.onload = function(){
       var html = this.response;
