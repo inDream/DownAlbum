@@ -337,6 +337,7 @@ function extractJSON(str) {
 function createDialog() {
   if (qS('#daContainer')) {
     qS('#daContainer').style = '';
+    qS('#stopAjaxCkb').checked = false;
     return;
   }
   var d = document.createElement('div');
@@ -382,6 +383,9 @@ function handleFbAjax(fbid) {
   if (d !== undefined) {
     var photos = g.photodata.photos;
     var i = g.ajaxLoaded;
+    if (!photos[i]) {
+      return true;
+    }
     if (g.urlLoaded[fbid]) {
       photos[i].url = g.urlLoaded[fbid];
       delete g.urlLoaded[fbid];
@@ -395,7 +399,9 @@ function handleFbAjax(fbid) {
     photos[i].date = d.date;
     delete g.dataLoaded[fbid];
     delete photos[i].ajax;
-    g.ajaxLoaded++;
+    if (g.ajaxLoaded + 1 < photos.length) {
+      g.ajaxLoaded++;
+    }
     return true;
   }
   return false;
@@ -608,7 +614,9 @@ function getPhotos(){
   var pageOthers = qSA('.uiLayer a[rel="theater"]');
   if (qS('[aria-labelledby="pages_name"]') && pageOthers.length) {
     elms = pageOthers;
-    g.pagePosted = !pageOthers.length;
+    g.pagePosted = false;
+  } else {
+    g.pagePosted = true;
   }
 
   if(g.mode!=2&&!g.lastLoaded&&scrollEle&&(!qS('#stopAjaxCkb')||!qS('#stopAjaxCkb').checked)){
@@ -851,7 +859,7 @@ function fbAutoLoad(elms){
   if(!g.last_fbid){
     g.last_fbid = l;
   }else if(g.last_fbid==l){
-    if(g.ajaxRetry<5){l=elms[elms.length-2].href;l=l.slice(l.indexOf('=')+1,l.indexOf('&'));g.ajaxRetry++;}
+    if(g.ajaxRetry<5 && elms.length > 2){l=elms[elms.length-2].href;l=l.slice(l.indexOf('=')+1,l.indexOf('&'));g.ajaxRetry++;}
     else if(confirm('Reaches end of album / Timeouted.\nTry again->OK\nOutput loaded photos->Cancel')){g.ajaxRetry=0;}else{g.lastLoaded=1;getPhotos();return;}
   }else{
     g.last_fbid=l;
@@ -859,13 +867,14 @@ function fbAutoLoad(elms){
   var p=location.href+'&';var isAl=p.match(/media\/set|set=a/),aInfo={},isPS=p.match(/photos_stream/),isGp=p.match(/group/),isGraph=p.match(/search/);
   var isPage = qS('[aria-labelledby="pages_name"]');
   if (isPage) {
-    var pageId = qS('.profilePicThumb');
+    var pageId = qS('#mainContainer a[rel="theater"]') ||
+      qS('[aria-labelledby="pages_name"] a[rel="theater"]');
     if (pageId){
-      g.pageId = pageId.getAttribute('href').split('/')[3].split('.')[3];
+      g.pageId = pageId.getAttribute('href').match(/\d+/)[0];
     } else {
       pageId = qS('[property="al:ios:url"]');
       if (pageId){
-        g.pageId = pageId.getAttribute('content').split('/')[3].split('=')[1];
+        g.pageId = pageId.getAttribute('content').match(/\d+/)[0];
       } else {
         fbAutoLoadFailed();
         return;
@@ -972,7 +981,11 @@ function fbAutoLoad(elms){
     }
     aInfo={"scroll_load":true,"last_fbid":l,"fetch_size":32,"profile_id":+p,"tab_key":"photos"+(isPS?'_stream':''),"sk":"photos"+(isPS?'_stream':'')};
   }else{
-    p = qS('#pagelet_timeline_medley_photos a[aria-selected="true"]').getAttribute('aria-controls').match(/.*_(.*)/)[1];
+    p = qS('#pagelet_timeline_medley_photos a[aria-selected="true"]');
+    if (!p) {
+      return alert('Please go to photos tab or album.');
+    }
+    p = p.getAttribute('aria-controls').match(/.*_(.*)/)[1];
     var userId = p.match(/(\d*):.*/)[1];
     var tab = p.split(':')[2];
     if(qS('.hidden_elem .fbStarGrid')){
@@ -1117,7 +1130,7 @@ function _instaQueryAdd(elms) {
   for (var i = 0; i < elms.length; i++) {
     var url = parseFbSrc(elms[i].display_src);
     if (g.loadCm) {
-      var c = elms[i].comments, cList = [c.count];
+      var c = elms[i].comments || {count: 0}, cList = [c.count];
       if (c.nodes) {
         for(var k = 0; k < c.nodes.length; k++){
           var p = c.nodes[k];
@@ -1279,7 +1292,7 @@ function getTwitter(){
         photodata.photos.push({
           title: title,
           url: url.replace(':large', '') + ':orig',
-          href: link[j].getAttribute('href'),
+          href: 'https://twitter.com' + date.parentNode.getAttribute('href'),
           date: date ? parseTime(+date.getAttribute('data-time')) : '' 
         });
         if (!r.min_position) {
@@ -1642,7 +1655,8 @@ var dFAcore = function(setup, bypass) {
       if(!aLink)aLink='http://instagram.com/'+aAuth;
       g.Env.media = g.Env.user.media.nodes;
       g.loadCm = true;
-      var aTime = g.Env.media ? g.Env.media[0].date || g.Env.media[0].created_time : 0;
+      var aTime = g.Env.media && g.Env.media.length ? 
+        g.Env.media[0].date || g.Env.media[0].created_time : 0;
       g.photodata = {
         aName: aName.replace(/'|"/g,'\"'),
         aAuth: aAuth,
