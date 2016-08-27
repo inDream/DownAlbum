@@ -1384,7 +1384,7 @@ function parsePinterest(list){
     photodata.photos.push({
       title: list[j].description + '<br><a taget="_blank" href="' + 
         list[j].link + '">Pinned from ' + list[j].domain + '</a>',
-      url: list[j].images.orig.url,
+      url: (list[j].images.orig || list[j].images['736x']).url,
       href: 'https://www.pinterest.com/pin/' + list[j].id + '/',
       date: new Date(list[j].created_at).toLocaleString()
     });
@@ -1405,11 +1405,6 @@ function getPinterest(){
       }
       return;
     }
-    if (board[1] === 'search') {
-      g.resource = 'SearchResource';
-    } else {
-      g.resource = 'BoardFeedResource';
-    }
     // User's board / Search
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
@@ -1424,20 +1419,30 @@ function getPinterest(){
       }
       var r = JSON.parse(s);
       var d = r.tree.children;
-      var names = ['BoardPage', 'SearchPage'];
       for (i = 0; i < d.length; i++) {
-        if (names.indexOf(d[i].name) !== -1) {
+        if (d[i].name.indexOf('Page') !== -1) {
           break;
         }
       }
       d = d[i].children;
-      var resources = ['Grid', 'SearchPageContent'];
+      var content = ['Grid', 'UserProfileContent'];
       for (i = 0; i < d.length; i++) {
-        if (resources.indexOf(d[i].name) !== -1) {
+        if (content.indexOf(d[i].name) !== -1 ||
+          d[i].name.indexOf('PageContent') !== -1) {
           parsePinterest(d[i].data);
           g.bookmarks = d[i].resource.options;
           g.options = d[i].options;
         }
+      }
+      var type = ['search', 'source', 'explore'];
+      var resources = ['Search', 'DomainFeed', 'InterestsFeed'];
+      if (type.indexOf(board[1]) !== -1) {
+        g.resource = resources[type.indexOf(board[1])] + 'Resource';
+      } else if (qS('.UserProfileContent') && board[2] === 'likes') {
+        g.resource = 'UserLikesResource';
+        delete g.bookmarks.bookmarks;
+      } else {
+        g.resource = 'BoardFeedResource';
       }
       getPinterest_sub();
     };
