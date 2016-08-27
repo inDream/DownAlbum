@@ -798,7 +798,7 @@ function fbLoadPage(posted) {
     for (var i = 0; i < images.length; i++) {
       img = images[i].node;
       doc.innerHTML = '<a href="' + img.url + '" rel="theater">' +
-        '<img src="' + img._image1LP0rd.url + '" alt></a>';
+        '<img src="' + img._image1LP0rd.uri + '" alt></a>';
       e.push(doc.childNodes[0].cloneNode(true));
       g.last_fbid = img.id;
     }
@@ -867,7 +867,7 @@ function fbAutoLoad(elms){
   var p=location.href+'&';var isAl=p.match(/media\/set|set=a/),aInfo={},isPS=p.match(/photos_stream/),isGp=p.match(/group/),isGraph=p.match(/search/);
   var isPage = qS('[aria-labelledby="pages_name"]');
   if (isPage) {
-    var pageId = qS('#mainContainer a[rel="theater"]') ||
+    var pageId = qS('#mainContainer .fixed_always a[rel="theater"]') ||
       qS('[aria-labelledby="pages_name"] a[rel="theater"]');
     if (pageId){
       g.pageId = pageId.getAttribute('href').match(/\d+/)[0];
