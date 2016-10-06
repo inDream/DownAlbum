@@ -636,7 +636,7 @@ function getPhotos(){
     var parentSrc = elms[i].parentNode ?
       elms[i].parentNode.getAttribute('data-starred-src') : '';
     var bg = elms[i].childNodes[0];
-    bg = bg ? bg.style.backgroundImage.slice(5, -2) : '';
+    bg = bg && bg.style ? (bg.style.backgroundImage || '').slice(5, -2) : '';
     var url = ajaxify.indexOf('&src') != -1 ? ajaxify : (parentSrc || bg);
     var href = elms[i].href, downurl;
     var fbid = getFbid(href);
@@ -882,7 +882,12 @@ function fbAutoLoad(elms){
     }
     if (p.match(/album_id=/)) {
       isAl = true;
-      p = qS('.uiMediaThumb').getAttribute('href').split('/')[3];
+      p = qS('.uiMediaThumb, [data-token] a');
+      if (!p) {
+        return fbAutoLoadFailed();
+      }
+      p = p.getAttribute('href').replace(location.origin, '')
+        .split('/').filter(p => p.indexOf('.') > 0)[0];
       aInfo = {"scroll_load":true,"last_fbid":l,"fetch_size":32,"profile_id":g.pageId,"viewmode":null, "set":p,"type":"1"};
     } else {
       var s = qSA('script');
@@ -913,7 +918,7 @@ function fbAutoLoad(elms){
       aInfo={"scroll_load":true,"last_fbid":l,"fetch_size":32,"profile_id":+p.slice(p.lastIndexOf('.')+1),"viewmode":null,"set":p,"type":"1"};
     }
 
-    var token = qS("div[aria-role='tabpanel']").id.split("_")[4];
+    var token = qS("div[aria-role='tabpanel']");
     if (token && token.id) {
       token = token.id.split("_")[4];
       var user = token.split(':')[0];
@@ -1124,7 +1129,8 @@ function buildIgQuery(max_id, loadCm) {
   }
   return 'q=ig_user(' + g.Env.user.id + ') {media.after(' + max_id + ', 33) ' +
     '{count, nodes {caption, code, ' + comments + 'date, display_src, id, ' +
-    'is_video, likes {count}, video_url }, page_info } }&ref=users%3A%3Ashow';
+    'is_video, video_url, likes {count}, video_url }, page_info } }' +
+    '&ref=users%3A%3Ashow';
 }
 function _instaQueryAdd(elms) {
   for (var i = 0; i < elms.length; i++) {
@@ -1594,7 +1600,7 @@ var dFAcore = function(setup, bypass) {
     if((!aLoc.tagName||aLoc.tagName!='SPAN')&&(!aLoc.childNodes.length||(aLoc.childNodes.length&&aLoc.childNodes[0].tagName!='IMG'))){aLoc=aLoc.outerHTML?" @ "+aLoc.outerHTML:aLoc.textContent;aTime=aTime+aLoc;}}catch(e){};
     }
     if(location.href.match('/search/')){
-      var query = qS('input[name="q"]');
+      var query = qS('input[name="q"][value]');
       aName = query ? query.value : document.title;
     }
     s = qSA("script");
