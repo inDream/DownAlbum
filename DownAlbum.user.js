@@ -962,10 +962,9 @@ function fbAutoLoad(elms){
       if (!p) {
         return fbAutoLoadFailed();
       }
-      p = p.getAttribute('href').replace(location.origin, '')
-        .split('/').filter(p => p.indexOf('.') > 0)[0];
+      p = p.getAttribute('href').match(/a\.[\.\d]+/g);
       g.pageType = 'album';
-      g.pageAlbumId = p.split('.')[1];
+      g.pageAlbumId = p[p.length - 1].split('.')[1];
     }
     getFbDtsg();
     g.elms = [];
