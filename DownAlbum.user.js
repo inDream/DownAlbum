@@ -873,6 +873,9 @@ function fbLoadPage() {
       g.last_fbid = img.id;
     }
     g.elms = g.elms.concat(e);
+    if (g.pageType === 'album') {
+      g.photodata.aName = images[0].node.album.name;
+    }
 
     g.statusEle.textContent = 'Loading album... (' + g.elms.length + ')';
     document.title = '(' + g.elms.length + ') ||' + g.photodata.aName;
