@@ -945,20 +945,10 @@ function fbAutoLoad(elms){
     g.last_fbid=l;
   }
   var p=location.href+'&';var isAl=p.match(/media\/set|set=a/),aInfo={},isPS=p.match(/photos_stream/),isGp=p.match(/group/),isGraph=p.match(/search/);
-  var isPage = qS('[aria-labelledby="pages_name"]');
-  if (isPage) {
-    var pageId = qS('#mainContainer .fixed_always a[rel="theater"]') ||
-      qS('[aria-labelledby="pages_name"] a[rel="theater"]');
-    if (pageId){
-      g.pageId = pageId.getAttribute('href').match(/\d+/)[0];
-    } else {
-      pageId = qS('[property="al:ios:url"]');
-      if (pageId){
-        g.pageId = pageId.getAttribute('content').match(/\d+/)[0];
-      } else {
-        fbAutoLoadFailed();
-        return;
-      }
+  if (g.isPage) {
+    if (!g.pageId){
+      fbAutoLoadFailed();
+      return;
     }
     if (p.match(/album_id=/)) {
       p = qS('.uiMediaThumb, [data-token] a');
@@ -1702,11 +1692,25 @@ var dFAcore = function(setup, bypass) {
       largeAlbum:g.largeAlbum
     };
     g.newL = !!(qSA('#pagelet_timeline_medley_photos a[role="tab"]').length);
-    if(location.href.match('messages')){
-      getFbMessagesPhotos();
-    }else{
-      getPhotos();
-    }
+    var xhr = new XMLHttpRequest();
+    xhr.onload = function(){
+      var html = this.response;
+      var doc = getDOM(html);
+      var pageId = doc.querySelector('[property="al:ios:url"]')
+        .getAttribute('content');
+      if (pageId.indexOf('page') > 0) {
+        g.isPage = true;
+        g.pageId = pageId.match(/\d+/)[0];
+      }
+      
+      if (location.href.match('messages')) {
+        getFbMessagesPhotos();
+      } else {
+        getPhotos();
+      }
+    };
+    xhr.open('GET', location.href);
+    xhr.send();
   }else if(location.href.match(/.*instagram.com/)){
     if (location.pathname === '/') {
       return alert('Please go to profile page.');
