@@ -383,7 +383,7 @@ function handleFbAjax(fbid) {
   if (d !== undefined) {
     var photos = g.photodata.photos;
     var i = g.ajaxLoaded;
-    if (!photos[i]) {
+    if (!photos[i] || photos[i].date) {
       return true;
     }
     if (g.urlLoaded[fbid]) {
@@ -495,17 +495,21 @@ function fbAjax(){
             var test=markupContent[j].__html;
             if(!test){continue;}
             var h=document.createElement('div');h.innerHTML=unescape(test);
-            var c=h.querySelectorAll(".fbPhotosPhotoCaption");
-            var b=h.querySelectorAll(".fbPhotosPhotoTagboxes");
-            var a=h.querySelectorAll("abbr");
-            if(!c.length){continue;}
-            for(var kk=0;kk<c.length;kk++){
-              var s=c[kk].querySelector(".hasCaption");
-              s=!s?'':s.innerHTML.match(/<br>|<wbr>/)?s.outerHTML.replace(/'/g,'&quot;'):s.textContent;
-              var tag=b[kk].querySelector('.tagBox');
-              tag=!tag?'':b[kk].outerHTML;
-              var date=(a&&a[kk])?parseTime(a[kk].dataset.utime):'';
-              g.dataLoaded[list[kk]]={tag:tag,title:s,date:date};
+            var box = h.querySelectorAll('.snowliftPayloadRoot');
+            if(!box.length){continue;}
+            for (var kk = 0; kk < box.length; kk++) {
+              var c = box[kk].querySelector('.fbPhotosPhotoCaption');
+              var b = box[kk].querySelector('.fbPhotosPhotoTagboxes');
+              var a = box[kk].querySelector('abbr');
+
+              var s = c.querySelector('.hasCaption');
+              s = !s ? '' : s.innerHTML.match(/<br>|<wbr>/) ?
+                s.outerHTML.replace(/'/g,'&quot;') : s.textContent;
+              var tag = b.querySelector('.tagBox');
+              tag = !tag ? '' : b.outerHTML;
+              var date = a ? parseTime(a.dataset.utime):'';
+              pid = getFbid(a.parentNode.href);
+              g.dataLoaded[pid] = {tag: tag, title: s, date: date};
             }
           }
         }
