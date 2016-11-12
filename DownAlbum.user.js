@@ -1704,7 +1704,7 @@ var dFAcore = function(setup, bypass) {
         .getAttribute('content');
       if (pageId && pageId.getAttribute('content').indexOf('page') > 0) {
         g.isPage = true;
-        g.pageId = pageId.match(/\d+/)[0];
+        g.pageId = pageId.getAttribute('content').match(/\d+/)[0];
       }
       
       if (location.href.match('messages')) {
