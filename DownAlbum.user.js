@@ -383,7 +383,7 @@ function handleFbAjax(fbid) {
   if (d !== undefined) {
     var photos = g.photodata.photos;
     var i = g.ajaxLoaded;
-    if (!photos[i] || photos[i].date) {
+    if (!photos[i]) {
       return true;
     }
     if (g.urlLoaded[fbid]) {
