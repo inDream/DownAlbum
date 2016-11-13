@@ -971,7 +971,7 @@ function fbAutoLoad(elms){
     p=elms[0].href.split('&')[1];p=p.slice(p.indexOf('.')+1)
     aInfo={"scroll_load":true,"last_fbid":l,"fetch_size":108,"group_id":p};
   }else if(isAl){
-    if (!isPage) {
+    if (!g.isPage) {
       p=p.match(/set=([a\.\d]*)&/)[1] || p.slice(p.indexOf('=')+1,p.indexOf('&'));
       aInfo={"scroll_load":true,"last_fbid":l,"fetch_size":32,"profile_id":+p.slice(p.lastIndexOf('.')+1),"viewmode":null,"set":p,"type":"1"};
     }
@@ -1700,8 +1700,7 @@ var dFAcore = function(setup, bypass) {
     xhr.onload = function(){
       var html = this.response;
       var doc = getDOM(html);
-      var pageId = doc.querySelector('[property="al:ios:url"]')
-        .getAttribute('content');
+      var pageId = doc.querySelector('[property="al:ios:url"]');
       if (pageId && pageId.getAttribute('content').indexOf('page') > 0) {
         g.isPage = true;
         g.pageId = pageId.getAttribute('content').match(/\d+/)[0];
