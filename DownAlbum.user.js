@@ -407,10 +407,15 @@ function handleFbAjax(fbid) {
   return false;
 }
 function handleFbAjaxComment(data) {
-  var comments = data.comments, profiles = Object.keys(data.profiles);
-  var commentsList = [data.feedbacktargets[0].commentcount];
-  var fbid = comments[0].ftentidentifier;
-  var timeFix = new Date(parseTime(data.servertime)) - new Date();
+  try {
+    var comments = data.comments, profiles = Object.keys(data.profiles);
+    var commentsList = [data.feedbacktarget.commentcount];
+    var fbid = comments[0].ftentidentifier;
+    var timeFix = new Date(parseTime(data.servertime)) - new Date();
+  } catch(e) {
+    console.log('Cannot parse comment');
+    return;
+  }
   for (var j = 0; j < profiles.length; j++) {
     try {
       var p = data.profiles[profiles[j]];
