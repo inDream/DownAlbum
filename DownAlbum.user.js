@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          DownAlbum
 // @author        indream
-// @version       0.16.11.5
+// @version       0.16.12.1
 // @description   Download Facebook, Instagram, Pinterest, Twitter, Ask.fm, Weibo Album.
 // @namespace     DownAlbum
 // @updateURL     https://raw.githubusercontent.com/inDream/DownAlbum/master/DownAlbum.meta.js
