@@ -406,21 +406,24 @@ function handleFbAjax(fbid) {
   }
   return false;
 }
+function handleFbAjaxProfiles(data) {
+  var profiles = Object.keys(data.profiles);
+  for (var j = 0; j < profiles.length; j++) {
+    try {
+      var p = data.profiles[profiles[j]];
+      g.profilesList[p.id] = {name: p.name, url: p.uri};
+    } catch(e) {}
+  }
+}
 function handleFbAjaxComment(data) {
   try {
-    var comments = data.comments, profiles = Object.keys(data.profiles);
+    var comments = data.comments;
     var commentsList = [data.feedbacktarget.commentcount];
     var fbid = comments[0].ftentidentifier;
     var timeFix = new Date(parseTime(data.servertime)) - new Date();
   } catch(e) {
     console.log('Cannot parse comment');
     return;
-  }
-  for (var j = 0; j < profiles.length; j++) {
-    try {
-      var p = data.profiles[profiles[j]];
-      g.profilesList[p.id] = {name: p.name, url: p.uri};
-    } catch(e) {}
   }
   for (j = 0; j < comments.length; j++){
     try {
@@ -472,10 +475,23 @@ function fbAjax(){
       }
       if(require&&(content.id=='pagelet_photo_viewer'||require[0][1]=='addPhotoFbids')){list=require[0][3][0];}
       for (var ii = 0; ii < require.length; ii++) {
-        if(!require[ii] || !require[ii].length)continue;
-        if(require[ii].length > 2 && require[ii][0] == 'UFIController'){
+        if (!require[ii] || !require[ii].length) {
+          continue;
+        }
+        if (require[ii].length > 2 && require[ii][0] == 'UFIController') {
           var inst = require[ii][3];
-          if(inst.length && inst[2].comments && inst[2].comments.length){
+          if (inst.length && inst[2]) {
+            handleFbAjaxProfiles(inst[2]);
+          }
+        }
+      }
+      for (var ii = 0; ii < require.length; ii++) {
+        if (!require[ii] || !require[ii].length) {
+          continue;
+        }
+        if (require[ii].length > 2 && require[ii][0] == 'UFIController') {
+          var inst = require[ii][3];
+          if (inst.length && inst[2].comments && inst[2].comments.length) {
             handleFbAjaxComment(inst[2]);
           }
         }
@@ -506,6 +522,7 @@ function fbAjax(){
               var c = box[kk].querySelector('.fbPhotosPhotoCaption');
               var b = box[kk].querySelector('.fbPhotosPhotoTagboxes');
               var a = box[kk].querySelector('abbr');
+              if (!a) {continue;}
 
               var s = c.querySelector('.hasCaption');
               s = !s ? '' : s.innerHTML.match(/<br>|<wbr>/) ?
@@ -521,11 +538,26 @@ function fbAjax(){
       };
       // Fallback to old comment
       var instances = content.payload.jsmods.instances;
-      for(ii=0; instances && ii<instances.length; ii++){
-        if(!instances[ii] || !instances[ii].length || !instances[ii][1])continue;
-        if(instances[ii] && instances[ii].length>2 && instances[ii][1].length && instances[ii][1][0]=="UFIController"){
+      for(ii = 0; instances && ii<instances.length; ii++){
+        if (!instances[ii] || !instances[ii].length ||
+          !instances[ii][1] || !instances[ii][1].length) {
+          continue;
+        }
+        if (instances[ii][1][0] === 'UFIController') {
           inst = instances[ii][2];
-          if(inst.length && inst[2].comments && inst[2].comments.length){
+          if (inst.length && inst[2].comments && inst[2].comments.length) {
+            handleFbAjaxProfiles(inst[2]);
+          }
+        }
+      }
+      for(ii = 0; instances && ii<instances.length; ii++){
+        if (!instances[ii] || !instances[ii].length ||
+          !instances[ii][1] || !instances[ii][1].length) {
+          continue;
+        }
+        if (instances[ii][1][0] === 'UFIController') {
+          inst = instances[ii][2];
+          if (inst.length && inst[2].comments && inst[2].comments.length) {
             handleFbAjaxComment(inst[2]);
           }
         }
