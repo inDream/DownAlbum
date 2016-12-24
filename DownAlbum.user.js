@@ -652,9 +652,8 @@ function getPhotos(){
   else{elms=qSA(selector);testNeeded=1;}
   if(qSA('.fbPhotoStarGridElement')){ajaxNeeded=1;}
 
-  var pageOthers = qSA('.uiLayer a[rel="theater"]');
-  if (qS('[aria-labelledby="pages_name"]') && pageOthers.length) {
-    elms = pageOthers;
+  var pageOthers = qS('input[type="file"][accept="image/*"]');
+  if (g.isPage && pageOthers) {
     g.pageType = 'other';
   } else {
     g.pageType = 'posted';
@@ -867,6 +866,19 @@ function getQL(type, target, key) {
       '.first(28) as ' + key +' {edges {node {__typename,@F4,@F5},cursor},' +
       'page_info {has_next_page,has_previous_page}}}';
   } else {
+    if (g.pageType === 'other' && !g.elms.length && !g.ajaxStartFrom) {
+      return 'Query MediaPageRoute {node(' + g.pageId + ') {id,__typename,' +
+        '@F5}} QueryFragment F0 : Photo {album {album_type,id},' +
+        'can_viewer_edit,id,owner {id,__typename}} QueryFragment F1 : ' +
+        'Photo {can_viewer_delete,id} QueryFragment F2 : Feedback {' +
+        'does_viewer_like,id} QueryFragment F3 : Photo {id,album {id,name}' +
+        ',feedback {id,can_viewer_comment,can_viewer_like,likers {count},' +
+        'comments {count},@F2}} QueryFragment F4 : Photo {can_viewer_edit,' +
+        'id,image as _image1LP0rd {uri},url,modified_time,message {text},' +
+        '@F0,@F1,@F3} QueryFragment F5 : Page {id,photos_by_others.first(28)' +
+        ' as _photos_by_others4vtdVT {count,edges {node {id,@F4},cursor}, ' +
+        'page_info {has_next_page,has_previous_page}}}';
+    }
     return 'Query ' + type + ' {node(' + g.pageId +
       ') {@F3}} QueryFragment F0 : Feedback {does_viewer_like,id} ' +
       'QueryFragment F1 : Photo {id,album {id,name},feedback ' +
@@ -889,8 +901,8 @@ function fbLoadPage() {
       break;
     case 'other':
       key = '_photos_by_others4vtdVT';
-      type = 'MediaPageRoute';
-      target = 'Page {id,posted_photos' + (g.elms.length || g.last_fbid ?
+      type = 'PagePhotosTabPostByOthersPhotoGrids_react_PageRelayQL';
+      target = 'Page {id,photos_by_others' + (g.elms.length || g.last_fbid ?
         ('.after(' + g.last_fbid + ')') : '');
       break;
     case 'posted':
@@ -911,7 +923,7 @@ function fbLoadPage() {
         img.modified_time + '"><img src="' + img._image1LP0rd.uri + '" alt="' +
         (img.message ? img.message.text : '') + '"></a>';
       e.push(doc.childNodes[0].cloneNode(true));
-      g.last_fbid = img.id;
+      g.last_fbid = images[i].cursor || img.id;
     }
     g.elms = g.elms.concat(e);
     if (g.pageType === 'album') {
