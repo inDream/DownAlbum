@@ -897,7 +897,7 @@ function fbLoadPage() {
       key = '_media1xY4vu';
       type = 'PagePhotosTabAlbumPhotosGrid_react_AlbumRelayQL';
       target = 'Album {id,media' + (g.elms.length || g.last_fbid ?
-        ('.after(' + btoa('fbid:' + g.last_fbid) + ')') : '');
+        ('.after(' + g.last_fbid + ')') : '');
       break;
     case 'other':
       key = '_photos_by_others4vtdVT';
