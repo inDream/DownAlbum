@@ -926,7 +926,7 @@ function fbLoadPage() {
       g.last_fbid = images[i].cursor || img.id;
     }
     g.elms = g.elms.concat(e);
-    if (g.pageType === 'album') {
+    if (g.pageType === 'album' && images.length) {
       g.photodata.aName = images[0].node.album.name;
     }
 
