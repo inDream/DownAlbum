@@ -1541,6 +1541,9 @@ function getPinterest(){
         }
       }
       d = d[i].children;
+      if (d[0] && d[0].children) {
+        d = d[0].children;
+      }
       var content = ['Grid', 'UserProfileContent'];
       for (i = 0; i < d.length; i++) {
         if (content.indexOf(d[i].name) !== -1 ||
