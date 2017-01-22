@@ -742,7 +742,10 @@ function getPhotos(){
   if(qS('#stopAjaxCkb')&&qS('#stopAjaxCkb').checked){qS('#stopAjaxCkb').checked=false;}
   log('export '+photodata.photos.length+' photos.');
   if(!g.notLoadCm){
-    if(ajaxNeeded&&(g.loadCm||confirm("Try to load photo's caption?"))){fbAjax();}else{output();}
+    if (ajaxNeeded && (g.loadCm || confirm("Try to load photo's caption?"))) {
+      g.elms = null;
+      fbAjax();
+    } else {output();}
   }else{output();}
 }
 function getFbMessagesPhotos(){
