@@ -1695,8 +1695,7 @@ var dFAcore = function(setup, bypass) {
   g.loadCm=g.settings.notLoadCm?0:(g.settings.loadCm||confirm("Try to load photo's caption?"));
   g.notLoadCm=g.settings.notLoadCm||!g.loadCm;
   g.largeAlbum=g.settings.largeAlbum||g.largeAlbum;
-  g.newWin=g.settings.newWin||confirm("Open page in new window?");
-  g.settings={mode:g.mode,loadCm:g.loadCm,largeAlbum:g.largeAlbum,notLoadCm:g.notLoadCm,newWin:g.newWin};
+  g.settings={mode:g.mode,loadCm:g.loadCm,largeAlbum:g.largeAlbum,notLoadCm:g.notLoadCm};
   localStorage['dFASetting']=JSON.stringify(g.settings);
   var aName=document.title,aAuth="",aDes="",aTime="";g.start=2;
   g.timeOffset=new Date().getTimezoneOffset()/60*-3600000;
@@ -1980,7 +1979,7 @@ switch(request.type){
       var a = '<div rel="gallery" class="item'+(c.largeAlbum?' largeAlbum':'')+'" id="item'+i+'"><a'+href+'>'+(i*1+1)+'</a>'+commentInd+tagIndi+dateInd+'<a class="fancybox" rel="fancybox" href="'+d[i].url+'" target="_blank"><div class="crop"><div style="background-image: url('+d[i].url+');" class="img"><img src="'+d[i].url+'"></div></div></a>'+title+tag+comments+'</div>';
       b.push(a)}
     }
-    var tHTML='<!DOCTYPE><html><body class="index">'+'<script>document.title=\''+c.aAuth+(c.aAuth?"-":"")+c.aName+'\';</script>';
+    var tHTML='<!DOCTYPE html><html><body class="index">'+'<script>document.title=\''+c.aAuth+(c.aAuth?"-":"")+c.aName+'\';</script>';
     tHTML=tHTML+'<style>body{line-height:1;background:#f5f2f2;font-size:13px;color:#444;padding-top:70px;}.crop{width:192px;height:192px;overflow:hidden;}.crop img{display:none;}.img{width:192px;height:192px;background-size:cover;background-position:50% 25%;border:none;image-rendering:optimizeSpeed;}@media screen and (-webkit-min-device-pixel-ratio:0){.img{image-rendering: -webkit-optimize-contrast;}}header{display:block}.wrapper{width:960px;margin:0 auto;position:relative}#hd{background:#faf7f7;position:fixed;z-index:100;top:0;left:0;width:100%;}#hd .logo{padding:7px 0;border-bottom:1px solid rgba(0,0,0,0.2)}#container{width:948px;position:relative;margin:0 auto}.item{width:192px;float:left;padding:5px 15px 0;margin:0 7px 15px;font-size:12px;background:white;line-height:1.5}.item .captions{color:#8c7e7e;padding-bottom:15px;overflow:hidden;height:8px;position:relative;}.item .captions:first-child{position:absolute;width:100%;height:100%;top:0;left:0;z-index:1;}#logo{background-color:#3B5998;color:#FFF}#hd .logo h1{background-color:#3B5998;left:0;position:relative;width:100%;display:block;margin:0;color:#FFF;height:100%;font-size:20px}#logo a{color:#FFF}#logo a:hover{color:#FF9}progress{width:100%}#aDes{line-height:1.4;}.largeAlbum>a{visibility:visible;}.largeAlbum .fancybox{visibility:hidden;display:none;}.oImg{background-color:#FFC}\
       .twitter-emoji, .twitter-hashflag {height: 1.25em; width: 1.25em; padding: 0 .05em 0 .1em; vertical-align: -0.2em;}\
       /* drag */ #output{display:none;background:grey;min-height:200px;margin:20px;padding:10px;border:2px dotted#fff;text-align:center;position:relative;-moz-border-radius:15px;-webkit-border-radius:15px;border-radius:15px;}#output:before{content:"Drag and Drop images.";color:#fff;font-size:50px;font-weight:bold;opacity:0.5;text-shadow:1px 1px#000;position:absolute;width:100%;left:0;top:50%;margin:-50px 0 0;z-index:1;}#output img{display:inline-block;margin:0 10px 10px 0;} button{display:inline-block;vertical-align:baseline;outline:none;cursor:pointer;text-align:center;text-decoration:none;font:700 14px/100% Arial, Helvetica, sans-serif;text-shadow:0 1px 1px rgba(0,0,0,.3);color:#d9eef7;border:solid 1px #0076a3;-webkit-border-radius:.5em;-moz-border-radius:.5em;background-color:#59F;border-radius:.5em;margin:0 2px 12px;padding:.5em 1em .55em;}.cName{display:none;}#fsCount{position: absolute;top: 20;right: 20;font-size: 3em;}\
@@ -1993,13 +1992,8 @@ switch(request.type){
     tHTML=tHTML+'<header id="hd"><div class="logo" id="logo"><div class="wrapper"><h1><a id="aName" href='+c.aLink+'>'+c.aName+'</a> '+((c.aAuth)?'- '+c.aAuth:"")+' <button onClick="cleanup()">ReStyle</button></h1><h1>Press Ctrl+S / [Mac]Command+S (with Complete option) to save all photos. [Photos are located in _files folder]</h1></div></div></header>';
     tHTML=tHTML+'<center id="aTime">'+c.aTime+'</center><br><center id="aDes">'+c.aDes+'</center><center>Download at: '+c.dTime+'</center><br><div id="output" class="cName"></div><div class="wrapper"><div id="bd"><div id="container" class="masonry">';
     tHTML=tHTML+b.join("")+'</div></div></div><script src="'+location.protocol+'//dl.dropbox.com/u/4013937/jquery.min.js"></script></body></html>';
-    if(g.newWin){
-      var w = window.open("data:text/html;charset=utf-8," + encodeURIComponent(tHTML),"_blank"); if (w) {w.focus();}
-    }else{
-      try{document.write(tHTML); document.close();}catch(e){
-      alert('Cannot write content, open in new window instead.');
-      var w = window.open("data:text/html;charset=utf-8," + encodeURIComponent(tHTML),"_blank"); if (w) {w.focus();}
-    }}
+    var file = new File([tHTML], 'photos.html', {type: 'text/html;charset=utf-8'});
+    window.open(window.URL.createObjectURL(file), '_blank');
     break;
     }
 };
