@@ -748,24 +748,22 @@ function getPhotos(){
     } else {output();}
   }else{output();}
 }
-function getFbMessagesPhotos(){
-  if(!g.offset){
+function getFbMessagesPhotos() {
+  if (!g.offset) {
     g.ajaxRetry = {};
     g.offset = 0;
-    g.photodata.aName = getText('#webMessengerHeaderName');
-    g.photodata.aDes = qS('#webMessengerHeaderName').innerHTML;
+    g.photodata.aName = getText('.fb_content [role="main"] h2');
+    g.photodata.aDes = '';
     getFbDtsg();
-    var threadId = location.href.match(/conversation-(\d+)/);
-    var userId = qS('#webMessengerHeaderName a');
-    if(threadId){
-      threadId = threadId[1];
-    }else if(userId){
-      threadId = userId.getAttribute('data-hovercard').match(/id=(\d+)&/)[1];
-    }else{
-      alert('Cannot get message info.');
-      return;
+    var headers = qSA('[role="rowheader"]');
+    var rows = [];
+    for (var i = 0; i < headers.length; i++) {
+      rows.push({e: headers[i], len: headers[i].parentNode.className.length});
     }
-    g.threadId = threadId;
+    rows.sort(function(a, b) {
+      return a.len > b.len ? -1 : a.len === b.len ? 0 : 1;
+    });
+    g.threadId = rows[0].e.id.split(':')[1];
   }
   var url = 'https://www.facebook.com/ajax/messaging/attachments/sharedphotos.php';
   var data = 'thread_id='+g.threadId+'&offset='+g.offset+'&limit=30&__user='+g.Env.user+'&__a=1&__req=7&fb_dtsg='+g.fb_dtsg;
