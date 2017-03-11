@@ -1627,8 +1627,8 @@ function getPinterest_sub(){
   }
 }
 function getAskFM() {
-  var url = location.protocol + '//ask.fm/' + g.username + 
-    '/answers/more?page=' + g.page;
+  var url = g.page || (location.protocol + '//ask.fm/' + g.username + 
+    '/answers/more?page=' + g.page);
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
     var html = getDOM(this.response);
@@ -1668,7 +1668,7 @@ function getAskFM() {
     g.statusEle.textContent = g.count + '/' + g.total;
     document.title = g.statusEle.textContent + ' ||' + g.title;
     if (g.count < g.total && hasMore && !qS('#stopAjaxCkb').checked) {
-      g.page++;
+      g.page = location.origin + hasMore.dataset.url;
       setTimeout(getAskFM, 500);
     } else {
       if (photodata.photos.length) {
