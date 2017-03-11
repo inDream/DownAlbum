@@ -935,7 +935,7 @@ function fbLoadPage() {
     g.statusEle.textContent = 'Loading album... (' + g.elms.length + ')';
     document.title = '(' + g.elms.length + ') ||' + g.photodata.aName;
 
-    if (d.page_info.has_next_page && !qS('#stopAjaxCkb').checked) {
+    if (d.page_info && d.page_info.has_next_page && !qS('#stopAjaxCkb').checked) {
       setTimeout(fbLoadPage, 1000);
     } else {
       console.log('Loaded ' + g.elms.length + ' photos.');
