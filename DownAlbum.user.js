@@ -616,7 +616,7 @@ function getPhotos(){
     qS('.fbStarGridWrapper~img') || qS('#browse_result_below_fold') ||
     (!qS('#browse_end_of_results_footer') && qS('#contentArea div.hidden_elem')
     && location.href.match('search')) ||
-    qS('#mainContainer span[aria-busy="true"]'));
+    qS('span[aria-busy="true"]'));
   if(g.ajaxFailed&&g.mode!=2&&scrollEle){scrollTo(0, document.body.clientHeight);setTimeout(getPhotos,2000);return;}
   var i, photodata = g.photodata, testNeeded = 0, ajaxNeeded = 0;
   var elms = g.elms || qS('#album_pagelet') || qS('#static_set_pagelet') || qS('#pagelet_photos_stream') || qS('#group_photoset') || qS('#initial_browse_result') || qS('#contentArea') || qS('._2eec');
