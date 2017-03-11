@@ -1237,42 +1237,97 @@ function buildIgQuery(max_id, loadCm) {
     comments = 'comments { count, nodes{created_at, text, user{username}} }, ';
   }
   return 'q=ig_user(' + g.Env.user.id + ') {media.after(' + max_id + ', 33) ' +
-    '{count, nodes {caption, code, ' + comments + 'date, display_src, id, ' +
-    'is_video, video_url, likes {count}, video_url }, page_info } }' +
-    '&ref=users%3A%3Ashow';
+    '{count, nodes {__typename, caption, code, ' + comments + 'date, ' +
+    'display_src, id, is_video, video_url, likes {count}, video_url }, ' +
+    'page_info } } &ref=users%3A%3Ashow';
 }
 function _instaQueryAdd(elms) {
   for (var i = 0; i < elms.length; i++) {
-    var url = parseFbSrc(elms[i].display_src);
-    if (g.loadCm) {
-      var c = elms[i].comments || {count: 0}, cList = [c.count];
-      if (c.nodes) {
-        for(var k = 0; k < c.nodes.length; k++){
-          var p = c.nodes[k];
-          if (p) {
-            cList.push({
-              name: p.user.username,
-              url: 'http://instagram.com/' + p.user.username,
-              text: p.text,
-              date: parseTime(p.created_at)
-            });
-          }
-        }
+    var c = elms[i].comments || {count: 0};
+    var cList = [c.count];
+    for (var k = 0; c.nodes && k < c.nodes.length; k++) {
+      var p = c.nodes[k];
+      if (p) {
+        cList.push({
+          name: p.user.username,
+          url: 'http://instagram.com/' + p.user.username,
+          text: p.text,
+          date: parseTime(p.created_at)
+        });
       }
     }
-    if(elms[i].is_video){
-      g.photodata.videos.push({
-        url: elms[i].video_url,
-        thumb: url
+    
+    var url;
+    if (elms[i].__typename === 'GraphSidecar') {
+      var edges = elms[i].edge_sidecar_to_children.edges;
+      for (var j = 0; j < edges.length; j++) {
+        var n = edges[j].node;
+        url = parseFbSrc(n.display_url);
+        if (n.is_video) {
+          g.photodata.videos.push({
+            url: n.video_url,
+            thumb: url
+          });
+        }
+        g.photodata.photos.push({
+          title: elms[i].caption || '',
+          url: url,
+          href: 'https://www.instagram.com/p/' + n.code + '/',
+          date: elms[i].date ? parseTime(elms[i].date) : '',
+          comments: c.nodes && j === 0 ? cList : ''
+        });
+      }
+    } else {
+      url = parseFbSrc(elms[i].display_src);
+      if (elms[i].is_video) {
+        g.photodata.videos.push({
+          url: elms[i].video_url,
+          thumb: url
+        });
+      }
+      g.photodata.photos.push({
+        title: elms[i].caption || '',
+        url: url,
+        href: 'https://www.instagram.com/p/' + elms[i].code + '/',
+        date: elms[i].date ? parseTime(elms[i].date) : '',
+        comments: c.nodes ? cList : ''
       });
     }
-    g.photodata.photos.push({
-      title: elms[i].caption || '',
-      url: url,
-      href: 'https://www.instagram.com/p/' + elms[i].code + '/',
-      date: elms[i].date ? parseTime(elms[i].date) : '',
-      comments: g.loadCm && c.nodes ? cList : ''
-    });
+  }
+}
+function _instaQueryProcess(elms) {
+  for (var i = 0; i < elms.length; i++) {
+    var feed = elms[i];
+    if (feed.__typename === 'GraphSidecar' && !feed.edge_sidecar_to_children) {
+      var xhr = new XMLHttpRequest();
+      xhr.onload = function() {
+        var res = {};
+        try {
+          res = JSON.parse(this.response);
+        } catch(e) {
+          alert('Cannot get album content!');
+        }
+        elms[i] = res.media;
+        _instaQueryProcess(elms);
+      };
+      xhr.open('GET', 'https://www.instagram.com/p/' + feed.code + '/?__a=1');
+      xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+      xhr.send();
+      return;
+    }
+  }
+  _instaQueryAdd(elms);
+  var total = g.total;
+  var photodata = g.photodata;
+  console.log('Loaded '+photodata.photos.length+' of '+total+' photos.');
+  g.statusEle.textContent = 'Loaded ' + photodata.photos.length + ' / '+ total;
+  document.title="("+photodata.photos.length+"/"+total+") ||"+photodata.aName;
+  if (qS('#stopAjaxCkb') && qS('#stopAjaxCkb').checked) {
+    output();
+  } else if (g.ajax) {
+    setTimeout(instaQuery, 1000);
+  } else {
+    output();
   }
 }
 function instaQueryInit() {
@@ -1284,16 +1339,15 @@ function instaQueryInit() {
     } catch(e) {
       alert('Fallback to old api!');
     }
-    if (res.media) {
-      _instaQueryAdd([res.media]);
-      instaQuery();
+    if (res.user.media.nodes) {
+      _instaQueryProcess(res.user.media.nodes);
     } else {
       g.ajax = '';
       instaAjax();
     }
   };
-  xhr.open('GET', 'https://www.instagram.com/p/' + g.Env.media[0].code +
-    '/?__a=1');
+  xhr.open('GET', location.href + '?__a=1');
+  xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
   xhr.send();
 }
 function instaQuery() {
@@ -1310,20 +1364,10 @@ function instaQuery() {
       }
       return;
     }
-    var total=g.total, photodata=g.photodata,
-    res=JSON.parse(this.response),elms=res.media.nodes;
+    var res = JSON.parse(this.response);
+    var elms = res.media.nodes;
     g.ajax = res.media.page_info.has_next_page ? elms[elms.length-1].id : null;
-    _instaQueryAdd(elms);
-    console.log('Loaded '+photodata.photos.length+' of '+total+' photos.');
-    g.statusEle.textContent = 'Loaded ' + g.photodata.photos.length + ' / '+ total;
-    document.title="("+g.photodata.photos.length+"/"+total+") ||"+g.photodata.aName;
-    if (qS('#stopAjaxCkb') && qS('#stopAjaxCkb').checked) {
-      output();
-    } else if (total > photodata.photos.length && g.ajax) {
-      setTimeout(instaQuery, 1000);
-    } else {
-      output();
-    }
+    _instaQueryProcess(elms);
   };
   xhr.open('POST', 'https://www.instagram.com/query/');
   xhr.setRequestHeader('Accept', 'application/json, text/javascript, */*; q=0.01');
