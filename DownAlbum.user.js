@@ -99,7 +99,7 @@ var dFAinit = function(){
     }
   }else if(href.indexOf('pinterest.com') > 0){
     if(!qS('#dfaButton')){
-      var t = qS('.boardFollowButtonWrapper');
+      var t = qS('.infoBar .pull-right, .headerContainer, .centeredWithinWrapper');
       klass = 'Button boardFollowUnfollowButton';
       t.innerHTML += '<button id="dfaButton" class="' + klass + '"><span class="buttonText">DownAlbum</span></button><button id="dfaSetButton" class="' + klass + '"><span class="buttonText">DownAlbum(Setup)</span></button>';
       qS('#dfaButton').addEventListener("click", function(){
@@ -1496,7 +1496,7 @@ function parsePinterest(list){
         list[j].link + '">Pinned from ' + list[j].domain + '</a>',
       url: (list[j].images.orig || list[j].images['736x']).url,
       href: 'https://www.pinterest.com/pin/' + list[j].id + '/',
-      date: new Date(list[j].created_at).toLocaleString()
+      date: list[j].created_at ? new Date(list[j].created_at).toLocaleString() : false
     });
   }
   log('Loaded ' + photodata.photos.length + ' photos.');
@@ -1534,27 +1534,40 @@ function getPinterest(){
           break;
         }
       }
-      d = d[i].children;
-      if (d[0] && d[0].children) {
-        d = d[0].children;
-      }
-      var content = ['Grid', 'UserProfileContent'];
-      for (i = 0; i < d.length; i++) {
-        if (content.indexOf(d[i].name) !== -1 ||
-          d[i].name.indexOf('PageContent') !== -1) {
-          parsePinterest(d[i].data);
-          g.bookmarks = d[i].resource.options;
-          g.options = d[i].options;
+      if (d[i].children) {
+        d = d[i].children;
+        if (d[0] && d[0].children) {
+          d = d[0].children;
+        }
+        var content = ['Grid', 'UserProfileContent'];
+        for (i = 0; i < d.length; i++) {
+          if (content.indexOf(d[i].name) !== -1 ||
+            d[i].name.indexOf('PageContent') !== -1) {
+            g.bookmarks = d[i].resource.options;
+            if (d[i].data && d[i].data.results && d[i].data.results.length) {
+              parsePinterest(d[i].data.results);
+            }
+          }
         }
       }
       var type = ['search', 'source', 'explore'];
-      var resources = ['Search', 'DomainFeed', 'InterestsFeed'];
+      var resources = ['Search', 'DomainFeed', 'Search'];
       if (type.indexOf(board[1]) !== -1) {
+        if (board[1] === 'source') {
+          g.bookmarks = {domain: board[2]};
+        }
         g.resource = resources[type.indexOf(board[1])] + 'Resource';
       } else if (qS('.UserProfileContent') && board[2] === 'likes') {
         g.resource = 'UserLikesResource';
         delete g.bookmarks.bookmarks;
       } else {
+        g.bookmarks = {
+          board_id: r.tree.data.id,
+          board_url: r.tree.data.url,
+          field_set_key: 'react_grid_pin',
+          layout: 'default',
+          page_size: 25
+        };
         g.resource = 'BoardFeedResource';
       }
       getPinterest_sub();
@@ -1574,10 +1587,8 @@ function getPinterest_sub(){
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
       var r = JSON.parse(this.responseText);
-      var d = r.module.tree;
-      parsePinterest(d.data);
-      g.options = d.options;
-      g.bookmarks = d.resource.options;
+      parsePinterest(r.resource_response.data);
+      g.bookmarks = r.resource.options;
 
       document.title="("+g.photodata.photos.length+") ||"+g.photodata.aName;
       g.statusEle.textContent = g.photodata.photos.length + '/' + g.total;
@@ -1590,12 +1601,7 @@ function getPinterest_sub(){
     };
     var data = {
       "options" : g.bookmarks,
-      "context": {},
-      "module": {
-        "name": "GridItems",
-        "options": g.options
-      },
-      "module_path": "Button(class_name=primary, text=Close)"
+      "context": {}
     };
     var url = location.origin + '/resource/' + g.resource + '/get/';
     var data = 'source_url=' + 
@@ -1859,8 +1865,8 @@ var dFAcore = function(setup, bypass) {
     getWeibo();
   }else if(location.href.match(/pinterest.com/)){
     g.photodata = {
-      aName: getText('h1.boardName') || 'Pinterest',
-      aAuth: getText('h4.fullname') || '',
+      aName: getText('h3') || 'Pinterest',
+      aAuth: qS('.profileSource img') ? qS('.profileSource img').alt : '',
       aLink: location.href,
       aTime: aTime,
       photos: [],
