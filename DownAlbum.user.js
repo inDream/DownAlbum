@@ -1023,7 +1023,8 @@ function fbAutoLoad(elms){
     aInfo={"scroll_load":true,"last_fbid":l,"fetch_size":108,"group_id":p};
   }else if(isAl){
     if (!g.isPage) {
-      p=p.match(/set=([a\.\d]*)&/)[1] || p.slice(p.indexOf('=')+1,p.indexOf('&'));
+      p = p.match(/set=([a\.\d]*)&/) || p;
+      p = p.length ? p[1] : p.slice(p.indexOf('=')+1,p.indexOf('&'));
       aInfo={"scroll_load":true,"last_fbid":l,"fetch_size":32,"profile_id":+p.slice(p.lastIndexOf('.')+1),"viewmode":null,"set":p,"type":"1"};
     }
 
