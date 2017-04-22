@@ -1244,10 +1244,10 @@ function buildIgQuery(max_id, loadCm) {
 }
 function _instaQueryAdd(elms) {
   for (var i = 0; i < elms.length; i++) {
-    if (!g.downloaded[elms[i].id]) {
-      g.downloaded[elms[i].id] = 1;
-    } else {
+    if (!elms || g.downloaded[elms[i].id]) {
       continue;
+    } else {
+      g.downloaded[elms[i].id] = 1;
     }
     var c = elms[i].comments || {count: 0};
     var cList = [c.count];
@@ -1304,25 +1304,32 @@ function _instaQueryAdd(elms) {
 function _instaQueryProcess(elms) {
   for (var i = 0; i < elms.length; i++) {
     var feed = elms[i];
-    if (g.downloaded[feed.id]) {
+    if (!elms[i] || g.downloaded[feed.id]) {
       continue;
     }
-    if (feed.__typename === 'GraphSidecar' && !feed.edge_sidecar_to_children) {
-      var xhr = new XMLHttpRequest();
-      xhr.onload = function() {
-        var res = {};
-        try {
-          res = JSON.parse(this.response);
-        } catch(e) {
-          alert('Cannot get album content!');
-        }
-        elms[i] = res.media;
-        _instaQueryProcess(elms);
-      };
-      xhr.open('GET', 'https://www.instagram.com/p/' + feed.code + '/?__a=1');
-      xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-      xhr.send();
-      return;
+    if (feed.__typename === 'GraphSidecar') {
+      if (g.skipAlbum) {
+        elms[i] = null;
+        continue;
+      } else if (!feed.edge_sidecar_to_children) {
+        var xhr = new XMLHttpRequest();
+        xhr.onload = function() {
+          var res = {};
+          try {
+            res = JSON.parse(this.response);
+            elms[i] = res.graphql.shortcode_media;
+          } catch(e) {
+            elms[i] = null;
+            g.skipAlbum = true;
+            alert('Cannot get album content!');
+          }
+          _instaQueryProcess(elms);
+        };
+        xhr.open('GET', 'https://www.instagram.com/p/' + feed.code + '/?__a=1');
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.send();
+        return;
+      }
     }
   }
   _instaQueryAdd(elms);
