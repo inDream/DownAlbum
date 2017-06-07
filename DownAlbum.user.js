@@ -1249,23 +1249,20 @@ function _instaQueryAdd(elms) {
     } else {
       g.downloaded[elms[i].id] = 1;
     }
-    var c = elms[i].comments || {count: 0};
+    var c = elms[i].comments || elms[i].edge_media_to_comment || {count: 0};
     var cList = [c.count];
-    for (var k = 0; c.nodes && k < c.nodes.length; k++) {
-      var p = c.nodes[k];
-      if (p) {
+    var url;
+    if (elms[i].__typename === 'GraphSidecar') {
+      var edges = elms[i].edge_sidecar_to_children.edges;
+      for (var k = 0; k < c.edges.length; k++) {
+        var p = c.edges[k].node;
         cList.push({
-          name: p.user.username,
-          url: 'http://instagram.com/' + p.user.username,
+          name: p.owner.username,
+          url: 'http://instagram.com/' + p.owner.username,
           text: p.text,
           date: parseTime(p.created_at)
         });
       }
-    }
-    
-    var url;
-    if (elms[i].__typename === 'GraphSidecar') {
-      var edges = elms[i].edge_sidecar_to_children.edges;
       for (var j = 0; j < edges.length; j++) {
         var n = edges[j].node;
         url = parseFbSrc(n.display_url);
@@ -1276,14 +1273,25 @@ function _instaQueryAdd(elms) {
           });
         }
         g.photodata.photos.push({
-          title: elms[i].caption || '',
+          title: j === 0 ? elms[i].edge_media_to_caption.edges[0].node.text : '',
           url: url,
           href: 'https://www.instagram.com/p/' + n.code + '/',
-          date: elms[i].date ? parseTime(elms[i].date) : '',
-          comments: c.nodes && c.nodes.length && j === 0 ? cList : ''
+          date: elms[i].taken_at_timestamp ? parseTime(elms[i].taken_at_timestamp) : '',
+          comments: c.count && j === 0 ? cList : ''
         });
       }
     } else {
+      for (var k = 0; c.nodes && k < c.nodes.length; k++) {
+        var p = c.nodes[k];
+        if (p) {
+          cList.push({
+            name: p.user.username,
+            url: 'http://instagram.com/' + p.user.username,
+            text: p.text,
+            date: parseTime(p.created_at)
+          });
+        }
+      }
       url = parseFbSrc(elms[i].display_src);
       if (elms[i].is_video) {
         g.photodata.videos.push({
