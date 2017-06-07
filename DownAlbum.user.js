@@ -984,7 +984,7 @@ function fbAutoLoad(elms){
     l = g.ajaxStartFrom;
   } else if (elms.length) {
     for (var i = elms.length - 1; i > elms.length - 5 && !l; i--) {
-      l = getFbid(elms[i].href);
+      l = getFbid(elms[i].getAttribute('ajaxify')) || getFbid(elms[i].href);
     }
     if(!l){
       alert("Autoload failed!");g.lastLoaded=1;getPhotos();
@@ -1752,8 +1752,8 @@ var dFAcore = function(setup, bypass) {
       g.notLoadCm = !g.loadCm;
     }
     g.ajaxLoaded=0;g.dataLoaded={};g.ajaxRetry=0;g.elms='';g.lastLoaded=0;g.urlLoaded={};
-    g.thumbSelector = 'a.uiMediaThumb[ajaxify], a.uiMediaThumb[rel="theater"],' +
-      'a.uiMediaThumbMedium';
+    g.thumbSelector = 'a.uiMediaThumb[ajaxify], a.uiMediaThumb[rel="theater"], ' +
+      'a.uiMediaThumbMedium, .fbPhotoCurationControlWrapper a[ajaxify]';
     g.downloaded={};g.profilesList={};g.commentsList={count:0};
     g.photodata = {
       aName:aName.replace(/'|"/g,'\"'),
