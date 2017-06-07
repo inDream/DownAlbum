@@ -15,6 +15,7 @@
 // @include       htt*://twitter.com/*
 // @include       htt*://weibo.com/*
 // @include       htt*://www.pinterest.com/*
+// @include       htt*://www.pinterest.*/*
 // @include       htt*://ask.fm/*
 // @exclude       htt*://*static*.facebook.com*
 // @exclude       htt*://*channel*.facebook.com*
@@ -97,7 +98,7 @@ var dFAinit = function(){
       observer.observe(document.body, {subtree: true, childList: true});
       runLater();
     }
-  }else if(href.indexOf('pinterest.com') > 0){
+  }else if(href.indexOf('pinterest') > 0){
     if(!qS('#dfaButton')){
       var t = qS('.infoBar .pull-right, .headerContainer, .centeredWithinWrapper');
       klass = 'Button boardFollowUnfollowButton';
@@ -1878,7 +1879,7 @@ var dFAcore = function(setup, bypass) {
       aDes:""
     };
     getWeibo();
-  }else if(location.href.match(/pinterest.com/)){
+  }else if(location.href.match(/pinterest/)){
     g.photodata = {
       aName: getText('h3') || 'Pinterest',
       aAuth: qS('.profileSource img') ? qS('.profileSource img').alt : '',
