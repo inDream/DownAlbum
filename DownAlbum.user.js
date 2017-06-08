@@ -679,12 +679,17 @@ function getPhotos(){
       elms[i].parentNode.getAttribute('data-starred-src') : '';
     var bg = elms[i].childNodes[0];
     var src = bg ? bg.getAttribute('src') : '';
-    if (src && src.indexOf('?') === -1) {
-      src = parseFbSrc(src);
+    if (src) {
+      if (src.indexOf('rsrc.php') > 0) {
+        src = '';
+      } else if (src && src.indexOf('?') === -1) {
+        src = parseFbSrc(src);
+      }
     }
     bg = bg && bg.style ? (bg.style.backgroundImage || '').slice(5, -2) : '';
-    var url = src || (ajaxify.indexOf('&src') < 0 ? ajaxify : (parentSrc || bg));
-    var href = elms[i].href;
+    var url = src || parentSrc || bg;
+    var href = ajaxify.indexOf('fbid=') > -1 ? ajaxify : elms[i].href;
+    var ohref = href + '';
     var fbid = getFbid(href);
     if(href.match('opaqueCursor')){
       if(fbid){
@@ -703,8 +708,8 @@ function getPhotos(){
         ajax = url.slice(url.indexOf("?")+1,url.indexOf("&src")).split("&");
         url = parseFbSrc(url.match(/&src.(.*)/)[1]).replace(/&smallsrc=.*\?/, '?', true);
       } else {
-        ajax = elms[i].href.slice(elms[i].href.indexOf('?') + 1).split('&');
-        var pset = elms[i].href.match(/\/photos\/([\.\d\w-]+)\//);
+        ajax = ohref.slice(ohref.indexOf('?') + 1).split('&');
+        var pset = ohref.match(/\/photos\/([\.\d\w-]+)\//);
         if (pset) {
           q = {set: pset[1]};
         }
@@ -713,7 +718,10 @@ function getPhotos(){
       if(!q.fbid && fbid){
         q.fbid = fbid;
       }
-      ajax='https://www.facebook.com/ajax/pagelet/generic.php/PhotoViewerInitPagelet?ajaxpipe=1&ajaxpipe_token='+g.Env.ajaxpipe_token+'&no_script_path=1&data='+JSON.stringify(q)+'&__user='+g.Env.user+'&__a=1&__adt=2';
+      ajax = 'https://www.facebook.com/ajax/pagelet/generic.php/' +
+        'PhotoViewerInitPagelet?ajaxpipe=1&ajaxpipe_token=' +
+        g.Env.ajaxpipe_token + '&no_script_path=1&data=' + JSON.stringify(q)+
+        '&__user=' + g.Env.user + '&__a=1&__adt=2';
     }
     if(url.match(/\?/)){
       var b=url.split('?'), t='', a=b[1].split('&');
