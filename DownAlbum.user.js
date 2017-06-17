@@ -1272,8 +1272,9 @@ function _instaQueryAdd(elms) {
             thumb: url
           });
         }
+        var caption = feed.edge_media_to_caption.edges;
         g.photodata.photos.push({
-          title: j === 0 ? feed.edge_media_to_caption.edges[0].node.text : '',
+          title: j === 0 && caption.length ? caption[0].node.text : '',
           url: url,
           href: 'https://www.instagram.com/p/' + n.code + '/',
           date: feed.taken_at_timestamp ? parseTime(feed.taken_at_timestamp) : '',
@@ -1290,8 +1291,12 @@ function _instaQueryAdd(elms) {
       }
       var date = feed.date || feed.taken_at_timestamp;
       var code = feed.shortcode || feed.code;
+      var caption = feed.edge_media_to_caption;
+      if (caption) {
+        caption = caption.edges.length ? caption.edges[0].node.text : '';
+      }
       g.photodata.photos.push({
-        title: feed.caption || feed.edge_media_to_caption.edges[0].node.text || '',
+        title: feed.caption || caption || '',
         url: url,
         href: 'https://www.instagram.com/p/' + code + '/',
         date: date ? parseTime(date) : '',
