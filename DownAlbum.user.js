@@ -1241,37 +1241,28 @@ function instaAjax(){
   xhr.open("GET", 'https://www.instagram.com/'+g.Env.user.username+'/media/?max_id='+g.ajax);
   xhr.send();
 }
-function buildIgQuery(max_id, loadCm) {
-  var comments = '';
-  if (loadCm) {
-    comments = 'comments.last(20) { count, nodes{created_at, text, user{username}} }, ';
-  }
-  return 'q=ig_user(' + g.Env.user.id + ') {media.after(' + max_id + ', 33) ' +
-    '{count, nodes {__typename, caption, code, ' + comments + 'date, ' +
-    'display_src, id, is_video, video_url, likes {count}, video_url }, ' +
-    'page_info } } &ref=users%3A%3Ashow';
-}
 function _instaQueryAdd(elms) {
   for (var i = 0; i < elms.length; i++) {
-    if (!elms || g.downloaded[elms[i].id]) {
+    var feed = elms[i];
+    if (!elms || g.downloaded[feed.id]) {
       continue;
     } else {
-      g.downloaded[elms[i].id] = 1;
+      g.downloaded[feed.id] = 1;
     }
-    var c = elms[i].comments || elms[i].edge_media_to_comment || {count: 0};
+    var c = feed.edge_media_to_comment || {count: 0};
     var cList = [c.count];
+    for (var k = 0; c.edges && k < c.edges.length; k++) {
+      var p = c.edges[k].node;
+      cList.push({
+        name: p.owner.username,
+        url: 'http://instagram.com/' + p.owner.username,
+        text: p.text,
+        date: parseTime(p.created_at)
+      });
+    }
     var url;
-    if (elms[i].__typename === 'GraphSidecar') {
-      var edges = elms[i].edge_sidecar_to_children.edges;
-      for (var k = 0; k < c.edges.length; k++) {
-        var p = c.edges[k].node;
-        cList.push({
-          name: p.owner.username,
-          url: 'http://instagram.com/' + p.owner.username,
-          text: p.text,
-          date: parseTime(p.created_at)
-        });
-      }
+    if (feed.__typename === 'GraphSidecar') {
+      var edges = feed.edge_sidecar_to_children.edges;
       for (var j = 0; j < edges.length; j++) {
         var n = edges[j].node;
         url = parseFbSrc(n.display_url);
@@ -1282,44 +1273,38 @@ function _instaQueryAdd(elms) {
           });
         }
         g.photodata.photos.push({
-          title: j === 0 ? elms[i].edge_media_to_caption.edges[0].node.text : '',
+          title: j === 0 ? feed.edge_media_to_caption.edges[0].node.text : '',
           url: url,
           href: 'https://www.instagram.com/p/' + n.code + '/',
-          date: elms[i].taken_at_timestamp ? parseTime(elms[i].taken_at_timestamp) : '',
-          comments: c.count && j === 0 ? cList : ''
+          date: feed.taken_at_timestamp ? parseTime(feed.taken_at_timestamp) : '',
+          comments: c.count && j === 0 && cList.length > 1 ? cList : ''
         });
       }
     } else {
-      for (var k = 0; c.nodes && k < c.nodes.length; k++) {
-        var p = c.nodes[k];
-        if (p) {
-          cList.push({
-            name: p.user.username,
-            url: 'http://instagram.com/' + p.user.username,
-            text: p.text,
-            date: parseTime(p.created_at)
-          });
-        }
-      }
-      url = parseFbSrc(elms[i].display_src);
-      if (elms[i].is_video) {
+      url = parseFbSrc(feed.display_url || feed.display_src);
+      if (feed.is_video) {
         g.photodata.videos.push({
           url: elms[i].video_url,
           thumb: url
         });
       }
+      var date = feed.date || feed.taken_at_timestamp;
+      var code = feed.shortcode || feed.code;
       g.photodata.photos.push({
-        title: elms[i].caption || '',
+        title: feed.caption || feed.edge_media_to_caption.edges[0].node.text || '',
         url: url,
-        href: 'https://www.instagram.com/p/' + elms[i].code + '/',
-        date: elms[i].date ? parseTime(elms[i].date) : '',
-        comments: c.nodes && c.nodes.length ? cList : ''
+        href: 'https://www.instagram.com/p/' + code + '/',
+        date: date ? parseTime(date) : '',
+        comments: c.count && cList.length > 1 ? cList : ''
       });
     }
   }
 }
 function _instaQueryProcess(elms) {
   for (var i = 0; i < elms.length; i++) {
+    if (elms[i].node) {
+      elms[i] = elms[i].node;
+    }
     var feed = elms[i];
     if (!elms[i] || g.downloaded[feed.id]) {
       continue;
@@ -1342,7 +1327,8 @@ function _instaQueryProcess(elms) {
           }
           _instaQueryProcess(elms);
         };
-        xhr.open('GET', 'https://www.instagram.com/p/' + feed.code + '/?__a=1');
+        var code = feed.shortcode || feed.code;
+        xhr.open('GET', 'https://www.instagram.com/p/' + code + '/?__a=1');
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         xhr.send();
         return;
@@ -1377,17 +1363,15 @@ function instaQuery() {
       }
       return;
     }
-    var res = JSON.parse(this.response).media;
+    var res = JSON.parse(this.response).data.user.edge_owner_to_timeline_media;
     g.ajax = res.page_info.has_next_page ? res.page_info.end_cursor : null;
-    _instaQueryProcess(res.nodes);
+    _instaQueryProcess(res.edges);
   };
-  xhr.open('POST', 'https://www.instagram.com/query/');
-  xhr.setRequestHeader('Accept', 'application/json, text/javascript, */*; q=0.01');
-  xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-  xhr.setRequestHeader('X-CSRFToken', g.token);
-  xhr.setRequestHeader('X-Instagram-Ajax', 1);
+  xhr.open('GET', 'https://www.instagram.com/graphql/query/?' +
+    'query_id=17880160963012870&id=' + g.Env.user.id + '&first=30&after=' +
+    g.ajax);
   xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-  xhr.send(buildIgQuery(g.ajax, g.loadCm));
+  xhr.send();
 }
 function getInstagram() {
   if (g.start != 2 || g.start == 3) {
