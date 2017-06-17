@@ -1177,9 +1177,10 @@ function fbAutoLoad(elms){
         e = htmlBase.querySelectorAll(g.thumbSelector);
       }
       var map = {};
-      for(k = 0; k < e.length; k++){
-        if(!map[e[k].href]){
-          map[e[k].href] = 1;
+      for (k = 0; k < e.length; k++) {
+        var href = unescape(e[k].getAttribute('ajaxify')) || e[k].href;
+        if (href.indexOf('/videos/') === -1 && !map[href]) {
+          map[href] = 1;
           temp.push(e[k]);
         }
       }
@@ -1750,8 +1751,9 @@ var dFAcore = function(setup, bypass) {
       g.notLoadCm = !g.loadCm;
     }
     g.ajaxLoaded=0;g.dataLoaded={};g.ajaxRetry=0;g.elms='';g.lastLoaded=0;g.urlLoaded={};
-    g.thumbSelector = 'a.uiMediaThumb[ajaxify], a.uiMediaThumb[rel="theater"], ' +
-      'a.uiMediaThumbMedium, .fbPhotoCurationControlWrapper a[ajaxify]';
+    g.thumbSelector = 'a.uiMediaThumb[ajaxify], ' +
+      'a.uiMediaThumb[rel="theater"], a.uiMediaThumbMedium, ' +
+      '.fbPhotoCurationControlWrapper a[ajaxify][rel="theater"]';
     g.downloaded={};g.profilesList={};g.commentsList={count:0};
     g.photodata = {
       aName:aName.replace(/'|"/g,'\"'),
