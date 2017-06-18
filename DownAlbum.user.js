@@ -1374,9 +1374,28 @@ function instaQuery() {
     _instaQueryProcess(res.edges);
   };
   xhr.open('GET', 'https://www.instagram.com/graphql/query/?' +
-    'query_id=17880160963012870&id=' + g.Env.user.id + '&first=30&after=' +
+    'query_id=' + g.queryId + '&id=' + g.Env.user.id + '&first=30&after=' +
     g.ajax);
   xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+  xhr.send();
+}
+function getInstagramQueryId() {
+  var s = qS('script[src*="Commons"]');
+  var xhr = new XMLHttpRequest();
+  xhr.onload = function() {
+    var id = this.response.match(/profilePosts\S+queryId:"(\d+)"/);
+    if (!id) {
+      id = this.response.match(/byUserId\.get\S+queryId:"(\d+)"/);
+    }
+    if (id) {
+      g.queryId = id[1];
+    } else {
+      alert('Cannot get query id, using fallback instead');
+      g.queryId = 17880160963012870;
+    }
+    getInstagram();
+  };
+  xhr.open('GET', s.src);
   xhr.send();
 }
 function getInstagram() {
@@ -1826,7 +1845,7 @@ var dFAcore = function(setup, bypass) {
         aDes: (g.Env.user.bio || g.Env.user.biography || '').replace(/'|"/g,'\"')
       };
       g.downloaded = {};
-      getInstagram();
+      getInstagramQueryId();
     };
     xhr.open('GET', location.href);
     xhr.send();
