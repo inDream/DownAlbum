@@ -274,10 +274,14 @@ function parseFbSrc(s, fb) {
   if (fb) {
     return s.replace(/s\d{3,4}x\d{3,4}\//g, '');
   } else {
-    return s.replace(/\w\d{3,4}x\d{3,4}\//g, '');
+    return s.replace(/\w\d{3,4}x\d{3,4}\//g, '')
+      .replace(/c\d+\.\d+\.\d+\.\d+\//, '');
   }
 }
 function getFbid(s){
+  if (!s || !s.length) {
+    return false;
+  }
   var fbid = s.match(/fbid=(\d+)/);
   if(!fbid){
     if(s.match('opaqueCursor')){
@@ -1262,10 +1266,11 @@ function _instaQueryAdd(elms) {
       });
     }
     var url;
-    if (feed.__typename === 'GraphSidecar') {
-      var edges = feed.edge_sidecar_to_children.edges;
+    var isVideo = feed.__typename === 'GraphVideo';
+    if (feed.__typename === 'GraphSidecar' || isVideo) {
+      var edges = isVideo ? [feed] : feed.edge_sidecar_to_children.edges;
       for (var j = 0; j < edges.length; j++) {
-        var n = edges[j].node;
+        var n = isVideo ? edges[j] : edges[j].node;
         url = parseFbSrc(n.display_url);
         if (n.is_video) {
           g.photodata.videos.push({
@@ -1284,12 +1289,6 @@ function _instaQueryAdd(elms) {
       }
     } else {
       url = parseFbSrc(feed.display_url || feed.display_src);
-      if (feed.is_video) {
-        g.photodata.videos.push({
-          url: elms[i].video_url,
-          thumb: url
-        });
-      }
       var date = feed.date || feed.taken_at_timestamp;
       var code = feed.shortcode || feed.code;
       var caption = feed.edge_media_to_caption;
@@ -1315,11 +1314,11 @@ function _instaQueryProcess(elms) {
     if (!elms[i] || g.downloaded[feed.id]) {
       continue;
     }
-    if (feed.__typename === 'GraphSidecar') {
+    if (feed.__typename === 'GraphSidecar' || feed.__typename === 'GraphVideo') {
       if (g.skipAlbum) {
         elms[i] = null;
         continue;
-      } else if (!feed.edge_sidecar_to_children) {
+      } else if (!feed.edge_sidecar_to_children && !feed.video_url) {
         var xhr = new XMLHttpRequest();
         xhr.onload = function() {
           var res = {};
