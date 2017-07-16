@@ -1498,7 +1498,7 @@ function getWeibo(){
           var t = link[j].split("=");
           data[t[0]] = t[1];
         }
-        var url = img[imgCount].src.match(/http:\/\/([\w\.]+)\//);
+        var url = img[imgCount].src.match(/:\/\/([\w\.]+)\//);
         url = 'http://' + url[1] + '/large/' + data.pid + '.jpg';
         if(!g.downloaded[url]){g.downloaded[url]=1;}else{continue;}
         photodata.photos.push({
