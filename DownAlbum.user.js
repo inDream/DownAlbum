@@ -1046,7 +1046,7 @@ function fbAutoLoad(elms){
       token = token.id.split("_")[4];
       var user = token.split(':')[0];
       var tnext = qS('.fbPhotoAlbumTitle').nextSibling;
-      var isCollab = tnext.className != 'fbPhotoAlbumActions' &&
+      var isCollab = tnext && tnext.className != 'fbPhotoAlbumActions' &&
         tnext.querySelectorAll('[data-hovercard]').length > 1;
       
       if (location.href.match(/collection_token/) || isCollab) {
