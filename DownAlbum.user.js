@@ -1520,7 +1520,7 @@ function getWeibo(){
 function parsePinterest(list){
   var photodata = g.photodata;
   for(var j = 0; j < list.length; j++){
-    if (list[j].name) {
+    if (list[j].name || !list[j].images) {
       continue;
     }
     photodata.photos.push({
@@ -1535,128 +1535,128 @@ function parsePinterest(list){
 }
 function getPinterest(){
   var board = location.pathname.match(/\/(\S+)\/(\S+)\//);
-  if(board){
-    if (board[1] === 'pin') {
-      closeDialog();
-      var img = qS('.pinImage');
-      if (img) {
-        var link = document.createElement('a');
-        link.href = img.getAttribute('src');
-        link.download = '';
-        link.click();
-      }
-      return;
+  if (board && board[1] === 'pin') {
+    closeDialog();
+    var img = qS('.pinImage, .imageLink img');
+    if (img) {
+      var link = document.createElement('a');
+      link.href = img.getAttribute('src');
+      link.download = '';
+      link.click();
     }
-    // User's board / Search
-    var xhr = new XMLHttpRequest();
-    xhr.onload = function() {
-      var html = this.response;
-      var doc = getDOM(html);
-      var s = doc.querySelectorAll('script');
-      for (var i = 0; i < s.length; i++) {
-        if (!s[i].src && s[i].textContent.match(/bookmarks":\W*\["/)) {
-          s = s[i].textContent;
-          break;
-        }
-      }
-      var r = JSON.parse(s);
-      var d = r.tree.children;
-      for (i = 0; i < d.length; i++) {
-        if (d[i].name.indexOf('Page') !== -1) {
-          break;
-        }
-      }
-      if (d[i].children) {
-        d = d[i].children;
-        if (d[0] && d[0].children) {
-          d = d[0].children;
-        }
-        var content = ['Grid', 'UserProfileContent'];
-        for (i = 0; i < d.length; i++) {
-          if (content.indexOf(d[i].name) !== -1 ||
-            d[i].name.indexOf('PageContent') !== -1) {
-            g.bookmarks = d[i].resource.options;
-            if (d[i].data && d[i].data.results && d[i].data.results.length) {
-              parsePinterest(d[i].data.results);
-            }
-          }
-        }
-      }
-      var type = ['search', 'source', 'explore'];
-      var resources = ['Search', 'DomainFeed', 'Search'];
-      if (type.indexOf(board[1]) !== -1) {
-        if (board[1] === 'source') {
-          g.bookmarks = {domain: board[2]};
-        }
-        g.resource = resources[type.indexOf(board[1])] + 'Resource';
-      } else if (qS('.UserProfileContent') && board[2] === 'likes') {
-        g.resource = 'UserLikesResource';
-        delete g.bookmarks.bookmarks;
-      } else {
+    return;
+  }
+  g.source = board ? encodeURIComponent('/' + board.join('/') + '/') : '/';
+  var xhr = new XMLHttpRequest();
+  xhr.onload = function() {
+    var html = this.response;
+    var doc = getDOM(html);
+    var s = JSON.parse(doc.querySelector('#initial-state').textContent);
+    var type = s.ui.mainComponent.current;
+    var resources = s.resources.data;
+    while (resources && !resources.data) {
+      resources = resources[Object.keys(resources)[0]];
+    }
+    var r = resources && resources.data ? resources.data : null;
+    g.resource = type.replace(/Feed|Page/g, '') + 'FeedResource';
+    switch (type) {
+      case 'HomePage':
+        parsePinterest(r);
         g.bookmarks = {
-          board_id: r.tree.data.id,
-          board_url: r.tree.data.url,
+          bookmarks: [resources.nextBookmark],
+          prependPartner: false,
+          prependUserNews: false,
+          prependExploreRep: null,
+          field_set_key: 'grid_item_with_rec'
+        };
+        g.resource = 'UserHomefeedResource';
+        break;
+      case 'BoardPage':
+        g.bookmarks = {
+          board_id: r.id,
+          board_url: r.url,
           field_set_key: 'react_grid_pin',
           layout: 'default',
           page_size: 25
         };
-        g.resource = 'BoardFeedResource';
+        break;
+      case 'DomainFeedPage':
+        g.bookmarks = {domain: board[2]};
+        break;
+      case 'ProfilePage':
+        switch (board[2]) {
+          case 'pins': 
+            g.bookmarks = {username: board[1], field_set_key: 'grid_item'};
+            g.resource = 'UserPinsResource';
+            break;
+          case 'likes':
+            g.bookmarks = {username: board[1], page_size: 25};
+            g.resource = 'UserLikesResource';
+            break;
+        }
+        break;
+      case 'SearchPage':
+        var query = location.search.slice(1).replace(/&/g, '=').split('=');
+        query = query[query.indexOf('q') + 1];
+        g.bookmarks = {query: query, scope: board[2]};
+        break;
+      case 'InterestFeedPage':
+        g.bookmarks = {query: board[2]};
+        break;
+    }
+    if (type === 'SearchPage' || type === 'InterestFeedPage') {   
+      if (r.results) {
+        parsePinterest(r.results);
       }
-      getPinterest_sub();
-    };
-    xhr.open('GET', location.href);
-    xhr.send();
-  }else{
-    // Own Feed
-
-  }
+      if (resources.nextBookmark) {
+        g.bookmarks.bookmarks = [resources.nextBookmark];
+      }
+      g.resource = 'SearchResource';
+    }
+    getPinterest_sub();
+  };
+  xhr.open('GET', location.href);
+  xhr.send();
 }
 function getPinterest_sub(){
   var photodata = g.photodata;
-  var board = location.pathname.match(/\/(\S+)\/(\S+)\//);
-  if(board){
-    // User's board / Search
-    var xhr = new XMLHttpRequest();
-    xhr.onload = function() {
-      var r = JSON.parse(this.responseText);
-      parsePinterest(r.resource_response.data);
-      g.bookmarks = r.resource.options;
+  var xhr = new XMLHttpRequest();
+  xhr.onload = function() {
+    var r = JSON.parse(this.responseText);
+    parsePinterest(r.resource_response.data);
+    g.bookmarks = r.resource.options;
 
-      document.title="("+g.photodata.photos.length+") ||"+g.photodata.aName;
-      g.statusEle.textContent = g.photodata.photos.length + '/' + g.total;
-      if(qS('#stopAjaxCkb')&&qS('#stopAjaxCkb').checked){output();}
-      else if(g.bookmarks.bookmarks[0] != '-end-'){
-        setTimeout(getPinterest_sub, 1000);
-      }else{
-        output();
-      }
-    };
-    var data = {
-      "options" : g.bookmarks,
-      "context": {}
-    };
-    var url = location.origin + '/resource/' + g.resource + '/get/';
-    var data = 'source_url=' + 
-      encodeURIComponent('/' + board[1] + '/' + board[2] + '/') + 
-      '&data=' + escape(JSON.stringify(data)) + '&_=' + (+new Date());
-    xhr.open('POST', url);
-    xhr.setRequestHeader('Accept', 'application/json, text/javascript, */*; q=0.01');
-    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    var token = g.token || document.cookie.match(/csrftoken=(\S+);/)
-    if(token){
-      if(!g.token){
-        token = token[1];
-        g.token = token;
-      }
-      xhr.setRequestHeader('X-CSRFToken', token);
-      xhr.setRequestHeader('X-NEW-APP', 1);
-      xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-      xhr.send(data);
+    document.title="("+g.photodata.photos.length+") ||"+g.photodata.aName;
+    g.statusEle.textContent = g.photodata.photos.length + '/' + g.total;
+    if(qS('#stopAjaxCkb')&&qS('#stopAjaxCkb').checked){output();}
+    else if(g.bookmarks.bookmarks[0] != '-end-'){
+      setTimeout(getPinterest_sub, 1000);
     }else{
-      alert('Missing token!');
+      output();
     }
+  };
+  var data = {
+    "options" : g.bookmarks,
+    "context": {}
+  };
+  var url = location.origin + '/resource/' + g.resource + '/get/';
+  var data = 'source_url=' + g.source + '&data=' +
+    escape(JSON.stringify(data)) + '&_=' + (+new Date());
+  xhr.open('POST', url);
+  xhr.setRequestHeader('Accept', 'application/json, text/javascript, */*; q=0.01');
+  xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  var token = g.token || document.cookie.match(/csrftoken=(\S+);/)
+  if(token){
+    if(!g.token){
+      token = token[1];
+      g.token = token;
+    }
+    xhr.setRequestHeader('X-CSRFToken', token);
+    xhr.setRequestHeader('X-NEW-APP', 1);
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    xhr.send(data);
   }else{
-    // Own Feed
+    alert('Missing token!');
   }
 }
 function getAskFM() {
@@ -1733,7 +1733,7 @@ var dFAcore = function(setup, bypass) {
   g.timeOffset=new Date().getTimezoneOffset()/60*-3600000;
   createDialog();
   g.statusEle = qS('.daCounter');
-  if(location.href.match(/.*facebook.com/)){
+  if(location.host.match(/.*facebook.com/)){
     if(qS('.fbPhotoAlbumTitle')||qS('.fbxPhotoSetPageHeader')){
     aName=getText('.fbPhotoAlbumTitle')||getText("h2")||document.title;
     aAuth=getText('#fb-timeline-cover-name')||getText("h2")||getText('.fbStickyHeaderBreadcrumb .uiButtonText')||getText(".fbxPhotoSetPageHeaderByline a");
@@ -1801,7 +1801,7 @@ var dFAcore = function(setup, bypass) {
     };
     xhr.open('GET', location.href);
     xhr.send();
-  }else if(location.href.match(/.*instagram.com/)){
+  }else if(location.host.match(/.*instagram.com/)){
     if (location.pathname === '/') {
       return alert('Please go to profile page.');
     }
@@ -1848,7 +1848,7 @@ var dFAcore = function(setup, bypass) {
     };
     xhr.open('GET', location.href);
     xhr.send();
-  }else if(location.href.match(/twitter.com/)){
+  }else if(location.host.match(/twitter.com/)){
     g.id = qS('.ProfileAvatar img').getAttribute('src').match(/\d+/);
     g.ajax = '';
     var name = qS('h1 a');
@@ -1864,7 +1864,7 @@ var dFAcore = function(setup, bypass) {
       aDes: getText('.ProfileHeaderCard-bio', true)
     };
     getTwitter();
-  }else if(location.href.match(/weibo.com/)){
+  }else if(location.host.match(/weibo.com/)){
     try{
       aName='微博配圖';
       aAuth=getText('.username') || qS('.pf_photo img') ? qS('.pf_photo img').alt : '';
@@ -1896,7 +1896,7 @@ var dFAcore = function(setup, bypass) {
       aDes:""
     };
     getWeibo();
-  }else if(location.href.match(/pinterest/)){
+  }else if(location.host.match(/pinterest/)){
     g.photodata = {
       aName: getText('h3') || 'Pinterest',
       aAuth: qS('.profileSource img') ? qS('.profileSource img').alt : '',
@@ -1907,7 +1907,7 @@ var dFAcore = function(setup, bypass) {
     };
     g.total = getText('.pinsAndFollowerCount .value') || getText('.value');
     getPinterest();
-  }else if(location.href.match(/ask.fm/)){
+  }else if(location.host.match(/ask.fm/)){
     g.count = 0;
     g.page = 0;
     g.total = +getText('.profileTabAnswerCount');
