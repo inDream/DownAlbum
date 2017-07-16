@@ -90,14 +90,6 @@ var dFAinit = function(){
         setTimeout(dFAinit, 500);
       });
     }
-  }else if(href.indexOf('instagram.com') > 0){
-    var o = window.WebKitMutationObserver || window.MutationObserver;
-    if(o && !window.addedObserver){
-      window.addedObserver = true;
-      var observer = new o(runLater);
-      observer.observe(document.body, {subtree: true, childList: true});
-      runLater();
-    }
   }else if(href.indexOf('pinterest') > 0){
     if(!qS('#dfaButton')){
       var t = qS('.infoBar .pull-right, .headerContainer, .centeredWithinWrapper');
@@ -119,19 +111,32 @@ var dFAinit = function(){
       setTimeout(dFAinit, 300);
     }
   }
+  if (location.host.match(/instagram.com|facebook.com/)) {
+    var o = window.WebKitMutationObserver || window.MutationObserver;
+    if (o && !window.addedObserver) {
+      window.addedObserver = true;
+      var observer = new o(runLater);
+      observer.observe(document.body, {subtree: true, childList: true});
+      runLater();
+    }
+  }
 };
 function runLater(){clearTimeout(window.addLinkTimer);window.addLinkTimer = setTimeout(addLink, 300);}
 function addLink(){
   dFAinit();
-  var k = qSA('article>div:nth-of-type(1), header>div:nth-of-type(1)');
-  for(var i = 0; i<k.length; i++){
-    if (k[i].nextElementSibling) {
-      _addLink(k[i], k[i].nextElementSibling);
+  if (location.host.match(/instagram.com/)) {
+    var k = qSA('article>div:nth-of-type(1), header>div:nth-of-type(1)');
+    for(var i = 0; i<k.length; i++){
+      if (k[i].nextElementSibling) {
+        _addLink(k[i], k[i].nextElementSibling);
+      }
     }
-  }
-  var k = qSA('header');
-  for(var i = 0; i<k.length; i++){
-    _addLink(k[i], k[i]);
+    var k = qSA('header');
+    for(var i = 0; i<k.length; i++){
+      _addLink(k[i], k[i]);
+    }
+  } else if (location.host.match(/facebook.com/)) {
+    addVideoLink();
   }
 }
 
@@ -182,6 +187,35 @@ function _addLink(k, target) {
         tParent.appendChild(link);
       }
     }
+  }
+}
+function addVideoLink() {
+  var k = document.querySelectorAll('#stream_pagelet a[href*="/videos/"], ' +
+    '#fbPhotoSnowliftTimestamp a[href*="/videos/"]');
+  for (var i = 0; i < k.length; i++) {
+    if (k[i].dataset.loaded) {
+      continue;
+    }
+    k[i].dataset.loaded = 1;
+    var xhr = new XMLHttpRequest();
+    xhr.onload = function() {
+      var e = document.querySelector('a[href*="' +
+        this.responseURL.replace(location.origin, '') + '"][data-loaded]');
+      var r = this.response;
+      var m = r.match(/(hd|sd)_src:"(\w[^"]+)"/img);
+      for (var j = 0; j < m.length; j++) {
+        var a = document.createElement('a');
+        a.href = m[j].slice(8, -1);
+        a.download = '';
+        a.target = '_blank';
+        a.style.padding = '5px';
+        a.title = '(provided by DownAlbum)';
+        a.innerHTML = m[j].slice(0, 2).toUpperCase() + '↓';
+        e.parentNode.appendChild(a);
+      }
+    }
+    xhr.open('GET', k[i].href);
+    xhr.send();
   }
 }
 function photosOfHelper() {
