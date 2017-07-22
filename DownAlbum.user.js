@@ -40,6 +40,8 @@
 // @require       http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js
 // ==/UserScript==
 
+var HELPER_LOADING = false;
+
 var log = function(s) {
   try {
     console.log(s);
@@ -121,8 +123,14 @@ var dFAinit = function(){
     }
   }
 };
-function runLater(){clearTimeout(window.addLinkTimer);window.addLinkTimer = setTimeout(addLink, 300);}
-function addLink(){
+function runLater() {
+  if (HELPER_LOADING) {
+    return;
+  }
+  clearTimeout(window.addLinkTimer);
+  window.addLinkTimer = setTimeout(addLink, 300);
+}
+function addLink() {
   dFAinit();
   if (location.host.match(/instagram.com/)) {
     var k = qSA('article>div:nth-of-type(1), header>div:nth-of-type(1)');
@@ -140,7 +148,7 @@ function addLink(){
   }
 }
 
-function _addLink(k, target) {
+function _addLink(k, target, album) {
   var isProfile = (k.tagName == 'HEADER' || k.parentNode.tagName == 'HEADER');
   var tParent = target.parentNode;
   if (tParent.querySelectorAll('img').length > 2) {
@@ -154,7 +162,7 @@ function _addLink(k, target) {
     }
     var next = isProfile ? target.querySelector('.dLink') : 
       target.nextElementSibling;
-    if (next) {
+    if (next && !album) {
       if (next.childNodes[0] &&
         next.childNodes[0].getAttribute('href') == src) {
         return;
@@ -163,30 +171,52 @@ function _addLink(k, target) {
       }
     }
   }
+  var albumBtn = k.querySelector('.coreSpriteRightChevron');
   if (t && src) {
-    var link = document.createElement('div');
+    var link = album ? album : document.createElement('div');
     link.className = 'dLink';
     var title = '(provided by DownAlbum)';
     var html = '<a href="' + src + '" download title="' + title + '">Download';
+    var num = '';
+    if (album || albumBtn) {
+      num = link.innerHTML.match(/\.jpg/g);
+      num = ' #' + (num ? num.length + 1 : 1);
+    }
     if (src.match('mp4')) {
       var poster = t.getAttribute('poster');
-      html += ' Video</a><a href="' + poster + '" download  title="' + title +
-        '">Download Photo</a>';
+      html += ' Video' + num + '</a><a href="' + poster +
+        '" download title="' + title + '">Download Photo' + num + '</a>';
     } else {
-      html += '</a>';
+      html += num + '</a>';
     }
-    link.innerHTML = html;
-    if (isProfile) {
-      k.appendChild(link);
-    } else if (target.insertAdjacentElement) {
-      target.insertAdjacentElement("afterEnd", link);
+    if (album) {
+      link.innerHTML += html;
     } else {
-      if (target.nextSibling) {
-        tParent.insertBefore(link, target.nextSibling);
+      link.innerHTML = html;
+      if (isProfile) {
+        k.appendChild(link);
+      } else if (target.insertAdjacentElement) {
+        target.insertAdjacentElement('afterEnd', link);
       } else {
-        tParent.appendChild(link);
+        if (target.nextSibling) {
+          tParent.insertBefore(link, target.nextSibling);
+        } else {
+          tParent.appendChild(link);
+        }
       }
     }
+  }
+  if (albumBtn) {
+    HELPER_LOADING = true;
+    albumBtn.click();
+    setTimeout(function() {
+      _addLink(k, target, link);
+    }, 300);
+  } else if (!albumBtn && album) {
+    while (albumBtn = k.querySelector('.coreSpriteLeftChevron')) {
+      albumBtn.click();
+    }
+    HELPER_LOADING = false;
   }
 }
 function addVideoLink() {
