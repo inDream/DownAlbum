@@ -803,7 +803,7 @@ function getFbMessagesPhotos() {
     g.photodata.aName = getText('.fb_content [role="main"] h2');
     g.photodata.aDes = '';
     getFbDtsg();
-    var headers = qSA('[role="rowheader"]');
+    var headers = qSA('[role="gridcell"], [id^="row_header_id_user:"]');
     var rows = [];
     for (var i = 0; i < headers.length; i++) {
       rows.push({e: headers[i], len: headers[i].parentNode.className.length});
