@@ -1661,7 +1661,7 @@ function getPinterest(){
     }
     return;
   }
-  g.source = board ? encodeURIComponent('/' + board.join('/') + '/') : '/';
+  g.source = board ? encodeURIComponent(board[0]) : '/';
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
     var html = this.response;
@@ -1714,6 +1714,9 @@ function getPinterest(){
         var query = location.search.slice(1).replace(/&/g, '=').split('=');
         query = query[query.indexOf('q') + 1];
         g.bookmarks = {query: query, scope: board[2]};
+        break;
+      case 'TopicFeedPage':
+        g.bookmarks = {interest: board[2]};
         break;
       case 'InterestFeedPage':
         g.bookmarks = {query: board[2]};
