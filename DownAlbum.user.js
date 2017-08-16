@@ -1177,13 +1177,50 @@ function fbAutoLoad(elms){
     if (!p) {
       return alert('Please go to photos tab or album.');
     }
+    var lst = unescape(p.getAttribute('href')).split('=')[1];
     p = p.getAttribute('aria-controls').match(/.*_(.*)/)[1];
     var userId = p.match(/(\d*):.*/)[1];
-    var tab = p.split(':')[2];
+    tab = +p.split(':')[2];
     if(qS('.hidden_elem .fbStarGrid')){
       var t=qS('.hidden_elem .fbStarGrid');t.parentNode.removeChild(t);getPhotos();return;
     }
-    aInfo={"scroll_load":true,"last_fbid":l,"fetch_size":32,"profile_id":userId,"tab_key":"photos"+(tab==5?'_stream':''),"sk":"photos"+(tab==5?'_stream':'')};
+    if (!g.cursor) {
+      var s = qSA('script');
+      for (i = 0; i < s.length; i++) {
+        if (s[i].textContent.indexOf('MedleyPageletRequestData') > 0) {
+          try {
+            rq = extractJSON(s[i].textContent).jsmods.require;
+            rq.forEach(function(e) {
+              if (e && e[0] === 'MedleyPageletRequestData') {
+                g.pageletToken = e[3][0].pagelet_token;
+              }
+            })
+          } catch (e) {}
+        } else if (s[i].textContent.indexOf('enableContentLoader') > 0) {
+          try {
+            rq = extractJSON(s[i].textContent).jsmods.require;
+            rq.forEach(function(e) {
+              if (e && e[1] === 'enableContentLoader') {
+                g.cursor = e[3][2];
+              }
+            });
+          } catch (e) {}
+        }
+      }
+      if (!g.cursor || !g.pageletToken) {
+        alert('Cannot get cursor for auto load!');
+      }
+    }
+    aInfo = {
+      collection_token: p,
+      cursor: g.cursor, 
+      disablepager: false, overview: false,
+      profile_id: userId,
+      pagelet_token: g.pageletToken,
+      tab_key: tab === 5 ? 'photos_all' : 'photos_of',
+      lst: lst,
+      ftid: null, order: null, sk: 'photos', importer_state: null
+    };
   }
   var ajaxAlbum = '';
   if(isGraph){
@@ -1196,8 +1233,8 @@ function fbAutoLoad(elms){
     var tab=qSA('#pagelet_timeline_medley_photos a[role="tab"]');
     var pType = +p.split(':')[2], targetURL = "";
     switch(pType){
-      case 4: targetURL = 'TimelinePhotos'; break;
-      case 5: targetURL = 'TimelinePhotosStream'; break;
+      case 4: targetURL = 'TaggedPhotosAppCollection'; break;
+      case 5: targetURL = 'AllPhotosAppCollection'; break;
       case 70: targetURL = "UntaggedPhotosAppCollection";
       cursor = btoa('0:not_structured:'+l);
       aInfo = {"collection_token": p, "cursor": cursor, "tab_key": "photos_untagged","profile_id": +userId,"overview":false,"ftid":null,"sk":"photos"}; break;
@@ -1230,7 +1267,8 @@ function fbAutoLoad(elms){
         g.elms=old?old.concat(Array.prototype.slice.call(e,0)):e;
       }
     }else{
-      htmlBase.innerHTML = JSON.parse(r.slice(9)).payload;
+      r = JSON.parse(r.slice(9));
+      htmlBase.innerHTML = r.payload;
       var e = [], temp = [];
       if(g.query){
         temp = htmlBase.querySelectorAll('a[rel="theater"]');
@@ -1243,6 +1281,17 @@ function fbAutoLoad(elms){
         if(e.length)g.cursor = parseQuery(e[e.length-1].href).opaqueCursor;
       }else{
         e = htmlBase.querySelectorAll(g.thumbSelector);
+        if (g.pageletToken) {
+          g.cursor = '';
+          r.jsmods.require.forEach(function(e) {
+            if (e && e[1] === 'enableContentLoader') {
+              g.cursor = e[3][2];
+            }
+          });
+          if (!g.cursor) {
+            g.lastLoaded = 1;
+          }
+        }
       }
       var map = {};
       for (k = 0; k < e.length; k++) {
