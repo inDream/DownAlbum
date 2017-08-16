@@ -1725,31 +1725,32 @@ function getPinterest_sub(){
 }
 function getAskFM() {
   var url = g.page || (location.protocol + '//ask.fm/' + g.username + 
-    '/answers/more?page=' + g.page);
+    '?score=' + ~~(Date.now() / 1000));
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
     var html = getDOM(this.response);
     var hasMore = html.querySelector('.viewMore');
-    var elms = html.querySelectorAll('img');
+    var elms = html.querySelectorAll('.streamItem-visualItem');
     var i, box, link, title, url, video;
     var photodata = g.photodata;
     for (var i = 0; i < elms.length; i++) {
       box = getParent(elms[i], '.item');
+      var img = elms[i].querySelector('img');
       if (box.className == 'viewMore') {
         continue;
       }
       video = box.querySelector('video');
       if (video) {
-        url = elms[i].src;
+        url = img.getAttribute('src');
         photodata.videos.push({
-          url: video.src,
+          url: video.getAttribute('src'),
           thumb: url
         });
       } else {
-        url = elms[i].parentNode.getAttribute('data-url') ||
-          elms[i].getAttribute('data-src');
+        url = img.parentNode.getAttribute('data-url') ||
+          img.getAttribute('data-src');
       }
-      link = box.querySelector('.streamItemsAge');
+      link = box.querySelector('.streamItemsAge a');
       title = 'Q: ' +  
         getText('.streamItemContent-question', 0, box) +
         ' <br>' + 'A: ' + getText('.streamItemContent-answer', 0, box);
@@ -1765,7 +1766,7 @@ function getAskFM() {
     g.statusEle.textContent = g.count + '/' + g.total;
     document.title = g.statusEle.textContent + ' ||' + g.title;
     if (g.count < g.total && hasMore && !qS('#stopAjaxCkb').checked) {
-      g.page = location.origin + hasMore.dataset.url;
+      g.page = hasMore.dataset.url;
       setTimeout(getAskFM, 500);
     } else {
       if (photodata.photos.length) {
