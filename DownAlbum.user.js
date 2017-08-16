@@ -171,10 +171,12 @@ function _addLink(k, target, album) {
       }
     }
   }
-  var albumBtn = k.querySelector('.coreSpriteRightChevron');
+  var albumBtn = location.pathname.indexOf('/p') === 0 ?
+    k.querySelector('.coreSpriteRightChevron') : false;
   if (t && src) {
     var link = album ? album : document.createElement('div');
     link.className = 'dLink';
+    link.style.maxWidth = '200px';
     var title = '(provided by DownAlbum)';
     var html = '<a href="' + src + '" download title="' + title + '">Download';
     var num = '';
