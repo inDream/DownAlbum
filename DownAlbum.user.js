@@ -278,9 +278,13 @@ function getParent(child, selector){
     if (target.parentNode && target.parentNode.tagName == 'BODY') {
       return target;
     }
-    target = target.parentNode;
+    if (target.parentNode && target.parentNode.querySelector(selector)) {
+      return target;
+    } else {
+      target = target.parentNode;
+    }
   }
-  return target ? target.querySelector(selector) : null;
+  return null;
 }
 function getText(s, html, parent){
   var q = parent ? parent.querySelector(s) : qS(s);
