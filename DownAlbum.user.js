@@ -1790,19 +1790,19 @@ function getAskFM() {
     for (var i = 0; i < elms.length; i++) {
       box = getParent(elms[i], '.item');
       var img = elms[i].querySelector('img');
-      if (box.className == 'viewMore') {
+      if (box.className == 'viewMore' || !img) {
         continue;
       }
-      video = box.querySelector('video');
+      video = box.querySelector('.visualItemPlayIcon');
       if (video) {
         url = img.getAttribute('src');
         photodata.videos.push({
-          url: video.getAttribute('src'),
+          url: img.parentNode.getAttribute('href'),
           thumb: url
         });
       } else {
         url = img.parentNode.getAttribute('data-url') ||
-          img.getAttribute('data-src');
+          img.getAttribute('src');
       }
       link = box.querySelector('.streamItemsAge a');
       title = 'Q: ' +  
@@ -1812,7 +1812,7 @@ function getAskFM() {
         title: title,
         url: url,
         href: 'https://ask.fm' + link.getAttribute('href'),
-        date: link.getAttribute('data-hint')
+        date: link.getAttribute('title')
       });
     }
     console.log('Loaded ' + photodata.photos.length + ' photos.');
