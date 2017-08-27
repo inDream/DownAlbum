@@ -222,6 +222,11 @@ function _addLink(k, target, album) {
   }
 }
 function addVideoLink() {
+  var o = document.querySelectorAll('a[href$="mp4"]' +
+    '[title="(provided by DownAlbum)"]');
+  for (var i = 0; i < o.length; i++) {
+    o[i].parentNode.removeChild(o[i]);
+  }
   var k = document.querySelectorAll('#stream_pagelet a[href*="/videos/"], ' +
     '#fbPhotoSnowliftTimestamp a[href*="/videos/"]');
   for (var i = 0; i < k.length; i++) {
