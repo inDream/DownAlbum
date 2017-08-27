@@ -267,8 +267,7 @@ function photosOfHelper() {
   } catch(e) {}
 
   if (userId) {
-    location.href = 'https://www.facebook.com/search/' + userId +
-      '/photos-of/intersect';
+    location.href = '/search/' + userId + '/photos-of/intersect';
   }
 }
 var g = {};
@@ -694,8 +693,8 @@ function getPhotos(){
     qS('span[aria-busy="true"]'));
   if(g.ajaxFailed&&g.mode!=2&&scrollEle){scrollTo(0, document.body.clientHeight);setTimeout(getPhotos,2000);return;}
   var i, photodata = g.photodata, testNeeded = 0, ajaxNeeded = 0;
-  var elms = g.elms || qS('#album_pagelet') || qS('#static_set_pagelet') || qS('#pagelet_photos_stream') || qS('#group_photoset') || qS('#initial_browse_result') || qS('#contentArea') || qS('._2eec');
-  var grid = qSA('.fbStarGrid');
+  var elms = g.elms || qS('#album_photos_pagelet') || qS('#album_pagelet') || qS('#static_set_pagelet') || qS('#pagelet_photos_stream') || qS('#group_photoset') || qS('#initial_browse_result') || qS('#contentArea');
+  var grid = qSA('#fbTimelinePhotosFlexgrid, .fbStarGrid');
   var selector = 'a[rel="theater"]';
   var tmp = [], tmpE, eLen;
   if(g.elms){ajaxNeeded=1;}
@@ -767,7 +766,7 @@ function getPhotos(){
     var fbid = getFbid(href);
     if(href.match('opaqueCursor')){
       if(fbid){
-        href = 'https://www.facebook.com/photo.php?fbid=' + fbid;
+        href = location.origin + '/photo.php?fbid=' + fbid;
       }else{
         continue;
       }
@@ -792,7 +791,7 @@ function getPhotos(){
       if(!q.fbid && fbid){
         q.fbid = fbid;
       }
-      ajax = 'https://www.facebook.com/ajax/pagelet/generic.php/' +
+      ajax = location.origin + '/ajax/pagelet/generic.php/' +
         'PhotoViewerInitPagelet?ajaxpipe=1&ajaxpipe_token=' +
         g.Env.ajaxpipe_token + '&no_script_path=1&data=' + JSON.stringify(q)+
         '&__user=' + g.Env.user + '&__a=1&__adt=2';
@@ -849,7 +848,7 @@ function getFbMessagesPhotos() {
     });
     g.threadId = rows[0].e.id.split(':')[1];
   }
-  var url = 'https://www.facebook.com/ajax/messaging/attachments/sharedphotos.php';
+  var url = location.origin + '/ajax/messaging/attachments/sharedphotos.php';
   var data = 'thread_id='+g.threadId+'&offset='+g.offset+'&limit=30&__user='+g.Env.user+'&__a=1&__req=7&fb_dtsg='+g.fb_dtsg;
   var xhr = new XMLHttpRequest();
   xhr.onload = function(){
@@ -898,7 +897,7 @@ function fbAjaxAttachment(){
         g.ajaxLoaded++;
         fbAjaxAttachment();
       };
-      xhr.open('POST', 'https://www.facebook.com/ajax/graphql/query/');
+      xhr.open('POST', location.origin + '/ajax/graphql/query/');
       xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
       var after = i > 0 ? ('&params[after]=' + g.elms[i - 1].fbid) : '';
       var data = 'queryName=MESSAGE_THREAD_IMAGES_FIRST'+after+'&params[first]=19&params[thread_id]='+g.threadId+'&__user='+g.Env.user+'&__a=1&__req=7&fb_dtsg='+g.fb_dtsg;
@@ -1026,7 +1025,7 @@ function fbLoadPage() {
       setTimeout(getPhotos, 1000);
     }
   }
-  xhr.open('POST', 'https://www.facebook.com/api/graphqlbatch/');
+  xhr.open('POST', location.origin + '/api/graphqlbatch/');
   xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
   var q = JSON.stringify({q0 : {
     priority: 0,
@@ -1230,10 +1229,15 @@ function fbAutoLoad(elms){
   }
   var ajaxAlbum = '';
   if(isGraph){
-    ajaxAlbum=location.protocol+'//www.facebook.com/ajax/pagelet/generic.php/BrowseScrollingSetPagelet?data='+escape(JSON.stringify(aInfo))+'&__user='+g.Env.user+'&__a=1';
+    ajaxAlbum = location.origin + '/ajax/pagelet/generic.php/' +
+      'BrowseScrollingSetPagelet?data=' + escape(JSON.stringify(aInfo)) +
+      '&__user=' + g.Env.user + '&__a=1';
   }else if(!g.newL || isGp || isAl){
-    var targetURL=(isGp?'GroupPhotoset':'TimelinePhotos'+(isAl?'Album':(isPS?'Stream':'')));
-    ajaxAlbum=location.protocol+'//www.facebook.com/ajax/pagelet/generic.php/'+targetURL+'Pagelet?ajaxpipe=1&ajaxpipe_token='+g.Env.ajaxpipe_token+'&no_script_path=1&data='+JSON.stringify(aInfo)+'&__user='+g.Env.user+'&__a=1&__adt=2';
+    targetURL=(isGp?'GroupPhotoset':'TimelinePhotos'+(isAl?'Album':(isPS?'Stream':'')));
+    ajaxAlbum = location.origin + '/ajax/pagelet/generic.php/' + targetURL +
+      'Pagelet?ajaxpipe=1&ajaxpipe_token=' + g.Env.ajaxpipe_token +
+      '&no_script_path=1&data=' + JSON.stringify(aInfo) + '&__user=' + 
+      g.Env.user + '&__a=1&__adt=2';
   }else{
     var req = 5+(qSA('.fbStarGrid>div').length-8)/8*2
     var tab=qSA('#pagelet_timeline_medley_photos a[role="tab"]');
@@ -1244,8 +1248,10 @@ function fbAutoLoad(elms){
       case 70: targetURL = "UntaggedPhotosAppCollection";
       cursor = btoa('0:not_structured:'+l);
       aInfo = {"collection_token": p, "cursor": cursor, "tab_key": "photos_untagged","profile_id": +userId,"overview":false,"ftid":null,"sk":"photos"}; break;
-    }
-    ajaxAlbum=location.protocol+'//www.facebook.com/ajax/pagelet/generic.php/'+targetURL+'Pagelet?data='+escape(JSON.stringify(aInfo))+'&__user='+g.Env.user+'&__a=1';
+    }    
+    ajaxAlbum = location.origin + '/ajax/pagelet/generic.php/' + targetURL+
+      'Pagelet?data=' + escape(JSON.stringify(aInfo)) + '&__user=' +
+      g.Env.user+'&__a=1';
   }
   var xhr = new XMLHttpRequest();
   xhr.onload = function(){
