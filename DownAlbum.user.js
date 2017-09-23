@@ -429,16 +429,20 @@ function createDialog() {
     padding: 1rem 0.5rem; color: rgba(0,0,0,.85); \
     border-bottom: 1px solid rgba(34,36,38,.15);} \
     #daContent {font-size: 1.2em; line-height: 1.4; padding: .5rem;} \
+    #daContainer a {cursor: pointer;border: 1px solid black;padding: 10px; \
+      display: block;} \
     #stopAjaxCkb {display: inline-block; -webkit-appearance: checkbox; \
     width: auto;}';
   document.head.appendChild(s);
   d.id = 'daContainer';
   d.innerHTML = '<div id="daHeader">DownAlbum</div><div id="daContent">' +
     'Status: <span class="daCounter"></span><br>' +
-    '<label>Stop <input id="stopAjaxCkb" type="checkbox"></label><br>' +
-    '<a href="javascript:;" class="daClose">Close</a></div>';
+    '<label>Stop <input id="stopAjaxCkb" type="checkbox"></label>' +
+    '<div class="daExtra"></div>' +
+    '<a class="daOutput">Output</a><a class="daClose">Close</a></div>';
   document.body.appendChild(d);
   qS('.daClose').addEventListener('click', hideDialog);
+  qS('.daOutput').addEventListener('click', output);
 }
 function hideDialog() {
   qS('#daContainer').style = 'display: none;';
@@ -1460,7 +1464,9 @@ function _instaQueryProcess(elms) {
             g.skipAlbum = true;
             alert('Cannot get album content!');
           }
-          _instaQueryProcess(elms);
+          setTimeout(function() {
+            _instaQueryProcess(elms);
+          }, 500);
         };
         var code = feed.shortcode || feed.code;
         xhr.open('GET', 'https://www.instagram.com/p/' + code + '/?__a=1');
@@ -1489,7 +1495,11 @@ function instaQuery() {
   xhr.onload = function() {
     if (xhr.status === 429) {
       alert('Too many request, Please try again later.');
-      return output();
+      if (!qS('.daExtra').innerHTML) {
+        qS('.daExtra').innerHTML = '<a class="daContinue">Continue</a>';
+        qS('.daContinue').addEventListener('click', instaQuery);
+      }
+      return;
     }
     if (this.response[0] == '<') {
       if (confirm('Cannot load comments, continue?')) {
