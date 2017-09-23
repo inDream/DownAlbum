@@ -1804,21 +1804,21 @@ function getPinterest_sub(){
 }
 function getAskFM() {
   var url = g.page || (location.protocol + '//ask.fm/' + g.username + 
-    '?score=' + ~~(Date.now() / 1000));
+    '?no_prev_link=true');
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
     var html = getDOM(this.response);
-    var hasMore = html.querySelector('.viewMore');
-    var elms = html.querySelectorAll('.streamItem-visualItem');
+    var hasMore = html.querySelector('.item-page-next');
+    var elms = html.querySelectorAll('.streamItem_visual');
     var i, box, link, title, url, video;
     var photodata = g.photodata;
     for (var i = 0; i < elms.length; i++) {
       box = getParent(elms[i], '.item');
       var img = elms[i].querySelector('img');
-      if (box.className == 'viewMore' || !img) {
+      if (!img) {
         continue;
       }
-      video = box.querySelector('.visualItemPlayIcon');
+      video = box.querySelector('.playIcon');
       if (video) {
         url = img.getAttribute('src');
         photodata.videos.push({
@@ -1829,10 +1829,14 @@ function getAskFM() {
         url = img.parentNode.getAttribute('data-url') ||
           img.getAttribute('src');
       }
-      link = box.querySelector('.streamItemsAge a');
+      link = box.querySelector('.streamItem_meta');
+      var content = box.querySelector('.streamItem_content');
+      if (content) {
+        content.removeChild(box.querySelector('.readMore'));
+      }
       title = 'Q: ' +  
-        getText('.streamItemContent-question', 0, box) +
-        ' <br>' + 'A: ' + getText('.streamItemContent-answer', 0, box);
+        getText('.streamItem_header', 0, box) +
+        ' <br>' + 'A: ' + getText('.streamItem_content', 0, box);
       photodata.photos.push({
         title: title,
         url: url,
@@ -1845,7 +1849,7 @@ function getAskFM() {
     g.statusEle.textContent = g.count + '/' + g.total;
     document.title = g.statusEle.textContent + ' ||' + g.title;
     if (g.count < g.total && hasMore && !qS('#stopAjaxCkb').checked) {
-      g.page = hasMore.dataset.url;
+      g.page = hasMore.getAttribute('href');
       setTimeout(getAskFM, 500);
     } else {
       if (photodata.photos.length) {
@@ -1856,6 +1860,7 @@ function getAskFM() {
     }
   };
   xhr.open('GET', url);
+  xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
   xhr.send();
 }
 
