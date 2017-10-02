@@ -1191,7 +1191,7 @@ function fbAutoLoad(elms){
     if (!p) {
       return alert('Please go to photos tab or album.');
     }
-    var lst = unescape(p.getAttribute('href')).split('=')[1];
+    var lst = parseQuery(unescape(p.getAttribute('href')).split('?')[1]);
     p = p.getAttribute('aria-controls').match(/.*_(.*)/)[1];
     var userId = p.match(/(\d*):.*/)[1];
     tab = +p.split(':')[2];
@@ -1232,7 +1232,7 @@ function fbAutoLoad(elms){
       profile_id: userId,
       pagelet_token: g.pageletToken,
       tab_key: tab === 5 ? 'photos_all' : 'photos_of',
-      lst: lst,
+      lst: lst.lst,
       ftid: null, order: null, sk: 'photos', importer_state: null
     };
   }
