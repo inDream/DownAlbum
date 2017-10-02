@@ -1416,7 +1416,7 @@ function _instaQueryAdd(elms) {
         g.photodata.photos.push({
           title: j === 0 && caption.length ? caption[0].node.text : '',
           url: url,
-          href: 'https://www.instagram.com/p/' + n.code + '/',
+          href: 'https://www.instagram.com/p/' + (n.shortcode || n.code) + '/',
           date: feed.taken_at_timestamp ? parseTime(feed.taken_at_timestamp) : '',
           comments: c.count && j === 0 && cList.length > 1 ? cList : ''
         });
