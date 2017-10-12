@@ -1445,7 +1445,7 @@ function _instaQueryProcess(elms) {
       elms[i] = elms[i].node;
     }
     var feed = elms[i];
-    if (!elms[i] || g.downloaded[feed.id]) {
+    if (!elms[i] || (g.downloaded && g.downloaded[feed.id])) {
       continue;
     }
     if (feed.__typename === 'GraphSidecar' || feed.__typename === 'GraphVideo') {
