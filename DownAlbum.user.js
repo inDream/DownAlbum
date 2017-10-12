@@ -1614,7 +1614,7 @@ function getWeibo(){
   if(!GM_xmlhttpRequest){alert("This script required Greasemonkey/Tampermonkey!");return;}
   GM_xmlhttpRequest({
     method: "GET",
-    url: "http://photo.weibo.com/page/waterfall?filter=wbphoto&page="+g.ajaxPage+"&count=20&module_id=profile_photo&oid="+g.oId+"&uid=&lastMid="+g.ajax+"&lang=zh-tw",
+    url: "https://photo.weibo.com/page/waterfall?filter=wbphoto&page="+g.ajaxPage+"&count=20&module_id=profile_photo&oid="+g.oId+"&uid=&lastMid="+g.ajax+"&lang=zh-tw",
     onload: function() {
     g.ajaxPage++;
     var r = this.response;
