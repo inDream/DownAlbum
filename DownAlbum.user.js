@@ -750,6 +750,7 @@ function getPhotos(){
   var scrollEle = !!(qS('#fbTimelinePhotosScroller *, ' +
     '.uiSimpleScrollingLoadingIndicator, .fbStarGrid~img, ' +
     '.fbStarGridWrapper~img, #browse_result_below_fold, ' +
+    '#content_container div > span[aria-busy="true"], ' +
     '#pages_video_hub_all_videos_pagelet .uiMorePagerLoader') ||
     (!qS('#browse_end_of_results_footer') && qS('#contentArea div.hidden_elem')
     && location.href.match('search')));
@@ -1343,7 +1344,7 @@ function fbAutoLoad(elms){
       disablepager: false, overview: false,
       profile_id: userId,
       pagelet_token: g.pageletToken,
-      tab_key: tab === 5 ? 'photos_all' : 'photos_of',
+      tab_key: tab === 5 ? 'photos' : 'photos_of',
       lst: lst.lst,
       ftid: null, order: null, sk: 'photos', importer_state: null
     };
