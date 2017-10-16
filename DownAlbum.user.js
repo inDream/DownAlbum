@@ -1581,14 +1581,24 @@ function _instaQueryProcess(elms) {
       } else if (!feed.edge_sidecar_to_children && !feed.video_url) {
         var xhr = new XMLHttpRequest();
         xhr.onload = function() {
-          var res = {};
           try {
-            res = JSON.parse(this.response);
+            var res = JSON.parse(this.response);
             elms[i] = res.graphql.shortcode_media;
           } catch(e) {
-            elms[i] = null;
-            g.skipAlbum = true;
-            alert('Cannot get album content!');
+            var htmlBase = document.createElement('html');
+            htmlBase.innerHTML = this.response;
+            var targetJS = htmlBase.querySelectorAll('script');
+            try {
+              for (var j = 0; j < targetJS.length; j++) {
+                if (targetJS[j].textContent.indexOf('_sharedData') > -1) {
+                  elms[i] = extractJSON(targetJS[j].textContent);
+                  break;
+                }
+              }
+              elms[i] = elms[i].entry_data.PostPage[0].graphql.shortcode_media;
+            } catch (e) {
+              elms[i] = null;
+            }
           }
           setTimeout(function() {
             _instaQueryProcess(elms);
