@@ -1327,7 +1327,11 @@ function fbAutoLoad(elms){
     if (!p) {
       return alert('Please go to photos tab or album.');
     }
-    var lst = parseQuery(unescape(p.getAttribute('href')).split('?')[1]);
+    var lst = unescape(p.getAttribute('href')).split('?')[1];
+    if (!lst) {
+      return fbAutoLoadFailed();
+    }
+    lst = parseQuery(lst);
     p = p.getAttribute('aria-controls').match(/.*_(.*)/)[1];
     var userId = p.match(/(\d*):.*/)[1];
     tab = +p.split(':')[2];
