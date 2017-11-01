@@ -619,16 +619,16 @@ function fbAjax(){
           }
         }
       }
-      if(t.indexOf('fbPhotosPhotoTagboxBase')>0||t.indexOf('fbPhotosPhotoCaption')>0){
-        var markup=content.payload.jsmods.markup;
-        for(var ii=0;ii<markup.length;ii++){
-          var markupContent=markup[ii];
-          for(var j=0;j<markupContent.length;j++){
-            var test=markupContent[j].__html;
-            if(!test){continue;}
-            var h=document.createElement('div');h.innerHTML=unescape(test);
-            var box = h.querySelectorAll('.snowliftPayloadRoot');
-            if(!box.length){continue;}
+      if (t.indexOf('fbPhotosPhotoTagboxBase') > 0 ||
+        t.indexOf('fbPhotosPhotoCaption') > 0 ||
+        t.indexOf('uiContextualLayerParent') > 0) {
+        var markup = content.payload.jsmods.markup;
+        for (var ii = 0; ii < markup.length; ii++) {
+          var test = markup[ii][1].__html;
+          var h = document.createElement('div');
+          h.innerHTML = unescape(test);
+          var box = h.querySelectorAll('.snowliftPayloadRoot');
+          if (box.length) {
             for (var kk = 0; kk < box.length; kk++) {
               var c = box[kk].querySelector('.fbPhotosPhotoCaption');
               var b = box[kk].querySelector('.fbPhotosPhotoTagboxes');
@@ -645,6 +645,21 @@ function fbAjax(){
               g.dataLoaded[pid].title = s;
               g.dataLoaded[pid].date = a ? parseTime(a.dataset.utime) : '';
             }
+          }
+          // Handle profile / group video cover
+          box = h.querySelector('.img');
+          if (h.querySelector('video') && box) {
+            try {
+              var bg = box.style.backgroundImage.slice(5, -2);
+              var file = bg.match(/\/(\w+\.jpg)/)[1];
+              for (var kk = g.ajaxLoaded; kk < len; kk++) {
+                var a = g.photodata.photos[kk];
+                if (a.url.indexOf(file) > 0) {
+                  a.url = bg;
+                  break;
+                }
+              }
+            } catch (e) {}
           }
         }
       }
@@ -726,7 +741,8 @@ function fbAjax(){
     }
   };
   if (g.isPageVideo) {
-    xhr.open('POST', g.photodata.photos[i].ajax + '&cursor=' + g.cursor);
+    xhr.open('POST', g.photodata.photos[i].ajax +
+      (g.cursor ? '&cursor=' + g.cursor : ''));
   } else {
     xhr.open('GET', g.photodata.photos[i].ajax);
   }
@@ -813,11 +829,11 @@ function getPhotos(){
     try{
     var ajaxify = unescape(elms[i].getAttribute('ajaxify')) || '';
     var href = ajaxify.indexOf('fbid=') > -1 ? ajaxify : elms[i].href;
-    var isVideo = (href.indexOf('videos') > -1 || g.isVideo);
+    var isVideo = (href.indexOf('/videos/') > -1 || g.isVideo);
     var parentSrc = elms[i].parentNode ? 
       elms[i].parentNode.getAttribute('data-starred-src') : '';
     var bg = !isVideo ? elms[i].childNodes[0] :
-      elms[i].querySelector(g.isPage ? 'img' : 'div[style]');
+      elms[i].querySelector(g.isPage ? 'img' : 'div[style], .uiVideoLinkImg');
     var src = bg ? bg.getAttribute('src') : '';
     if (src) {
       if (src.indexOf('rsrc.php') > 0) {
@@ -893,7 +909,8 @@ function getPhotos(){
     } else if (url.indexOf('&') > 0) {
       url = url.slice(0, url.indexOf('&'));
     }
-    var title = elms[i].getAttribute('title')||elms[i].querySelector('img')?elms[i].querySelector('img').getAttribute('alt'):''||'';
+    var title = elms[i].getAttribute('title') || (elms[i].querySelector('img') ?
+      elms[i].querySelector('img').getAttribute('alt') : '') || '';
     title=title.indexOf(' ')>0?title:'';
     title=title.indexOf(': ')>0||title.indexOf('： ')>0?title.slice(title.indexOf(' ')+1):title;
     if(!title){
@@ -1216,8 +1233,14 @@ function fbAutoLoad(elms){
       }
     }
   } else if (isGp) {
-    p=elms[0].href.split('&')[1];p=p.slice(p.indexOf('.')+1);
-    aInfo={"scroll_load":true,"last_fbid":l,"fetch_size":108,"group_id":p};
+    p = elms[0].href.match(/g\.(\d+)/)[1];
+    aInfo = {
+      scroll_load: true,
+      last_fbid: l,
+      fetch_size: 120,
+      group_id: p,
+      filter: g.isVideo ? 'videos' : 'photos'
+    };
   }else if (isAl){
     if (!g.isPage) {
       p = p.match(/set=([\w+\.\d]*)&/) || p;
@@ -2056,7 +2079,8 @@ var dFAcore = function(setup, bypass) {
     g.ajaxLoaded=0;g.dataLoaded={};g.ajaxRetry=0;g.elms='';g.lastLoaded=0;g.urlLoaded={};
     g.thumbSelector = 'a.uiMediaThumb[ajaxify], a[data-video-id], ' +
       'a.uiMediaThumb[rel="theater"], a.uiMediaThumbMedium, ' +
-      '.fbPhotoCurationControlWrapper a[ajaxify][rel="theater"]';
+      '.fbPhotoCurationControlWrapper a[ajaxify][rel="theater"], ' +
+      'a.uiVideoLink[ajaxify], #fbTimelinePhotosFlexgrid a[ajaxify]';
     g.downloaded={};g.profilesList={};g.commentsList={count:0};
     g.photodata = {
       aName:aName.replace(/'|"/g,'\"'),
@@ -2078,7 +2102,7 @@ var dFAcore = function(setup, bypass) {
         g.isPage = true;
         g.pageId = pageId.getAttribute('content').match(/\d+/)[0];
       }
-      g.isVideo = location.href.match(/videos|set=v/);
+      g.isVideo = location.href.match(/\/videos\/|set=v/);
       g.isPageVideo = g.isPage && g.isVideo;
       if (location.href.match('messages')) {
         getFbMessagesPhotos();
