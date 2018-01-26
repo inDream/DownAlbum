@@ -348,8 +348,8 @@ function parseFbSrc(s, fb) {
   if (fb) {
     return s.replace(/s\d{3,4}x\d{3,4}\//g, '');
   } else {
-    return s.replace(/\w\d{3,4}x\d{3,4}\//g, '')
-      .replace(/c\d+\.\d+\.\d+\.\d+\//, '');
+    return s.replace('/vp/', '/').replace(/c\d+\.\d+\.\d+\.\d+\//, '')
+      .replace(/\w\d{3,4}x\d{3,4}\//g, s.match(/\/e\d{2}\//) ? '' : 'e15/');
   }
 }
 function getFbid(s){
