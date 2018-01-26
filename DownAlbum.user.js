@@ -1675,9 +1675,15 @@ function instaQuery() {
     g.ajax = res.page_info.has_next_page ? res.page_info.end_cursor : null;
     _instaQueryProcess(res.edges);
   };
-  xhr.open('GET', 'https://www.instagram.com/graphql/query/?' +
-    'query_id=' + g.queryId + '&id=' + g.Env.user.id + '&first=30&after=' +
-    g.ajax);
+  if (g.queryHash) {
+    xhr.open('GET', 'https://www.instagram.com/graphql/query/?' +
+      'query_hash=' + g.queryHash + '&variables=' +
+      JSON.stringify({ id: g.Env.user.id, first: 30, after: g.ajax }));
+  } else {
+    xhr.open('GET', 'https://www.instagram.com/graphql/query/?' +
+      'query_id=' + g.queryId + '&id=' + g.Env.user.id + '&first=30&after=' +
+      g.ajax);
+  }
   xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
   xhr.send();
 }
@@ -1685,16 +1691,20 @@ function getInstagramQueryId() {
   var s = qS('script[src*="Commons"]');
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
-    var id = this.response.match(/profilePosts\S+queryId:"(\d+)"/);
+    var id = this.response.match(/profilePosts\S+queryId:"(\S+)"/);
     if (!id) {
-      id = this.response.match(/byUserId\.get\S+queryId:"(\d+)"/);
+      id = this.response.match(/profilePosts\S+queryId:"(\d+)"/);
+      if (!id) {
+        id = this.response.match(/byUserId\.get\S+queryId:"(\d+)"/);
+      }
+      if (id) {
+        g.queryId = id[1];
+      } else {
+        alert('Cannot get query id, using fallback instead');
+        g.queryId = 17880160963012870;
+      }
     }
-    if (id) {
-      g.queryId = id[1];
-    } else {
-      alert('Cannot get query id, using fallback instead');
-      g.queryId = 17880160963012870;
-    }
+    g.queryHash = id[1];
     getInstagram();
   };
   xhr.open('GET', s.src);
