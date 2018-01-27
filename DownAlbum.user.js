@@ -1857,8 +1857,8 @@ function parsePinterest(list){
   log('Loaded ' + photodata.photos.length + ' photos.');
 }
 function getPinterest(){
-  var board = location.pathname.match(/\/(\S+)\/(\S+)\//);
-  if (board && board[1] === 'pin') {
+  var board = location.pathname.match(/([^\/]+)/g);
+  if (board && board[0] === 'pin') {
     closeDialog();
     var img = qS('.pinImage, .imageLink img');
     if (img) {
@@ -1869,7 +1869,7 @@ function getPinterest(){
     }
     return;
   }
-  g.source = board ? encodeURIComponent(board[0]) : '/';
+  g.source = board ? encodeURIComponent(location.pathname) : '/';
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
     var html = this.response;
@@ -1902,6 +1902,14 @@ function getPinterest(){
           layout: 'default',
           page_size: 25
         };
+        break;
+      case 'BoardSectionPage':
+        g.bookmarks = {
+          section_id: r.id,
+          page_size: 25
+        };
+        g.resource = 'BoardSectionPinsResource';
+        g.photodata.aName += ' - ' + r.title;
         break;
       case 'DomainFeedPage':
         g.bookmarks = {domain: board[2]};
@@ -2240,7 +2248,8 @@ var dFAcore = function(setup, bypass) {
       photos: [],
       aDes: aDes
     };
-    g.total = getText('.pinsAndFollowerCount .value') || getText('.value');
+    g.total = getText('.belowBoardNameContainer span') || getText('.value') ||
+      getText('.fixedHeader+div span');
     getPinterest();
   }else if(location.host.match(/ask.fm/)){
     g.count = 0;
