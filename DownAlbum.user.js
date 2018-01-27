@@ -348,7 +348,10 @@ function parseFbSrc(s, fb) {
   if (fb) {
     return s.replace(/s\d{3,4}x\d{3,4}\//g, '');
   } else {
-    return s.replace('/vp/', '/').replace(/c\d+\.\d+\.\d+\.\d+\//, '')
+    if (s.indexOf('mp4') === -1) {
+      s = s.replace('/vp/', '/');
+    }
+    return s.replace(/c\d+\.\d+\.\d+\.\d+\//, '')
       .replace(/\w\d{3,4}x\d{3,4}\//g, s.match(/\/e\d{2}\//) ? '' : 'e15/');
   }
 }
