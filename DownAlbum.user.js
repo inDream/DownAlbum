@@ -1698,7 +1698,7 @@ function instaQuery() {
   xhr.send();
 }
 function getInstagramQueryId() {
-  var s = qS('script[src*="Commons"]');
+  var s = qS('script[src*="ProfilePageContainer"], script[src*="Commons"]');
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
     var id = this.response.match(/profilePosts\S+queryId:"(\S+)"/);
@@ -1711,10 +1711,11 @@ function getInstagramQueryId() {
         g.queryId = id[1];
       } else {
         alert('Cannot get query id, using fallback instead');
-        g.queryId = 17880160963012870;
+        g.queryHash = '472f257a40c653c64c666ce877d59d2b';
       }
+    } else {
+      g.queryHash = id[1];
     }
-    g.queryHash = id[1];
     getInstagram();
   };
   xhr.open('GET', s.src);
