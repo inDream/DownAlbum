@@ -58,7 +58,11 @@ var dFAinit = function(){
   }
   var k, k2, klass;
   if (site[0] == 'instagram.com') {
-    klass = qS('header section div span button').parentNode;
+    klass = qS('header section div span button')
+    if (!klass) {
+      return;
+    }
+    klass = klass.parentNode;
     k = document.createElement('div');
     k.className = klass ? klass.className : '';
   } else {
@@ -156,7 +160,11 @@ function _addLink(k, target, album) {
   }
   var t = k.querySelector('img, video');
   if (t) {
-    var src = parseFbSrc(t.getAttribute("src"));
+    var src = t.getAttribute('src');
+    if (!src) {
+      return setTimeout(addLink, 300);
+    }
+    src = parseFbSrc(src);
     if (qS('.dLink [href="' + src + '"]')) {
       return;
     }
