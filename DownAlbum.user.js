@@ -1733,9 +1733,9 @@ function getInstagram() {
     }
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
-      var res = JSON.parse(this.response).user.media;
+      var res = JSON.parse(this.response).graphql.user.edge_owner_to_timeline_media;
       g.ajax = res.page_info.has_next_page ? res.page_info.end_cursor : null;
-      _instaQueryProcess(res.nodes);
+      _instaQueryProcess(res.edges);
     };
     xhr.open('GET', location.origin + location.pathname + '?__a=1');
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
@@ -2165,17 +2165,17 @@ var dFAcore = function(setup, bypass) {
         g.token = g.Env.config.csrf_token;
         var data = g.Env.entry_data;
         if (data.ProfilePage) {
-          g.Env = data.ProfilePage[0];
+          g.Env = data.ProfilePage[0].graphql;
         } else {
           alert('Need to reload for required variable.');
           return location.reload();
         }
-      } catch(e) {alert('Cannot load required variable!');}
-      g.total = g.Env.user.media.count;
+      } catch(e) {alert('Cannot load required variable!');} 
+      g.Env.media = g.Env.user.edge_owner_to_timeline_media;
+      g.total = g.Env.media.count;
       aName = g.Env.user.full_name || 'Instagram';
       aAuth = g.Env.user.username;
       aLink = g.Env.user.external_url || ('http://instagram.com/'+  aAuth);
-      g.Env.media = g.Env.user.media.nodes;
       var aTime = g.Env.media && g.Env.media.length ? 
         g.Env.media[0].date : 0;
       g.photodata = {
