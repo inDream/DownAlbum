@@ -41,6 +41,7 @@
 // ==/UserScript==
 
 var HELPER_LOADING = false;
+const profiles = {};
 
 var log = function(s) {
   try {
@@ -152,8 +153,18 @@ function addLink() {
   }
 }
 
-function _addLink(k, target, album) {
+async function _addLink(k, target, album) {
   var isProfile = (k.tagName == 'HEADER' || k.parentNode.tagName == 'HEADER');
+  let username = null;
+  if (isProfile) {
+    const u = k.parentNode.querySelector('[title]');
+    if (u) {
+      if (u.parentNode.className === 'dLink') {
+        return;
+      }
+      username = u.textContent;
+    }
+  }
   var tParent = target.parentNode;
   if (tParent.querySelectorAll('img').length > 2) {
     return;
@@ -164,7 +175,7 @@ function _addLink(k, target, album) {
     if (!src) {
       return setTimeout(addLink, 300);
     }
-    src = parseFbSrc(src);
+    src = isProfile && profiles[username] ? profiles[username] : parseFbSrc(src);
     if (qS('.dLink [href="' + src + '"]')) {
       return;
     }
@@ -178,6 +189,20 @@ function _addLink(k, target, album) {
         (isProfile ? target : tParent).removeChild(next);
       }
     }
+  }
+  if (isProfile) {
+    if (profiles[username] !== undefined) {
+      return;
+    }
+    profiles[username] = null;
+    try {
+      let r = await fetch(`https://www.instagram.com/${username}/?__a=1`);
+      r = await r.json();
+      r = await fetch(`https://i.instagram.com/api/v1/users/${r.graphql.user.id}/info/`);
+      r = await r.json();
+      profiles[username] = r.user.hd_profile_pic_url_info.url;
+      src = profiles[username];
+    } catch (e) {}
   }
   var albumBtn = location.pathname.indexOf('/p') === 0 ?
     k.querySelector('.coreSpriteRightChevron') : false;
@@ -355,10 +380,11 @@ function parseQuery(s){
 function parseFbSrc(s, fb) {
   if (fb) {
     return s.replace(/s\d{3,4}x\d{3,4}\//g, '');
-  } else {
+  } else if (s.indexOf('_a.jpg') === -1) {
     return s.replace(/c\d+\.\d+\.\d+\.\d+\//, '')
       .replace(/\w\d{3,4}x\d{3,4}\//g, s.match(/\/e\d{2}\//) ? '' : 'e15/');
   }
+  return s;
 }
 function parsePos(n) {
   return +((n * 100).toFixed(3));
