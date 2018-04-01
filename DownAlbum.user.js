@@ -1905,8 +1905,12 @@ function getPinterest(){
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
     var html = this.response;
-    var doc = getDOM(html);
-    var s = JSON.parse(doc.querySelector('#initial-state').textContent);
+    var doc = getDOM(html).querySelector('#initial-state');
+    if (!doc) {
+      alert('Cannot load initial state');
+      return;
+    }
+    var s = extractJSON(doc.textContent);
     var type = s.ui.mainComponent.current;
     var resources = s.resources.data;
     while (resources && !resources.data) {
