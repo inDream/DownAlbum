@@ -260,8 +260,7 @@ function addVideoLink() {
   for (var i = 0; i < o.length; i++) {
     o[i].parentNode.removeChild(o[i]);
   }
-  var k = document.querySelectorAll('#stream_pagelet a[href*="/videos/"], ' +
-    '#fbPhotoSnowliftTimestamp a[href*="/videos/"]');
+  var k = document.querySelectorAll('[id*=pagelet] a[href*="/videos/"]');
   for (var i = 0; i < k.length; i++) {
     if (k[i].dataset.loaded) {
       continue;
@@ -273,7 +272,7 @@ function addVideoLink() {
         this.responseURL.replace(location.origin, '') + '"][data-loaded]');
       var r = this.response;
       var m = r.match(/(hd|sd)_src:"(\w[^"]+)"/img);
-      for (var j = 0; j < m.length; j++) {
+      for (var j = 0; j < m && m.length; j++) {
         var a = document.createElement('a');
         a.href = m[j].slice(8, -1);
         a.download = '';
