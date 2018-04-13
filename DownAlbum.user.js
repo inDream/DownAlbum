@@ -179,7 +179,7 @@ async function _addLink(k, target, album) {
     if (qS('.dLink [href="' + src + '"]')) {
       return;
     }
-    var next = isProfile ? target.querySelector('.dLink') : 
+    var next = isProfile ? target.querySelector('.dLink') :
       target.nextElementSibling;
     if (next && !album) {
       if (next.childNodes[0] &&
@@ -196,9 +196,13 @@ async function _addLink(k, target, album) {
     }
     profiles[username] = null;
     try {
-      let r = await fetch(`https://www.instagram.com/${username}/?__a=1`);
-      r = await r.json();
-      r = await fetch(`https://i.instagram.com/api/v1/users/${r.graphql.user.id}/info/`);
+      let r = await fetch(`https://www.instagram.com/${username}/`);
+      r = await r.text();
+      r = r.slice(r.indexOf('_sharedData'));
+      r = r.slice(r.indexOf('{'), r.indexOf('<'));
+      const data = JSON.parse(r.slice(0, r.lastIndexOf('}') + 1));
+      const id = data.entry_data.ProfilePage[0].graphql.user.id;
+      r = await fetch(`https://i.instagram.com/api/v1/users/${id}/info/`);
       r = await r.json();
       profiles[username] = r.user.hd_profile_pic_url_info.url;
       src = profiles[username];
@@ -419,6 +423,18 @@ function getFbid(s){
     }
   }
   return fbid && fbid.length ? fbid[1] : false;
+}
+function getSharedData(response) {
+  var html = response;
+  var doc = getDOM(html);
+  s = doc.querySelectorAll('script');
+  for (i=0; i<s.length; i++) {
+    if (!s[i].src && s[i].textContent.indexOf('_sharedData') > 0) {
+      s = s[i].textContent;
+      break;
+    }
+  }
+  return JSON.parse(s.match(/({".*})/)[1]);
 }
 function extractJSON(str) {
   // http://stackoverflow.com/questions/10574520/
@@ -1649,30 +1665,17 @@ function _instaQueryProcess(elms) {
         var xhr = new XMLHttpRequest();
         xhr.onload = function() {
           try {
-            var res = JSON.parse(this.response);
-            elms[i] = res.graphql.shortcode_media;
-          } catch(e) {
-            var htmlBase = document.createElement('html');
-            htmlBase.innerHTML = this.response;
-            var targetJS = htmlBase.querySelectorAll('script');
-            try {
-              for (var j = 0; j < targetJS.length; j++) {
-                if (targetJS[j].textContent.indexOf('_sharedData') > -1) {
-                  elms[i] = extractJSON(targetJS[j].textContent);
-                  break;
-                }
-              }
-              elms[i] = elms[i].entry_data.PostPage[0].graphql.shortcode_media;
-            } catch (e) {
-              elms[i] = null;
-            }
+            var data = getSharedData(this.response);
+            elms[i] = data.entry_data.PostPage[0].graphql.shortcode_media;
+          } catch (e) {
+            elms[i] = null;
           }
           setTimeout(function() {
             _instaQueryProcess(elms);
           }, 500);
         };
         var code = feed.shortcode || feed.code;
-        xhr.open('GET', 'https://www.instagram.com/p/' + code + '/?__a=1');
+        xhr.open('GET', 'https://www.instagram.com/p/' + code + '/');
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         xhr.send();
         return;
@@ -1761,15 +1764,9 @@ function getInstagram() {
       closeDialog();
       return alert('Cannot download private account.');
     }
-    var xhr = new XMLHttpRequest();
-    xhr.onload = function() {
-      var res = JSON.parse(this.response).graphql.user.edge_owner_to_timeline_media;
-      g.ajax = res.page_info.has_next_page ? res.page_info.end_cursor : null;
-      _instaQueryProcess(res.edges);
-    };
-    xhr.open('GET', location.origin + location.pathname + '?__a=1');
-    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-    xhr.send();
+    var res = g.Env.media;
+    g.ajax = res.page_info.has_next_page ? res.page_info.end_cursor : null;
+    _instaQueryProcess(res.edges);
   }
 }
 function getTwitter(){
@@ -2185,17 +2182,8 @@ var dFAcore = function(setup, bypass) {
     }
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
-      var html = this.response;
-      var doc = getDOM(html);
       try {
-        s = doc.querySelectorAll('script');
-        for (i=0; i<s.length; i++) {
-          if (!s[i].src && s[i].textContent.indexOf('_sharedData') > 0) {
-            s = s[i].textContent;
-            break;
-          }
-        }
-        g.Env = JSON.parse(s.match(/({".*})/)[1]);
+        g.Env = getSharedData(this.response);
         g.token = g.Env.config.csrf_token;
         var data = g.Env.entry_data;
         if (data.ProfilePage) {
