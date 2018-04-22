@@ -37,7 +37,8 @@
 // @exclude       https://www.facebook.com/ajax/pagelet/generic.php/*
 // @exclude       https://www.facebook.com/*/plugins/*
 // @exclude       https://www.facebook.com/xti.php*
-// @require       http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js
+// @require       https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
+// @require       https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.10.0/js/md5.min.js
 // ==/UserScript==
 
 var HELPER_LOADING = false;
@@ -1718,16 +1719,17 @@ function instaQuery() {
     g.ajax = res.page_info.has_next_page ? res.page_info.end_cursor : null;
     _instaQueryProcess(res.edges);
   };
+  var variables = JSON.stringify({ id: g.Env.user.id, first: 30, after: g.ajax });
   if (g.queryHash) {
     xhr.open('GET', 'https://www.instagram.com/graphql/query/?' +
-      'query_hash=' + g.queryHash + '&variables=' +
-      JSON.stringify({ id: g.Env.user.id, first: 30, after: g.ajax }));
+      'query_hash=' + g.queryHash + '&variables=' + variables);
   } else {
     xhr.open('GET', 'https://www.instagram.com/graphql/query/?' +
       'query_id=' + g.queryId + '&id=' + g.Env.user.id + '&first=30&after=' +
       g.ajax);
   }
   xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+  xhr.setRequestHeader('X-Instagram-GIS', md5(g.rhx_gis + ':' + variables));
   xhr.send();
 }
 function getInstagramQueryId() {
@@ -1744,7 +1746,7 @@ function getInstagramQueryId() {
         g.queryId = id[1];
       } else {
         alert('Cannot get query id, using fallback instead');
-        g.queryHash = '472f257a40c653c64c666ce877d59d2b';
+        g.queryHash = '42323d64886122307be10013ad2dcc44';
       }
     } else {
       g.queryHash = id[1];
@@ -2185,6 +2187,7 @@ var dFAcore = function(setup, bypass) {
       try {
         g.Env = getSharedData(this.response);
         g.token = g.Env.config.csrf_token;
+        g.rhx_gis = g.Env.rhx_gis;
         var data = g.Env.entry_data;
         if (data.ProfilePage) {
           g.Env = data.ProfilePage[0].graphql;
