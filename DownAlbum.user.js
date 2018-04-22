@@ -41,8 +41,10 @@
 // @require       https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.10.0/js/md5.min.js
 // ==/UserScript==
 
-var HELPER_LOADING = false;
+var HELPER_LOADING = false; 
+const base = 'https://www.instagram.com/';
 const profiles = {};
+let rhx_gis = '';
 
 var log = function(s) {
   try {
@@ -207,6 +209,16 @@ async function _addLink(k, target, album) {
       r = await r.json();
       profiles[username] = r.user.hd_profile_pic_url_info.url;
       src = profiles[username];
+      if (!k.querySelector(`.dStory[data-id="${id}"]`)) {
+        const storyBtn = document.createElement('a');
+        storyBtn.className = 'dStory';
+        storyBtn.style.maxWidth = '200px';
+        storyBtn.style.cursor = 'pointer';
+        storyBtn.dataset.id = id;
+        storyBtn.textContent = 'Download Stories';
+        k.appendChild(storyBtn);
+        storyBtn.addEventListener('click', () => loadStories(id));
+      }
     } catch (e) {}
   }
   var albumBtn = location.pathname.indexOf('/p') === 0 ?
@@ -257,6 +269,46 @@ async function _addLink(k, target, album) {
       albumBtn.click();
     }
     HELPER_LOADING = false;
+  }
+}
+async function loadStories(id) {
+  const hash = 'bf41e22b1c4ba4c9f31b844ebb7d9056';
+  const variables = JSON.stringify({ reel_ids: [id], precomposed_overlay: false });
+  const options = {
+    credentials: 'include',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-Instagram-GIS': md5(rhx_gis + ':' + variables),
+    },
+  };
+  try {
+    const url = `${base}graphql/query/?query_hash=${hash}&variables=${variables}`;
+    let r = await fetch(url, options);
+    r = await r.json();
+    const { items, latest_reel_media: last, user } = r.data.reels_media[0];
+    const photodata = {
+      aDes: '',
+      aName: 'Stories',
+      aAuth: user.username,
+      aLink: `${base}${user.username}`,
+      aTime: last ? 'Last Update: ' + parseTime(last) : '',
+      newL: true,
+      newLayout: true,
+      photos: [],
+      videos: [],
+      type: 'Stories',
+    };
+    items.forEach((e, i) => {
+      photodata.photos.push({ url: e.display_url, href: '' });
+      if (e.video_resources) {
+        const { src } = e.video_resources[e.video_resources.length - 1];
+        photodata.videos.push({ url: src, thumb: e.display_url });
+      }
+    });
+    sendRequest({ type:'export', data: photodata });
+  } catch (e) {
+    console.error(e);
+    alert('Cannot load stories');
   }
 }
 function addVideoLink() {
