@@ -43,8 +43,11 @@
 
 var HELPER_LOADING = false; 
 const base = 'https://www.instagram.com/';
+const loadedVideos = {};
 const profiles = {};
+let fbDtsg = '';
 let rhx_gis = '';
+let uid = '';
 
 var log = function(s) {
   try {
@@ -311,37 +314,73 @@ async function loadStories(id) {
     alert('Cannot load stories');
   }
 }
-function addVideoLink() {
-  var o = document.querySelectorAll('a[href$="mp4"]' +
-    '[title="(provided by DownAlbum)"]');
-  for (var i = 0; i < o.length; i++) {
-    o[i].parentNode.removeChild(o[i]);
-  }
-  var k = document.querySelectorAll('[id*=pagelet] a[href*="/videos/"]');
-  for (var i = 0; i < k.length; i++) {
-    if (k[i].dataset.loaded) {
-      continue;
-    }
-    k[i].dataset.loaded = 1;
-    var xhr = new XMLHttpRequest();
-    xhr.onload = function() {
-      var e = document.querySelector('a[href*="' +
-        this.responseURL.replace(location.origin, '') + '"][data-loaded]');
-      var r = this.response;
-      var m = r.match(/(hd|sd)_src:"(\w[^"]+)"/img);
-      for (var j = 0; j < m && m.length; j++) {
-        var a = document.createElement('a');
-        a.href = m[j].slice(8, -1);
-        a.download = '';
-        a.target = '_blank';
-        a.style.padding = '5px';
-        a.title = '(provided by DownAlbum)';
-        a.innerHTML = m[j].slice(0, 2).toUpperCase() + '↓';
-        e.parentNode.appendChild(a);
+function getFbEnv() {
+  const s = qSA('script');
+  for (let i = 0; i < s.length; i += 1) {
+    let t = s[i].textContent;
+    if (t) {
+      if (t.indexOf('DTSGInitialData') > 0) {
+        t = t.slice(t.indexOf('DTSGInitialData'));
+        t = t.slice(0, t.indexOf('}')).split('"');
+        fbDtsg = t[4];
+      } else {
+        const m = t.match(/"USER_ID":"(\d+)"/);
+        if (m) {
+          uid = m[1];
+        }
       }
     }
-    xhr.open('GET', k[i].href);
-    xhr.send();
+  }
+}
+async function addVideoLink() {
+  if (window.location.href.indexOf('/videos/') === -1) {
+    return;
+  }
+  let id = window.location.href.match(/\/\d+\//g);
+  if (!id) {
+    return;
+  }
+  id = id[0].slice(1, -1);
+  if (!loadedVideos[id]) {
+    loadedVideos[id] = 1;
+    getFbEnv();
+    const url = `https://www.facebook.com/video/tahoe/async/${id}/?chain=true&isvideo=true`;
+    const options = {
+      credentials: 'include',
+      method: 'POST',
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded',
+      },
+      body: `__user=${uid}&__a=1&fb_dtsg=${fbDtsg}`,
+    };
+    let r = await fetch(url, options);
+    r = await r.text();
+    r = JSON.parse(r.slice(9)).jsmods.instances;
+    for (let idx = 0; idx < r.length; idx += 1) {
+      const i = r[idx];
+      if (i[1] && i[1].length && i[1][0] === 'VideoConfig') {
+        const data = i[2][0].videoData[0];
+        const src = data.hd_src_no_ratelimit || data.hd_src ||
+          data.sd_src_no_ratelimit || data.sd_src;
+        loadedVideos[id] = src;
+      }
+    }
+  } else if (loadedVideos[id] === 1) {
+    return;
+  }
+  const e = qSA('[data-utime], .timestamp');
+  for (let i = 0; i < e.length; i += 1) {
+    if (!e[i].parentNode.querySelector('.dVideo')) {
+      const a = document.createElement('a');
+      a.className = 'dVideo';
+      a.href = loadedVideos[id];
+      a.download = '';
+      a.target = '_blank';
+      a.style.padding = '5px';
+      a.title = '(provided by DownAlbum)';
+      a.textContent = 'Download ↓';
+      e[i].parentNode.appendChild(a);
+    }
   }
 }
 function photosOfHelper() {
