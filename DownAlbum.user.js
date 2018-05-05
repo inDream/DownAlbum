@@ -202,7 +202,7 @@ async function _addLink(k, target, album) {
       let r = await fetch(`https://www.instagram.com/${username}/`);
       r = await r.text();
       r = r.slice(r.indexOf('_sharedData'));
-      r = r.slice(r.indexOf('{'), r.indexOf('<'));
+      r = r.slice(r.indexOf('{'), r.indexOf('\n'));
       const data = JSON.parse(r.slice(0, r.lastIndexOf('}') + 1));
       const id = data.entry_data.ProfilePage[0].graphql.user.id;
       r = await fetch(`https://i.instagram.com/api/v1/users/${id}/info/`);
@@ -1718,8 +1718,8 @@ function _instaQueryProcess(elms) {
         var xhr = new XMLHttpRequest();
         xhr.onload = function() {
           try {
-            var data = getSharedData(this.response);
-            elms[i] = data.entry_data.PostPage[0].graphql.shortcode_media;
+            var data = JSON.parse(this.response);
+            elms[i] = data.graphql.shortcode_media;
           } catch (e) {
             elms[i] = null;
           }
@@ -1728,8 +1728,9 @@ function _instaQueryProcess(elms) {
           }, 500);
         };
         var code = feed.shortcode || feed.code;
-        xhr.open('GET', 'https://www.instagram.com/p/' + code + '/');
+        xhr.open('GET', 'https://www.instagram.com/p/' + code + '/?__a=1');
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('X-Instagram-GIS', md5(g.rhx_gis + ':/p/' + code + '/'));
         xhr.send();
         return;
       }
