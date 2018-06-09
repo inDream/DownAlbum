@@ -508,7 +508,7 @@ function parseQuery(s){
 function parseFbSrc(s, fb) {
   if (fb) {
     return s.replace(/s\d{3,4}x\d{3,4}\//g, '');
-  } else if (!s.match(/_a\.jpg|s1080/)) {
+  } else if (!s.match(/\/fr\/|_a\.jpg|1080x/)) {
     return s.replace(/c\d+\.\d+\.\d+\.\d+\//, '')
       .replace(/\w\d{3,4}x\d{3,4}\//g, s.match(/\/e\d{2}\//) ? '' : 'e15/');
   }
