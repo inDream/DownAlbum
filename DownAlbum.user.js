@@ -1846,36 +1846,23 @@ function instaQuery() {
     _instaQueryProcess(res.edges);
   };
   var variables = JSON.stringify({ id: g.Env.user.id, first: 30, after: g.ajax });
-  if (g.queryHash) {
-    xhr.open('GET', 'https://www.instagram.com/graphql/query/?' +
-      'query_hash=' + g.queryHash + '&variables=' + variables);
-  } else {
-    xhr.open('GET', 'https://www.instagram.com/graphql/query/?' +
-      'query_id=' + g.queryId + '&id=' + g.Env.user.id + '&first=30&after=' +
-      g.ajax);
-  }
+  xhr.open('GET', 'https://www.instagram.com/graphql/query/?' +
+    'query_hash=' + g.queryHash + '&variables=' + variables);
   xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
   xhr.setRequestHeader('X-Instagram-GIS', md5(g.rhx_gis + ':' + variables));
   xhr.send();
 }
 function getInstagramQueryId() {
-  var s = qS('script[src*="ProfilePageContainer"], script[src*="Commons"]');
-  var xhr = new XMLHttpRequest();
+  const s = qS('script[src*="ProfilePageContainer"], script[src*="Commons"]');
+  const xhr = new XMLHttpRequest();
   xhr.onload = function() {
-    var id = this.response.match(/profilePosts\S+queryId:"(\S+)"/);
-    if (!id) {
-      id = this.response.match(/profilePosts\S+queryId:"(\d+)"/);
-      if (!id) {
-        id = this.response.match(/byUserId\.get\S+queryId:"(\d+)"/);
-      }
-      if (id) {
-        g.queryId = id[1];
-      } else {
-        alert('Cannot get query id, using fallback instead');
-        g.queryHash = '42323d64886122307be10013ad2dcc44';
-      }
-    } else {
+    const src = this.response.replace(/void 0/g, '');
+    let id = src.match(/profilePosts\S+queryId:"(\S+)"/);
+    if (id) {
       g.queryHash = id[1];
+    } else {
+      alert('Cannot get query id, using fallback instead');
+      g.queryHash = '42323d64886122307be10013ad2dcc44';
     }
     getInstagram();
   };
