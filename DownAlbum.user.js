@@ -133,9 +133,9 @@ var dFAinit = function(){
     }
   }else if(href.indexOf('pinterest') > 0){
     if(!qS('#dfaButton')){
-      var t = qS('.infoBar .pull-right, .headerContainer, .centeredWithinWrapper');
-      klass = 'Button boardFollowUnfollowButton';
-      t.innerHTML += '<button id="dfaButton" class="' + klass + '"><span class="buttonText">DownAlbum</span></button><button id="dfaSetButton" class="' + klass + '"><span class="buttonText">DownAlbum(Setup)</span></button>';
+      t = qS('.boardHeaderWrapper') || qS('h3').parentNode;
+      t.innerHTML += '<button id="dfaButton">DownAlbum</button>' +
+        '<button id="dfaSetButton">DownAlbum(Setup)</button>';
       qS('#dfaButton').addEventListener("click", function(){
         dFAcore();
       });
