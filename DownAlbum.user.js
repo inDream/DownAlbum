@@ -191,7 +191,7 @@ async function _addLink(k, target, album) {
   var isProfile = (k.tagName == 'HEADER' || k.parentNode.tagName == 'HEADER');
   let username = null;
   if (isProfile) {
-    const u = k.parentNode.querySelector('[title]');
+    const u = k.parentNode.querySelector('[title]:not(button)');
     if (u) {
       if (u.parentNode.className === 'dLink') {
         return;
@@ -373,7 +373,7 @@ async function addVideoLink() {
   if (!id) {
     return;
   }
-  id = id[0].slice(1, -1);
+  id = id[id.length - 1].slice(1, -1);
   if (!loadedVideos[id]) {
     loadedVideos[id] = 1;
     getFbEnv();
@@ -401,7 +401,7 @@ async function addVideoLink() {
   } else if (loadedVideos[id] === 1) {
     return;
   }
-  const e = qSA('[data-utime], .timestamp');
+  const e = qSA('[data-utime]:not(.livetimestamp), .timestamp');
   for (let i = 0; i < e.length; i += 1) {
     if (!e[i].parentNode.querySelector('.dVideo')) {
       const a = document.createElement('a');
