@@ -946,11 +946,11 @@ function getPhotos(){
     '.fbStarGridWrapper~img, #browse_result_below_fold, ' +
     '#content_container div > span[aria-busy="true"], ' +
     '#pages_video_hub_all_videos_pagelet .uiMorePagerLoader') ||
-    (!qS('#browse_end_of_results_footer') && qS('#contentArea div.hidden_elem')
+    (!qS('#browse_end_of_results_footer') && qS('#content div.hidden_elem')
     && location.href.match('search')));
   if(g.ajaxFailed&&g.mode!=2&&scrollEle){scrollTo(0, document.body.clientHeight);setTimeout(getPhotos,2000);return;}//g.start=3;
   var i, photodata = g.photodata, testNeeded = 0, ajaxNeeded = 0;
-  var elms = g.elms || qS('#album_photos_pagelet') || qS('#album_pagelet') || qS('#static_set_pagelet') || qS('#pagelet_photos_stream') || qS('#group_photoset') || qS('#initial_browse_result') || qS('#contentArea');
+  var elms = g.elms || qS('#album_photos_pagelet') || qS('#album_pagelet') || qS('#static_set_pagelet') || qS('#pagelet_photos_stream') || qS('#group_photoset') || qS('#initial_browse_result') || qS('#content');
   var grid = qSA('#fbTimelinePhotosFlexgrid, .fbStarGrid, ' +
     '#pages_video_hub_all_videos_pagelet');
   var selector = 'a[rel="theater"]';
@@ -1010,7 +1010,7 @@ function getPhotos(){
     var isVideo = (href.indexOf('/videos/') > -1 || g.isVideo);
     var parentSrc = elms[i].parentNode ? 
       elms[i].parentNode.getAttribute('data-starred-src') : '';
-    var bg = !isVideo ? elms[i].childNodes[0] :
+    var bg = !isVideo ? elms[i].querySelector('img') :
       elms[i].querySelector(g.isPage ? 'img' : 'div[style], .uiVideoLinkImg');
     var src = bg ? bg.getAttribute('src') : '';
     if (src) {
@@ -1104,7 +1104,9 @@ function getPhotos(){
       newPhoto.date = parseTime(elms[i].dataset.date);
     }
     if(!g.notLoadCm)newPhoto.ajax=ajax;
-    photodata.photos.push(newPhoto);
+    if (url) {
+      photodata.photos.push(newPhoto);
+    }
     }catch(e){log(e);}
   }
   if(qS('#stopAjaxCkb')&&qS('#stopAjaxCkb').checked){qS('#stopAjaxCkb').checked=false;}
@@ -2260,7 +2262,8 @@ var dFAcore = function(setup, bypass) {
     g.thumbSelector = 'a.uiMediaThumb[ajaxify], a[data-video-id], ' +
       'a.uiMediaThumb[rel="theater"], a.uiMediaThumbMedium, ' +
       '.fbPhotoCurationControlWrapper a[ajaxify][rel="theater"], ' +
-      'a.uiVideoLink[ajaxify], #fbTimelinePhotosFlexgrid a[ajaxify]';
+      'a.uiVideoLink[ajaxify], ' +
+      '#fbTimelinePhotosFlexgrid a[ajaxify]:not(.fbPhotoAlbumAddPhotosButton)';
     g.downloaded={};g.profilesList={};g.commentsList={count:0};
     g.photodata = {
       aName:aName.replace(/'|"/g,'\"'),
