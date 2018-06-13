@@ -1010,7 +1010,7 @@ function getPhotos(){
     var isVideo = (href.indexOf('/videos/') > -1 || g.isVideo);
     var parentSrc = elms[i].parentNode ? 
       elms[i].parentNode.getAttribute('data-starred-src') : '';
-    var bg = !isVideo ? elms[i].querySelector('img, i, [style]') :
+    var bg = !isVideo ? elms[i].querySelector('img, i') :
       elms[i].querySelector(g.isPage ? 'img' : 'div[style], .uiVideoLinkImg');
     var src = bg ? bg.getAttribute('src') : '';
     if (src) {
