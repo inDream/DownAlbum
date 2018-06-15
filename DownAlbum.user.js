@@ -1768,7 +1768,7 @@ function _instaQueryAdd(elms) {
       g.photodata.photos.push({
         title: j === 0 && caption ? caption : (feed.caption || ''),
         url: url,
-        href: 'https://www.instagram.com/p/' + (n.shortcode || n.code) + '/',
+        href: `https://www.instagram.com/p/${feed.shortcode}/`,
         date: date ? parseTime(date) : '',
         comments: c.count && j === 0 && cList.length > 1 ? cList : '',
         tag: tagHtml
