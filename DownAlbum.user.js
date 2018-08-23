@@ -1995,6 +1995,76 @@ function getWeibo() {
     }
   });
 }
+function getWeiboAlbum() {
+  if (!GM_xmlhttpRequest) { return alert("This script required Greasemonkey/Tampermonkey!"); }
+  GM_xmlhttpRequest({
+    method: "GET",
+    url: `https://photo.weibo.com/albums/get_all?uid=${g.uId}&page=1&count=20`,
+    onload: function() {
+      try {
+        const list = JSON.parse(this.response).data.album_list;
+        g.statusEle.innerHTML = '<p>Select album to download:</p>'
+        for (let i = 0; i < list.length; i++) {
+          const a = document.createElement('a');
+          const count = list[i].count.photos;
+          a.textContent = `${list[i].caption} (${count} photos)`;
+          a.addEventListener('click', () => {
+            g.aId = list[i].album_id;
+            g.photodata.aName = list[i].caption;
+            g.total = count;
+            loadWeiboAlbum();
+          });
+          g.statusEle.appendChild(a);
+        }
+      } catch (e) {
+        console.error(e);
+        alert('Cannot get album list, try old method instead.');
+        getWeibo();
+      }
+    }
+  });
+}
+function loadWeiboAlbum() {
+  GM_xmlhttpRequest({
+    method: "GET",
+    url: `https://photo.weibo.com/photos/get_all?uid=${g.uId}&` +
+      `album_id=${g.aId}&count=30&page=${g.ajaxPage}&type=3`,
+    onload: function() {
+      g.ajaxPage++;
+      try {
+        const list = JSON.parse(this.response).data.photo_list;
+        let lastCaption = '';
+        for (let i = 0; i < list.length; i++) {
+          const e = list[i];
+          const url = `https://${e.pic_host.replace('http://', '')}/large/${e.pic_name}`;
+          if (!g.downloaded[url]) { g.downloaded[url] = 1; } else { continue; }
+          g.photodata.photos.push({
+            title: e.caption == lastCaption ? '' : e.caption,
+            url: url,
+            href: `http://photo.weibo.com/${g.uId}/talbum/detail/photo_id/${e.photo_id}`,
+            date: parseTime(e.timestamp)
+          });
+          lastCaption = e.caption;
+        }
+        const count = g.photodata.photos.length;
+        log(`Loaded ${count} photos.`);
+        document.title=`(${count}/${g.total}) ||${g.photodata.aName}`;
+        g.statusEle.textContent = `Loaded ${count}/${g.total}`;
+        if (qS('#stopAjaxCkb') && qS('#stopAjaxCkb').checked) {
+          output();
+        } else if (count < g.total) {
+          setTimeout(loadWeiboAlbum, 2000);
+        } else {
+          output();
+        }
+      } catch (e) {
+        console.error(e);
+        alert('Cannot get album photos, try old method instead.');
+        getWeibo();
+      }
+    }
+  });
+}
 function parsePinterest(list){
   var photodata = g.photodata;
   for(var j = 0; j < list.length; j++){
@@ -2390,7 +2460,7 @@ var dFAcore = function(setup, bypass) {
       photos: [],
       aDes:""
     };
-    getWeibo();
+    getWeiboAlbum();
   }else if(location.host.match(/pinterest/)){
     g.photodata = {
       aName: getText('h3') || 'Pinterest',
