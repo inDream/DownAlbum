@@ -1860,7 +1860,8 @@ function instaQuery() {
       }
       return;
     }
-    var res = JSON.parse(this.response).data.user.edge_owner_to_timeline_media;
+    var res = JSON.parse(this.response).data.user
+    res = g.isTagged ? res.edge_user_to_photos_of_you : res.edge_owner_to_timeline_media;
     g.ajax = res.page_info.has_next_page ? res.page_info.end_cursor : null;
     _instaQueryProcess(res.edges);
   };
@@ -1876,12 +1877,17 @@ function getInstagramQueryId() {
   const xhr = new XMLHttpRequest();
   xhr.onload = function() {
     const src = this.response.replace(/void 0/g, '');
-    let id = src.match(/profilePosts\S+queryId:"(\S+)"/);
+    const regex = new RegExp(`${g.isTagged ? 'taggedPosts' : 'profilePosts'}\\S+queryId:"(\\S+)"`)
+    let id = src.match(regex);
     if (id) {
       g.queryHash = id[1];
     } else {
       alert('Cannot get query id, using fallback instead');
-      g.queryHash = '42323d64886122307be10013ad2dcc44';
+      g.queryHash = g.isTagged ? 'de71ba2f35e0b59023504cfeb5b9857e' : 'a5164aed103f24b03e7b7747a2d94e3c';
+    }
+    if (g.isTagged) {
+      g.ajax = '';
+      return instaQuery();
     }
     getInstagram();
   };
@@ -2330,13 +2336,18 @@ var dFAcore = function(setup, bypass) {
           return location.reload();
         }
       } catch(e) {alert('Cannot load required variable!');} 
-      g.Env.media = g.Env.user.edge_owner_to_timeline_media;
+      g.isTagged = location.href.indexOf('/tagged/') > 0;
+      g.Env.media = g.isTagged ? { count: 0, edges: [] } :
+        g.Env.user.edge_owner_to_timeline_media;
       g.total = g.Env.media.count;
       aName = g.Env.user.full_name || 'Instagram';
       aAuth = g.Env.user.username;
       aLink = g.Env.user.external_url || ('http://instagram.com/'+  aAuth);
-      var aTime = g.Env.media && g.Env.media.length ? 
-        g.Env.media[0].date : 0;
+      let aTime = 0
+      try {
+        aTime = g.Env.media && g.Env.media.edges.length ?
+          g.Env.media.edges[0].node.taken_at_timestamp : 0;
+      } catch (e) {}
       g.photodata = {
         aName: aName.replace(/'|"/g,'\"'),
         aAuth: aAuth,
