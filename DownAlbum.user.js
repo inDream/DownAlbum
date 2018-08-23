@@ -370,15 +370,14 @@ function getFbEnv() {
   for (let i = 0; i < s.length; i += 1) {
     let t = s[i].textContent;
     if (t) {
+      const m = t.match(/"USER_ID":"(\d+)"/);
+      if (m) {
+        uid = m[1];
+      }
       if (t.indexOf('DTSGInitialData') > 0) {
         t = t.slice(t.indexOf('DTSGInitialData'));
         t = t.slice(0, t.indexOf('}')).split('"');
         fbDtsg = t[4];
-      } else {
-        const m = t.match(/"USER_ID":"(\d+)"/);
-        if (m) {
-          uid = m[1];
-        }
       }
     }
   }
@@ -395,7 +394,7 @@ async function addVideoLink() {
   if (!loadedVideos[id]) {
     loadedVideos[id] = 1;
     getFbEnv();
-    const url = `https://www.facebook.com/video/tahoe/async/${id}/?chain=true&isvideo=true`;
+    const url = `https://www.facebook.com/video/tahoe/async/${id}/?chain=true&payloadtype=primary`;
     const options = {
       credentials: 'include',
       method: 'POST',
