@@ -93,7 +93,7 @@ var dFAinit = function(){
   }
   var k, k2, klass;
   if (site[0] == 'instagram.com') {
-    klass = qS('header section div span button')
+    klass = qS('header section div span button, header section div button')
     if (!klass) {
       return;
     }
@@ -180,7 +180,9 @@ function addLink() {
     }
     var k = qSA('header');
     for(var i = 0; i<k.length; i++){
-      _addLink(k[i], k[i]);
+      if (!k[i].querySelector('time')) {
+        _addLink(k[i], k[i]);
+      }
     }
   } else if (location.host.match(/facebook.com/)) {
     addVideoLink();
@@ -200,7 +202,7 @@ async function _addLink(k, target, album) {
     }
   }
   var tParent = target.parentNode;
-  if (tParent.querySelectorAll('img').length > 2) {
+  if (tParent.querySelectorAll('img').length > 5) {
     return;
   }
   var t = k.querySelector('img, video');
@@ -209,7 +211,7 @@ async function _addLink(k, target, album) {
     if (!src) {
       return setTimeout(addLink, 300);
     }
-    src = isProfile && profiles[username] ? profiles[username] : parseFbSrc(src);
+    src = isProfile && profiles[username] ? profiles[username].src : parseFbSrc(src);
     if (qS('.dLink [href="' + src + '"]')) {
       return;
     }
@@ -225,35 +227,41 @@ async function _addLink(k, target, album) {
     }
   }
   if (isProfile) {
-    if (profiles[username] !== undefined) {
+    if (profiles[username] === null) {
       return;
+    } else if (profiles[username] === undefined) {
+      profiles[username] = null;
+      try {
+        let r = await fetch(`https://www.instagram.com/${username}/`);
+        r = await r.text();
+        r = r.slice(r.indexOf('_sharedData'));
+        r = r.slice(r.indexOf('{'), r.indexOf('\n'));
+        const data = JSON.parse(r.slice(0, r.lastIndexOf('}') + 1));
+        const id = data.entry_data.ProfilePage[0].graphql.user.id;
+        r = await fetch(`https://i.instagram.com/api/v1/users/${id}/info/`);
+        r = await r.json();
+        profiles[username] = {
+          id,
+          src: r.user.hd_profile_pic_url_info.url
+        };
+        src = profiles[username].src;
+      } catch (e) {}
     }
-    profiles[username] = null;
-    try {
-      let r = await fetch(`https://www.instagram.com/${username}/`);
-      r = await r.text();
-      r = r.slice(r.indexOf('_sharedData'));
-      r = r.slice(r.indexOf('{'), r.indexOf('\n'));
-      const data = JSON.parse(r.slice(0, r.lastIndexOf('}') + 1));
-      const id = data.entry_data.ProfilePage[0].graphql.user.id;
-      r = await fetch(`https://i.instagram.com/api/v1/users/${id}/info/`);
-      r = await r.json();
-      profiles[username] = r.user.hd_profile_pic_url_info.url;
-      src = profiles[username];
-      if (!k.querySelector(`.dStory[data-id="${id}"]`)) {
-        const storyBtn = document.createElement('a');
-        storyBtn.className = 'dStory';
-        storyBtn.style.maxWidth = '200px';
-        storyBtn.style.cursor = 'pointer';
-        storyBtn.dataset.id = id;
-        storyBtn.textContent = 'Download Stories';
-        k.appendChild(storyBtn);
-        storyBtn.addEventListener('click', () => loadStories(id));
-      }
-    } catch (e) {}
+    const { id } = profiles[username];
+    if (!k.querySelector(`.dStory[data-id="${id}"]`)) {
+      const storyBtn = document.createElement('a');
+      storyBtn.className = 'dStory';
+      storyBtn.style.maxWidth = '200px';
+      storyBtn.style.cursor = 'pointer';
+      storyBtn.dataset.id = id;
+      storyBtn.textContent = 'Download Stories';
+      k.appendChild(storyBtn);
+      storyBtn.addEventListener('click', () => loadStories(id));
+    }
   }
+  var container = getParent(k, 'article') || k;
   var albumBtn = location.pathname.indexOf('/p') === 0 ?
-    k.querySelector('.coreSpriteRightChevron') : false;
+    container.querySelector('.coreSpriteRightChevron') : false;
   if (t && src) {
     var link = album ? album : document.createElement('div');
     link.className = 'dLink';
@@ -293,10 +301,19 @@ async function _addLink(k, target, album) {
     HELPER_LOADING = true;
     albumBtn.click();
     setTimeout(function() {
-      _addLink(k, target, link);
-    }, 300);
+      const list = getParent(t, 'ul');
+      if (list) {
+        const items = list.querySelectorAll('img');
+        for (let i = 1; i < items.length; i++) {
+          let src = parseFbSrc(items[i].getAttribute('src'));
+          if (!qS('.dLink [href="' + src + '"]')) {
+            _addLink(items[i].parentNode, target, link);
+          }
+        }
+      }
+    }, 1000);
   } else if (!albumBtn && album) {
-    while (albumBtn = k.querySelector('.coreSpriteLeftChevron')) {
+    while (albumBtn = container.querySelector('.coreSpriteLeftChevron')) {
       albumBtn.click();
     }
     HELPER_LOADING = false;
