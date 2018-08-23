@@ -13,6 +13,7 @@
 // @include       htt*://instagram.com/*
 // @include       htt*://*.instagram.com/*
 // @include       htt*://twitter.com/*
+// @include       htt*://*.weibo.com/*
 // @include       htt*://weibo.com/*
 // @include       htt*://www.pinterest.com/*
 // @include       htt*://www.pinterest.*/*
@@ -1961,51 +1962,37 @@ function getTwitter(){
   xhr.open('GET', url);
   xhr.send();
 }
-function getWeibo(){
-  if(!GM_xmlhttpRequest){alert("This script required Greasemonkey/Tampermonkey!");return;}
+function getWeibo() {
   GM_xmlhttpRequest({
     method: "GET",
-    url: "https://photo.weibo.com/page/waterfall?filter=wbphoto&page="+g.ajaxPage+"&count=20&module_id=profile_photo&oid="+g.oId+"&uid=&lastMid="+g.ajax+"&lang=zh-tw",
+    url: `https://www.weibo.com/p/aj/album/loading?owner_uid=${g.uId}&page_id=${g.pageId}&page=${g.ajaxPage}&ajax_call=1&since_id=${g.ajax}`,
     onload: function() {
-    g.ajaxPage++;
-    var r = this.response;
-    var s = r.slice( r.indexOf("{"),r.lastIndexOf("}")+1 );
-    var res = new Function("return " + s)().data;
-    var elms = res.html;
-    var photodata=g.photodata;
-    var html;
-    g.ajax=res.lastMid || null;
-    for(var i=0;elms&&i<elms.length;i++){
-      html = document.createElement("div");
-      html.innerHTML = elms[i];
+      g.ajaxPage++;
+      var html = getDOM(JSON.parse(this.response).data);
+      var loading = html.querySelector('[node-type="loading"]').getAttribute('action-data');
+      g.ajax = parseQuery(loading).since_id;
       var links = html.querySelectorAll("a.ph_ar_box");
-      var img = html.querySelectorAll("img.photo_pic");
-      var title = html.querySelector(".describe span").title || '';
-      var photoTime = html.querySelector(".photo_time").textContent || '';
-      for(var imgCount = 0; imgCount < img.length; imgCount++){
-        var data = {};
-        var link = links[imgCount].getAttribute("action-data").split("&");
-        for(var j=0; j<link.length; j++){
-          var t = link[j].split("=");
-          data[t[0]] = t[1];
-        }
+      var img = html.querySelectorAll("img.photo_pict");
+      for(var imgCount = 0; imgCount < links.length; imgCount++){
+        var data = parseQuery(links[imgCount].getAttribute("action-data"));
         var url = img[imgCount].src.match(/:\/\/([\w\.]+)\//);
-        url = 'http://' + url[1] + '/large/' + data.pid + '.jpg';
+        url = 'https://' + url[1] + '/large/' + data.pid + '.jpg';
         if(!g.downloaded[url]){g.downloaded[url]=1;}else{continue;}
-        photodata.photos.push({
-          title: title,
+        // For href since pid !== photo_id therefore cannot use direct link
+        g.photodata.photos.push({
+          title: '',
           url: url,
-          href: 'http://photo.weibo.com/'+g.uId+'/talbum/detail/photo_id/'+data.mid,
-          date: photoTime
+          href: `http://photo.weibo.com/${g.uId}/wbphotos/large/mid/${data.mid}/pid/${data.pid}`,
+          date: ''
         });
       }
+      const count = g.photodata.photos.length;
+      log(`Loaded ${count} photos.`);
+      document.title=`(${count}) ||${g.photodata.aName}`;
+      g.statusEle.textContent = `Loaded ${count}`;
+      if(qS('#stopAjaxCkb')&&qS('#stopAjaxCkb').checked){output();}
+      else if(g.ajax){setTimeout(getWeibo, 2000);}else{output();}
     }
-    log('Loaded '+photodata.photos.length+' photos.');
-    document.title="("+g.photodata.photos.length+") ||"+g.photodata.aName;
-    g.statusEle.textContent = 'Loaded ' + g.photodata.photos.length;
-    if(qS('#stopAjaxCkb')&&qS('#stopAjaxCkb').checked){output();}
-    else if(g.ajax){setTimeout(getWeibo, 2000);}else{output();}
-  }
   });
 }
 function parsePinterest(list){
@@ -2391,14 +2378,8 @@ var dFAcore = function(setup, bypass) {
     }
     eval(id);
     if(!$CONFIG){alert("發生錯誤，請聯絡作者");return;}
-    g.oId = $CONFIG.page_id || $CONFIG.oid;
-    var uId = qS('[action-type="copy_cover"]') || qS('[action-type="webim.conversation"]');
-    if(uId){
-      uId = uId.getAttribute('action-data').match(/uid=(\d+)/);
-      if(uId){
-        g.uId = uId[1];
-      }
-    }
+    g.uId = $CONFIG.oid;
+    g.pageId = $CONFIG.page_id;
     g.ajaxPage = 1;
     g.ajax = ""
     g.photodata = {
