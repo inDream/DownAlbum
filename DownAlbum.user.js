@@ -321,7 +321,6 @@ async function _addLink(k, target, album) {
   }
 }
 async function loadStories(id) {
-  openWindow();
   const hash = 'bf41e22b1c4ba4c9f31b844ebb7d9056';
   const variables = JSON.stringify({ reel_ids: [id], precomposed_overlay: false });
   const options = {
@@ -335,6 +334,7 @@ async function loadStories(id) {
     const url = `${base}graphql/query/?query_hash=${hash}&variables=${variables}`;
     let r = await fetch(url, options);
     r = await r.json();
+    openWindow();
     const { items, latest_reel_media: last, user } = r.data.reels_media[0];
     const photodata = {
       aDes: '',
@@ -2284,7 +2284,6 @@ function getAskFM() {
 }
 
 var dFAcore = function(setup, bypass) {
-  openWindow();
   g.start=1;g.settings={};
   if(!setup&&localStorage['dFASetting']){
     g.settings=localStorage['dFASetting']?JSON.parse(localStorage['dFASetting']):{};
@@ -2301,6 +2300,7 @@ var dFAcore = function(setup, bypass) {
   var aName=document.title,aAuth="",aDes="",aTime="";g.start=2;
   g.timeOffset=new Date().getTimezoneOffset()/60*-3600000;
   createDialog();
+  openWindow();
   g.statusEle = qS('.daCounter');
   if(location.host.match(/.*facebook.com/)){
     if(qS('.fbPhotoAlbumTitle')||qS('.fbxPhotoSetPageHeader')){
