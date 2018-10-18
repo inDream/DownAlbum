@@ -2109,7 +2109,8 @@ function getPinterest(){
     var type = s.ui.mainComponent.current;
     var resources = s.resources.data;
     while (resources && !resources.data) {
-      resources = resources[Object.keys(resources)[0]];
+      const key = Object.keys(resources).filter(k => k !== 'UserResource')[0];
+      resources = resources[key];
     }
     var r = resources && resources.data ? resources.data : null;
     g.resource = type.replace(/Feed|Page/g, '') + 'FeedResource';
