@@ -1492,7 +1492,7 @@ function fbAutoLoad(elms){
       var rq = query.jsmods.require;
       for(i=0; i<rq.length; i++){
         if(rq[i][0] == "BrowseScrollingPager"){
-          query = rq[i][3][1];
+          query = rq[i][3][0].globalData;
           break;
         }
       }
