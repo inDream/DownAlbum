@@ -1445,7 +1445,7 @@ function fbAutoLoad(elms){
     if (!g.isPage) {
       p = p.match(/set=([\w+\.\d]*)&/) || p;
       p = p.length ? p[1] : p.slice(p.indexOf('=')+1,p.indexOf('&'));
-      aInfo={"scroll_load":true,"last_fbid":l,"fetch_size":32,"profile_id":+p.slice(p.lastIndexOf('.')+1),"viewmode":null,"set":p,"type":"1"};
+      aInfo={"scroll_load":true,"last_fbid":l,"fetch_size":32,"profile_id":+g.pageId,"viewmode":null,"set":p,"type":"1"};
     }
 
     var token = qS("div[aria-role='tabpanel']");
@@ -2364,9 +2364,10 @@ var dFAcore = function(setup, bypass) {
       var html = this.response;
       var doc = getDOM(html);
       var pageId = doc.querySelector('[property="al:ios:url"]');
-      if (pageId && pageId.getAttribute('content').indexOf('page') > 0) {
-        g.isPage = true;
-        g.pageId = pageId.getAttribute('content').match(/\d+/)[0];
+      var content = pageId.getAttribute('content');
+      if (pageId && content.match(/page|profile/)) {
+        g.isPage = /page/.test(content);
+        g.pageId = content.match(/\d+/)[0];
       }
       g.isVideo = location.href.match(/\/videos\/|set=v/);
       g.isPageVideo = g.isPage && g.isVideo;
