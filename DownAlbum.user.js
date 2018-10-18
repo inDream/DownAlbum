@@ -334,6 +334,9 @@ async function loadStories(id) {
     const url = `${base}graphql/query/?query_hash=${hash}&variables=${variables}`;
     let r = await fetch(url, options);
     r = await r.json();
+    if (!r.data.reels_media || !r.data.reels_media.length) {
+      throw Error('No stories loaded');
+    }
     openWindow();
     const { items, latest_reel_media: last, user } = r.data.reels_media[0];
     const photodata = {
