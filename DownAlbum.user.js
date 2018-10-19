@@ -42,9 +42,8 @@
 // @require       https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.10.0/js/md5.min.js
 // ==/UserScript==
 
-let HELPER_LOADING = false; 
 const base = 'https://www.instagram.com/';
-const loadedVideos = {};
+const loadedPosts = {};
 const profiles = {};
 let fbDtsg = '';
 let isWinReady = false;
@@ -96,6 +95,9 @@ var dFAinit = function(){
   if (site[0] == 'instagram.com') {
     klass = qS('header section div span button, header section div button')
     if (!klass) {
+      if (location.href.indexOf('/p') > 0) {
+        runLater();
+      }
       return;
     }
     klass = klass.parentNode;
@@ -164,14 +166,13 @@ var dFAinit = function(){
   }
 };
 function runLater() {
-  if (HELPER_LOADING) {
-    return;
-  }
   clearTimeout(window.addLinkTimer);
   window.addLinkTimer = setTimeout(addLink, 300);
 }
 function addLink() {
-  dFAinit();
+  if (location.href.indexOf('instagram.com/p') === -1) {
+    dFAinit();
+  }
   if (location.host.match(/instagram.com/)) {
     var k = qSA('article>div:nth-of-type(1), header>div:nth-of-type(1)');
     for(var i = 0; i<k.length; i++){
@@ -190,7 +191,7 @@ function addLink() {
   }
 }
 
-async function _addLink(k, target, album) {
+async function _addLink(k, target) {
   var isProfile = (k.tagName == 'HEADER' || k.parentNode.tagName == 'HEADER');
   let username = null;
   if (isProfile) {
@@ -218,7 +219,7 @@ async function _addLink(k, target, album) {
     }
     var next = isProfile ? target.querySelector('.dLink') :
       target.nextElementSibling;
-    if (next && !album) {
+    if (next) {
       if (next.childNodes[0] &&
         next.childNodes[0].getAttribute('href') == src) {
         return;
@@ -260,64 +261,53 @@ async function _addLink(k, target, album) {
       storyBtn.addEventListener('click', () => loadStories(id));
     }
   }
-  var container = getParent(k, 'article') || k;
-  var albumBtn = location.pathname.indexOf('/p') === 0 ?
-    container.querySelector('.coreSpriteRightChevron') : false;
+  const container = getParent(k, 'article') || k;
+  const albumBtn = container.querySelector('.coreSpriteRightChevron');
   if (t && src) {
-    var link = album ? album : document.createElement('div');
+    const link = document.createElement('div');
     link.className = 'dLink';
     link.style.maxWidth = '200px';
-    var title = '(provided by DownAlbum)';
-    var html = '<a href="' + src + '" download title="' + title + '">Download';
-    var num = '';
-    if (album || albumBtn) {
-      num = link.innerHTML.match(/\.jpg/g);
-      num = ' #' + (num ? num.length + 1 : 1);
-    }
-    if (src.match('mp4')) {
-      var poster = t.getAttribute('poster');
-      html += ' Video' + num + '</a><a href="' + poster +
-        '" download title="' + title + '">Download Photo' + num + '</a>';
+    const title = '(provided by DownAlbum)';
+    const items = [];
+    if (albumBtn) {
+      const url = container.querySelector('time').parentNode.getAttribute('href');
+      if (loadedPosts[url] === 1) {
+        return;
+      }
+      loadedPosts[url] = 1;
+      let r = await fetch(`${url}?__a=1`, { credentials: 'include' });
+      r = await r.json();
+      r.graphql.shortcode_media.edge_sidecar_to_children.edges.forEach((e, i) => {
+        const { is_video, video_url, display_url } = e.node;
+        items.push(`${is_video ? `${video_url}|` : ''}${parseFbSrc(display_url)}`);
+      });
     } else {
-      html += num + '</a>';
+      if (src.match('mp4')) {
+        src += `|${t.getAttribute('poster')}`;
+      }
+      items.push(src);
     }
-    if (album) {
-      link.innerHTML += html;
+    let html = '';
+    items.forEach((e, i) => {
+      const s = e.split('|');
+      const idx = items.length > 1 ? `#${i + 1} `: '';
+      html += s.length > 1 ? `<a href="${s.shift()}" download title="${title}"\
+        >Download ${idx}Video</a>` : '';
+      html += `<a href="${s.shift()}" download title="${title}"\
+        >Download ${idx}Photo</a>`;
+    });
+    link.innerHTML = html;
+    if (isProfile) {
+      k.appendChild(link);
+    } else if (target.insertAdjacentElement) {
+      target.insertAdjacentElement('afterEnd', link);
     } else {
-      link.innerHTML = html;
-      if (isProfile) {
-        k.appendChild(link);
-      } else if (target.insertAdjacentElement) {
-        target.insertAdjacentElement('afterEnd', link);
+      if (target.nextSibling) {
+        tParent.insertBefore(link, target.nextSibling);
       } else {
-        if (target.nextSibling) {
-          tParent.insertBefore(link, target.nextSibling);
-        } else {
-          tParent.appendChild(link);
-        }
+        tParent.appendChild(link);
       }
     }
-  }
-  if (albumBtn) {
-    HELPER_LOADING = true;
-    albumBtn.click();
-    setTimeout(function() {
-      const list = getParent(t, 'ul');
-      if (list) {
-        const items = list.querySelectorAll('img');
-        for (let i = 1; i < items.length; i++) {
-          let src = parseFbSrc(items[i].getAttribute('src'));
-          if (!qS('.dLink [href="' + src + '"]')) {
-            _addLink(items[i].parentNode, target, link);
-          }
-        }
-      }
-    }, 1000);
-  } else if (!albumBtn && album) {
-    while (albumBtn = container.querySelector('.coreSpriteLeftChevron')) {
-      albumBtn.click();
-    }
-    HELPER_LOADING = false;
   }
 }
 async function loadStories(id) {
@@ -394,8 +384,8 @@ async function addVideoLink() {
     return;
   }
   id = id[id.length - 1].slice(1, -1);
-  if (!loadedVideos[id]) {
-    loadedVideos[id] = 1;
+  if (!loadedPosts[id]) {
+    loadedPosts[id] = 1;
     getFbEnv();
     const url = `https://www.facebook.com/video/tahoe/async/${id}/?chain=true&payloadtype=primary`;
     const options = {
@@ -415,10 +405,10 @@ async function addVideoLink() {
         const data = i[2][0].videoData[0];
         const src = data.hd_src_no_ratelimit || data.hd_src ||
           data.sd_src_no_ratelimit || data.sd_src;
-        loadedVideos[id] = src;
+        loadedPosts[id] = src;
       }
     }
-  } else if (loadedVideos[id] === 1) {
+  } else if (loadedPosts[id] === 1) {
     return;
   }
   const e = qSA('[data-utime]:not(.livetimestamp), .timestamp');
@@ -426,7 +416,7 @@ async function addVideoLink() {
     if (!e[i].parentNode.querySelector('.dVideo')) {
       const a = document.createElement('a');
       a.className = 'dVideo';
-      a.href = loadedVideos[id];
+      a.href = loadedPosts[id];
       a.download = '';
       a.target = '_blank';
       a.style.padding = '5px';
