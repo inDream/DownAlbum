@@ -84,6 +84,18 @@ function openWindow() {
     }
   }, true);
 }
+function request(url, opt = {}) {
+  return new Promise((resolve, reject) => {
+    Object.assign(opt, {
+      url,
+      timeout: 2000,
+      responseType: 'json'
+    });
+    opt.onerror = opt.ontimeout = reject
+    opt.onload = resolve
+    GM_xmlhttpRequest(opt);
+  });
+}
 
 var dFAinit = function(){
   var href = location.href;
@@ -240,8 +252,8 @@ async function _addLink(k, target) {
         r = r.slice(r.indexOf('{'), r.indexOf('\n'));
         const data = JSON.parse(r.slice(0, r.lastIndexOf('}') + 1));
         const id = data.entry_data.ProfilePage[0].graphql.user.id;
-        r = await fetch(`https://i.instagram.com/api/v1/users/${id}/info/`);
-        r = await r.json();
+        r = await request(`https://i.instagram.com/api/v1/users/${id}/info/`);
+        r = r.response;
         profiles[username] = {
           id,
           src: r.user.hd_profile_pic_url_info.url
