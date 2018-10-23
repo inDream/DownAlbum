@@ -2366,7 +2366,7 @@ var dFAcore = function(setup, bypass) {
       var html = this.response;
       var doc = getDOM(html);
       var pageId = doc.querySelector('[property="al:ios:url"]');
-      var content = pageId.getAttribute('content');
+      var content = pageId ? pageId.getAttribute('content') : '';
       if (pageId && content.match(/page|profile/)) {
         g.isPage = /page/.test(content);
         g.pageId = content.match(/\d+/)[0];
