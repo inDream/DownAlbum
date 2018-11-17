@@ -87,6 +87,7 @@ function openWindow() {
 function request(url, opt = {}) {
   return new Promise((resolve, reject) => {
     Object.assign(opt, {
+      method: 'GET',
       url,
       timeout: 2000,
       responseType: 'json'
