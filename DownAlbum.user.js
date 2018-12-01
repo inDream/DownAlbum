@@ -208,7 +208,7 @@ async function _addLink(k, target) {
   var isProfile = (k.tagName == 'HEADER' || k.parentNode.tagName == 'HEADER');
   let username = null;
   if (isProfile) {
-    const u = k.parentNode.querySelector('[title]:not(button)');
+    const u = k.parentNode.querySelector('h1, [title]:not(button)');
     if (u) {
       if (u.parentNode.className === 'dLink') {
         return;
