@@ -324,8 +324,10 @@ async function _addLink(k, target) {
   }
 }
 async function loadStories(id) {
-  const hash = 'bf41e22b1c4ba4c9f31b844ebb7d9056';
-  const variables = JSON.stringify({ reel_ids: [id], precomposed_overlay: false });
+  const hash = '61e453c4b7d667c6294e71c57afa6e63';
+  const variables = `{"reel_ids":["${id}"],"tag_names":[],` +
+      `"location_ids":[],"highlight_reel_ids":[],"precomposed_overlay":false,` +
+      `"show_story_header_follow_button":false}`;
   const options = {
     credentials: 'include',
     headers: {
