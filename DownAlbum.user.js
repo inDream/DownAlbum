@@ -948,6 +948,7 @@ function fbAjax(){
       fbAjax();
     }
   };
+  g.photodata.photos[i].ajax += `&fb_dtsg_ag=${g.fb_dtsg_ag}`;
   if (g.isPageVideo) {
     xhr.open('POST', g.photodata.photos[i].ajax +
       (g.cursor ? '&cursor=' + g.cursor : ''));
@@ -964,7 +965,7 @@ function fbAjax(){
     if (!g.fb_dtsg) {
       getFbDtsg();
     }
-    data = '__user=' + g.Env.user + '&__a=1&fb_dtsg=' + g.fb_dtsg;
+    data = `__user=${g.Env.user}&__a=1&fb_dtsg=${g.fb_dtsg}&fb_dtsg_ag=${g.fb_dtsg_ag}`;
     xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
   }
   xhr.send(data);}else{output();}
@@ -1361,13 +1362,16 @@ function getFbDtsg() {
       break;
     }
   }
-  s = s.slice(s.indexOf('DTSGInitialData'));
-  s = s.slice(0, s.indexOf('}')).split('"');
-  if (!s.length || !s[4]) {
+  let dtsg = s.slice(s.indexOf('DTSGInitialData'));
+  dtsg = dtsg.slice(0, dtsg.indexOf('}')).split('"');
+  if (!dtsg.length || !dtsg[4]) {
     fbAutoLoadFailed();
     return;
   }
-  g.fb_dtsg = s[4];
+  g.fb_dtsg = dtsg[4];
+  let token = s.slice(s.indexOf('async_get_token'));
+  token = token.slice(0, token.indexOf('}')).split('"');
+  g.fb_dtsg_ag = token[2];
 }
 function fbAutoLoadFailed(){
   if(confirm('Cannot load required variable, refresh page to retry?')){
@@ -1699,6 +1703,7 @@ function fbAutoLoad(elms){
     }
     setTimeout(getPhotos,1000);
   };
+  ajaxAlbum += `&fb_dtsg_ag=${g.fb_dtsg_ag}`;
   xhr.open("GET", ajaxAlbum);
   g.timeout=setTimeout(function(){
     xhr.abort();
@@ -2346,6 +2351,7 @@ var dFAcore = function(setup, bypass) {
         }
       }
     }catch(e){console.warn(e);alert('Cannot load required variable');}
+    getFbDtsg();
     if (!g.loadCm) {
       g.loadCm = confirm('Load caption to correct photos url?\n' +
         '(Not required for page)');
