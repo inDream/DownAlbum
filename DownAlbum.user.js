@@ -762,8 +762,7 @@ function fbAjax(){
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
     clearTimeout(g.timeout);
-    var r=this.response,htmlBase=document.createElement('html');
-    var targetJS = [], list = [src];
+    let r = this.response, targetJS = [], list = [src];
     if (g.isPageVideo) {
       r = JSON.parse(r.slice(9));
       var k = r.jsmods.instances;
@@ -779,17 +778,12 @@ function fbAjax(){
       }
       g.cursor = r.payload.cursor;
     } else {
-      htmlBase.innerHTML = r.slice(6,-7);
-      targetJS = htmlBase.querySelectorAll('script');
+      targetJS = r.split('/*<!-- fetch-stream -->*/');
     }
-    for(var k=0;k<targetJS.length;k++){
-      var t=targetJS[k].textContent,content=t.slice(t.indexOf('(2, {')+4,t.indexOf('}, true);}')+1);
-      if(!content.length||t.indexOf('JSONPTransport')<0){continue;}
-      content=JSON.parse(content);
-      if (!content.payload || !content.payload.jsmods || 
-        !content.payload.jsmods.require) {
-        alert('Autoload failed, go to photo tab and try again.');
-        return output();
+    for (var k = 0; k < targetJS.length - 1; k++) {
+      var t = targetJS[k], content = JSON.parse(t).content;
+      if (!content.payload || !content.payload.jsmods || !content.payload.jsmods.require) {
+        continue;
       }
       var require=content.payload.jsmods.require;
       if(require&&(content.id=='pagelet_photo_viewer'||require[0][1]=='addPhotoFbids')){list=require[0][3][0];}
@@ -1083,7 +1077,7 @@ function getPhotos(){
         q.fbid = fbid;
       }
       ajax = location.origin + '/ajax/pagelet/generic.php/' +
-        'PhotoViewerInitPagelet?ajaxpipe=1&ajaxpipe_token=' +
+        'PhotoViewerInitPagelet?ajaxpipe=1&ajaxpipe_fetch_stream=1&ajaxpipe_token=' +
         g.Env.ajaxpipe_token + '&no_script_path=1&data=' + JSON.stringify(q)+
         '&__user=' + g.Env.user + '&__a=1&__adt=2';
     } else if (!g.notLoadCm && isVideo) {
@@ -1104,7 +1098,7 @@ function getPhotos(){
           set: id[1]
         };
         ajax = location.origin + '/ajax/pagelet/generic.php/' +
-          'PhotoViewerInitPagelet?ajaxpipe=1&ajaxpipe_token=' +
+          'PhotoViewerInitPagelet?ajaxpipe=1&ajaxpipe_fetch_stream=1&ajaxpipe_token=' +
           g.Env.ajaxpipe_token + '&no_script_path=1&data=' + JSON.stringify(q) +
           '&__user=' + g.Env.user + '&__a=1&__adt=2';
       }
