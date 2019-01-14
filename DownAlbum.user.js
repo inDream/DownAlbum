@@ -192,6 +192,9 @@ function addLink() {
     dFAinit();
   }
   if (location.host.match(/instagram.com/)) {
+    if (location.href.indexOf('explore/') > 0) {
+      return;
+    }
     var k = qSA('article>div:nth-of-type(1), header>div:nth-of-type(1)');
     for(var i = 0; i<k.length; i++){
       if (k[i].nextElementSibling) {
@@ -222,9 +225,6 @@ async function _addLink(k, target) {
     }
   }
   var tParent = target.parentNode;
-  if (tParent.querySelectorAll('img').length > 5) {
-    return;
-  }
   var t = k.querySelector('img, video');
   if (t) {
     var src = t.getAttribute('src');
@@ -289,16 +289,23 @@ async function _addLink(k, target) {
     const items = [];
     if (albumBtn) {
       const url = container.querySelector('time').parentNode.getAttribute('href');
-      if (loadedPosts[url] === 1) {
-        return;
+      if (loadedPosts[url] !== undefined) {
+        if (loadedPosts[url] === 1) {
+          return;
+        }
+        loadedPosts[url].forEach(img => items.push(img));
+      } else {
+        loadedPosts[url] = 1;
+        let r = await fetch(`${url}?__a=1`, { credentials: 'include' });
+        r = await r.json();
+        loadedPosts[url] = [];
+        r.graphql.shortcode_media.edge_sidecar_to_children.edges.forEach((e, i) => {
+          const { is_video, video_url, display_url } = e.node;
+          const img = `${is_video ? `${video_url}|` : ''}${parseFbSrc(display_url)}`;
+          loadedPosts[url].push(img);
+          items.push(img);
+        });
       }
-      loadedPosts[url] = 1;
-      let r = await fetch(`${url}?__a=1`, { credentials: 'include' });
-      r = await r.json();
-      r.graphql.shortcode_media.edge_sidecar_to_children.edges.forEach((e, i) => {
-        const { is_video, video_url, display_url } = e.node;
-        items.push(`${is_video ? `${video_url}|` : ''}${parseFbSrc(display_url)}`);
-      });
     } else {
       if (src.match('mp4')) {
         src += `|${t.getAttribute('poster')}`;
