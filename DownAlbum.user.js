@@ -288,7 +288,7 @@ async function _addLink(k, target) {
     const title = '(provided by DownAlbum)';
     const items = [];
     if (albumBtn) {
-      const url = container.querySelector('time').parentNode.getAttribute('href');
+      const url = container.querySelector('a time').parentNode.getAttribute('href');
       if (loadedPosts[url] !== undefined) {
         if (loadedPosts[url] === 1) {
           return;
