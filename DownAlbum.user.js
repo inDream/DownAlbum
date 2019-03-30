@@ -105,7 +105,7 @@ function request(url, opt = {}) {
 
 var dFAinit = function(){
   var href = location.href;
-  var site = href.match(/(facebook|instagram|twitter|pinterest|weibo)\.com|ask\.fm/);
+  var site = href.match(/(facebook|instagram|twitter|weibo)\.com|ask\.fm|pinterest/);
   if (document.querySelector('#dFA') || !site) {
     return;
   }
@@ -154,7 +154,10 @@ var dFAinit = function(){
     }
   }else if(href.indexOf('pinterest') > 0){
     if(!qS('#dfaButton')){
-      t = qS('.boardHeaderWrapper') || qS('h3').parentNode;
+      t = qS('.boardHeaderWrapper') || qS('h3') ? qS('h3').parentNode : null;
+      if (!t) {
+        return;
+      }
       t.innerHTML += '<button id="dfaButton">DownAlbum</button>' +
         '<button id="dfaSetButton">DownAlbum(Setup)</button>';
       qS('#dfaButton').addEventListener("click", function(){
