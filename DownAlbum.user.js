@@ -154,7 +154,7 @@ var dFAinit = function(){
     }
   }else if(href.indexOf('pinterest') > 0){
     if(!qS('#dfaButton')){
-      t = qS('.boardHeaderWrapper') || qS('h3') ? qS('h3').parentNode : null;
+      t = qS('.boardHeaderWrapper') || qS('h3, h4') ? qS('h3, h4').parentNode : null;
       if (!t) {
         return;
       }
