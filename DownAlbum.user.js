@@ -2487,7 +2487,7 @@ var dFAcore = function(setup, bypass) {
     getWeiboAlbum();
   }else if(location.host.match(/pinterest/)){
     g.photodata = {
-      aName: getText('h3') || 'Pinterest',
+      aName: getText('h3, h4') || 'Pinterest',
       aAuth: qS('.profileSource img') ? qS('.profileSource img').alt : '',
       aLink: location.href,
       aTime: aTime,
