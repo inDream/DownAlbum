@@ -852,6 +852,12 @@ function fbAjax(){
                 s.outerHTML.replace(/'/g,'&quot;') : s.textContent;
               var tag = b.querySelector('.tagBox');
               pid = getFbid(a.parentNode.href);
+              if (!pid) {
+                var btn = box[kk].querySelector('.sendButton');
+                if (btn) {
+                  pid = parseQuery(btn.href).id;
+                }
+              }
               initDataLoaded(pid);
               g.dataLoaded[pid].tag = !tag ? '' : b.outerHTML;
               g.dataLoaded[pid].title = s;
