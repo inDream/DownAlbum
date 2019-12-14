@@ -129,7 +129,7 @@ var dFAinit = function(){
   k2.innerHTML = '<a id="dFAsetup" class="navSubmenu">DownAlbum(Setup)</a>';
   var t = qS('.uiContextualLayerPositionerFixed ul') || qS('.Dropdown ul') ||
     qS('.gn_topmenulist.gn_topmenulist_set ul') || qS('.uiContextualLayer [role="menu"]') ||
-    qS('.me.dropdown .dropdown-menu') || qS('header section div');
+    qS('.me.dropdown .dropdown-menu, [role="menu"]') || qS('header section div');
   if(t){
     t.appendChild(k); t.appendChild(k2);
     k.addEventListener("click", function(){
