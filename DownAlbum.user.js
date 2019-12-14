@@ -2590,6 +2590,8 @@ switch(request.type){
             .find('span').each(function() {$(this).replaceWith(this.childNodes);});
             title=$t.html();
           }catch(e){}
+        } else {
+          title = title.replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
       }catch(e){}
       title=title?'<div class="captions"><a class="captions" rel="captions"></a>'+title+'</div>':'<div class="captions"></div>';
