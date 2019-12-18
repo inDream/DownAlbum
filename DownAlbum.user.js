@@ -2116,92 +2116,93 @@ function getPinterest(){
     return;
   }
   g.source = board ? encodeURIComponent(location.pathname) : '/';
-  var xhr = new XMLHttpRequest();
-  xhr.onload = function() {
-    var html = this.response;
-    var doc = getDOM(html).querySelector('#initial-state');
-    if (!doc) {
-      alert('Cannot load initial state');
-      return;
+  var doc = qSA('script');
+  var s = null;
+  for (var i = 0; i < doc.length; i++) {
+    var c = doc[i].textContent;
+    if (c.indexOf('__INITIAL_STATE__') > 0) {
+      s = extractJSON(c.replace(/\\\\\\"/g, '\'').replace(/\\"/g, '"'));
+      break;
     }
-    var s = extractJSON(doc.textContent);
-    var type = s.ui.mainComponent.current;
-    var resources = s.resources.data;
-    while (resources && !resources.data) {
-      const key = Object.keys(resources).filter(k => k !== 'UserResource')[0];
-      resources = resources[key];
-    }
-    var r = resources && resources.data ? resources.data : null;
-    g.resource = type.replace(/Feed|Page/g, '') + 'FeedResource';
-    switch (type) {
-      case 'HomePage':
-        parsePinterest(r);
-        g.bookmarks = {
-          bookmarks: [resources.nextBookmark],
-          prependPartner: false,
-          prependUserNews: false,
-          prependExploreRep: null,
-          field_set_key: 'grid_item_with_rec'
-        };
-        g.resource = 'UserHomefeedResource';
-        break;
-      case 'BoardPage':
-        g.bookmarks = {
-          board_id: r.id,
-          board_url: r.url,
-          field_set_key: 'react_grid_pin',
-          layout: 'default',
-          page_size: 25
-        };
-        break;
-      case 'BoardSectionPage':
-        g.bookmarks = {
-          section_id: r.id,
-          page_size: 25
-        };
-        g.resource = 'BoardSectionPinsResource';
-        g.photodata.aName += ' - ' + r.title;
-        break;
-      case 'DomainFeedPage':
-        g.bookmarks = {domain: board[2]};
-        break;
-      case 'ProfilePage':
-        switch (board[2]) {
-          case 'pins': 
-            g.bookmarks = {username: board[1], field_set_key: 'grid_item'};
-            g.resource = 'UserPinsResource';
-            break;
-          case 'likes':
-            g.bookmarks = {username: board[1], page_size: 25};
-            g.resource = 'UserLikesResource';
-            break;
-        }
-        break;
-      case 'SearchPage':
-        var query = location.search.slice(1).replace(/&/g, '=').split('=');
-        query = query[query.indexOf('q') + 1];
-        g.bookmarks = {query: query, scope: board[2]};
-        break;
-      case 'TopicFeedPage':
-        g.bookmarks = {interest: board[2]};
-        break;
-      case 'InterestFeedPage':
-        g.bookmarks = {query: board[2]};
-        break;
-    }
-    if (type === 'SearchPage' || type === 'InterestFeedPage') {   
-      if (r.results) {
-        parsePinterest(r.results);
+  }
+  if (!s) {
+    alert('Cannot load initial state');
+    return;
+  }
+  var type = s.ui.mainComponent.current;
+  var resources = s.resources.data;
+  while (resources && !resources.data) {
+    const key = Object.keys(resources).filter(k => k !== 'UserResource')[0];
+    resources = resources[key];
+  }
+  var r = resources && resources.data ? resources.data : null;
+  g.resource = type.replace(/Feed|Page/g, '') + 'FeedResource';
+  switch (type) {
+    case 'HomePage':
+      parsePinterest(r);
+      g.bookmarks = {
+        bookmarks: [resources.nextBookmark],
+        prependPartner: false,
+        prependUserNews: false,
+        prependExploreRep: null,
+        field_set_key: 'grid_item_with_rec'
+      };
+      g.resource = 'UserHomefeedResource';
+      break;
+    case 'BoardPage':
+      g.bookmarks = {
+        board_id: r.id,
+        board_url: r.url,
+        field_set_key: 'react_grid_pin',
+        layout: 'default',
+        page_size: 25
+      };
+      break;
+    case 'BoardSectionPage':
+      g.bookmarks = {
+        section_id: r.id,
+        page_size: 25
+      };
+      g.resource = 'BoardSectionPinsResource';
+      g.photodata.aName += ' - ' + r.title;
+      break;
+    case 'DomainFeedPage':
+      g.bookmarks = {domain: board[2]};
+      break;
+    case 'ProfilePage':
+      switch (board[2]) {
+        case 'pins': 
+          g.bookmarks = {username: board[1], field_set_key: 'grid_item'};
+          g.resource = 'UserPinsResource';
+          break;
+        case 'likes':
+          g.bookmarks = {username: board[1], page_size: 25};
+          g.resource = 'UserLikesResource';
+          break;
       }
-      if (resources.nextBookmark) {
-        g.bookmarks.bookmarks = [resources.nextBookmark];
-      }
-      g.resource = 'SearchResource';
+      break;
+    case 'SearchPage':
+      var query = location.search.slice(1).replace(/&/g, '=').split('=');
+      query = query[query.indexOf('q') + 1];
+      g.bookmarks = {query: query, scope: board[2]};
+      break;
+    case 'TopicFeedPage':
+      g.bookmarks = {interest: board[2]};
+      break;
+    case 'InterestFeedPage':
+      g.bookmarks = {query: board[2]};
+      break;
+  }
+  if (type === 'SearchPage' || type === 'InterestFeedPage') {   
+    if (r.results) {
+      parsePinterest(r.results);
     }
-    getPinterest_sub();
-  };
-  xhr.open('GET', location.href);
-  xhr.send();
+    if (resources.nextBookmark) {
+      g.bookmarks.bookmarks = [resources.nextBookmark];
+    }
+    g.resource = 'SearchResource';
+  }
+  getPinterest_sub();
 }
 function getPinterest_sub(){
   var photodata = g.photodata;
