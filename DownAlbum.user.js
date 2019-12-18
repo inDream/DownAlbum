@@ -991,7 +991,11 @@ function getPhotos(){
     && location.href.match('search')));
   if(g.ajaxFailed&&g.mode!=2&&scrollEle){scrollTo(0, document.body.clientHeight);setTimeout(getPhotos,2000);return;}//g.start=3;
   var i, photodata = g.photodata, testNeeded = 0, ajaxNeeded = 0;
-  var elms = g.elms || qS('#album_photos_pagelet') || qS('#album_pagelet') || qS('#static_set_pagelet') || qS('#pagelet_photos_stream') || qS('#group_photoset') || qS('#initial_browse_result') || qS('#content');
+  var elms = g.elms || qS('#album_photos_pagelet') || qS('#album_pagelet') ||
+    qS('#static_set_pagelet') || qS('#pagelet_photos_stream') ||
+    qS('#group_photoset') || qS('#initial_browse_result') ||
+    qS('#pagelet_timeline_medley_photos') || qS('#content_container') ||
+    qS('#content');
   var grid = qSA('#fbTimelinePhotosFlexgrid, .fbStarGrid, ' +
     '#pages_video_hub_all_videos_pagelet');
   var selector = 'a[rel="theater"]';
@@ -2328,10 +2332,11 @@ var dFAcore = function(setup, bypass) {
   g.statusEle = qS('.daCounter');
   if(location.host.match(/.*facebook.com/)){
     if(qS('.fbPhotoAlbumTitle')||qS('.fbxPhotoSetPageHeader')){
-    aName=getText('.fbPhotoAlbumTitle')||getText("h2")||document.title;
+    aName = getText('.fbPhotoAlbumTitle') || getText("h2") ||
+      getText('span[role="heading"][aria-level="3"]:only-child') || document.title;
     aAuth=getText('#fb-timeline-cover-name')||getText("h2")||getText('.fbStickyHeaderBreadcrumb .uiButtonText')||getText(".fbxPhotoSetPageHeaderByline a");
     if(!aAuth){aName=getText('.fbPhotoAlbumTitle'); aAuth=getText('h2');}
-    aDes=getText('.fbPhotoCaptionText',1);
+    aDes = getText('.fbPhotoCaptionText', 1) || getText('span[role="heading"][aria-level="4"]');
     try{aTime=qS('#globalContainer abbr').title;
     var aLoc=qS('.fbPhotoAlbumActionList').lastChild;
     if((!aLoc.tagName||aLoc.tagName!='SPAN')&&(!aLoc.childNodes.length||(aLoc.childNodes.length&&aLoc.childNodes[0].tagName!='IMG'))){aLoc=aLoc.outerHTML?" @ "+aLoc.outerHTML:aLoc.textContent;aTime=aTime+aLoc;}}catch(e){};
