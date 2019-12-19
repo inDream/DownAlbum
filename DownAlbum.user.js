@@ -2120,13 +2120,15 @@ function getPinterest(){
     return;
   }
   g.source = board ? encodeURIComponent(location.pathname) : '/';
-  var doc = qSA('script');
-  var s = null;
-  for (var i = 0; i < doc.length; i++) {
-    var c = doc[i].textContent;
-    if (c.indexOf('__INITIAL_STATE__') > 0) {
-      s = extractJSON(c.replace(/\\\\\\"/g, '\'').replace(/\\"/g, '"'));
-      break;
+  var s = qS('#initial-state') ? extractJSON(getText('#initial-state')) : null;
+  if (!s) {
+    var doc = qSA('script');
+    for (var i = 0; i < doc.length; i++) {
+      var c = doc[i].textContent;
+      if (c.indexOf('__INITIAL_STATE__') > 0) {
+        s = extractJSON(c.replace(/\\\\\\"/g, '\'').replace(/\\"/g, '"'));
+        break;
+      }
     }
   }
   if (!s) {
