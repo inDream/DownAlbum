@@ -851,7 +851,8 @@ function fbAjax(){
               s = !s ? '' : s.innerHTML.match(/<br>|<wbr>/) ?
                 s.outerHTML.replace(/'/g,'&quot;') : s.textContent;
               var tag = b.querySelector('.tagBox');
-              pid = getFbid(a.parentNode.href);
+              pid = a.parentNode.href.match(/permalink|story_fbid/) ? null :
+                getFbid(a.parentNode.href);
               if (!pid) {
                 var btn = box[kk].querySelector('.sendButton');
                 if (btn) {
