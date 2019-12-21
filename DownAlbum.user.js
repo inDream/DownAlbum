@@ -1165,89 +1165,43 @@ function getPhotos(){
   }else{output();}
 }
 function getFbMessagesPhotos() {
-  if (!g.offset) {
-    g.ajaxRetry = {};
-    g.offset = 0;
+  if (!g.threadId) {
+    g.ajax = null;
     g.photodata.aName = getText('.fb_content [role="main"] h2');
-    g.photodata.aDes = '';
-    getFbDtsg();
-    var headers = qSA('[role="gridcell"], [id^="row_header_id_user:"]');
-    var rows = [];
-    for (var i = 0; i < headers.length; i++) {
-      rows.push({e: headers[i], len: headers[i].parentNode.className.length});
+    if (qS('a[uid]')) {
+      g.threadId = qS('a[uid]').getAttribute('uid');
+    } else if (location.href.match(/messages\/t\/(\d+)/)) {
+      g.threadId = location.href.match(/messages\/t\/(\d+)/)[1];
+    } else {
+      alert('Cannot get message thread id.');
+      return;
     }
-    rows.sort(function(a, b) {
-      return a.len > b.len ? -1 : a.len === b.len ? 0 : 1;
-    });
-    g.threadId = rows[0].e.id.split(':')[1];
   }
-  var url = location.origin + '/ajax/messaging/attachments/sharedphotos.php';
-  var data = 'thread_id='+g.threadId+'&offset='+g.offset+'&limit=30&__user='+g.Env.user+'&__a=1&__req=7&fb_dtsg='+g.fb_dtsg;
+  var variables = JSON.stringify({ id: g.threadId, first: 30, after: g.ajax });
+  var url = location.origin + '/webgraphql/query/?query_id=515216185516880&variables='+variables;
+  var data = '__user='+g.Env.user+'&__a=1&__req=7&fb_dtsg='+g.fb_dtsg;
   var xhr = new XMLHttpRequest();
   xhr.onload = function(){
-    var elms = g.elms.length ? g.elms : [];
-    var payload = JSON.parse(this.response.slice(9)).payload;
-    if(payload.imagesData){
-      elms = elms.concat(payload.imagesData);
-      if(elms.length){
-        g.elms = elms;
-        if(payload.moreImagesToLoad){
-          g.offset += 30;
-          getFbMessagesPhotos();
-        }else{
-          fbAjaxAttachment();
-        }
-      }else{
-        alert('No photo attachments found.');
-      }
+    var payload = extractJSON(this.response).payload[g.threadId];
+    if (!payload.message_shared_media) {
+      alert('Cannot get message media.');
+      return;
+    }
+    for (var i = 0; i < payload.message_shared_media.edges.length; i++) {
+      var n = payload.message_shared_media.edges[i].node;
+      g.photodata.photos.push({ href: '', url: n.image2.uri });
+    }
+    g.statusEle.textContent = 'Loading album... (' + g.photodata.photos.length + ')';
+    if (payload.message_shared_media.page_info.has_next_page) {
+      g.ajax = payload.message_shared_media.page_info.end_cursor;
+      getFbMessagesPhotos();
+    } else if (g.photodata.photos.length) {
+      output();
     }
   };
   xhr.open('POST', url);
   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
   xhr.send(data);
-}
-function fbAjaxAttachment(){
-  var len = g.elms.length, i = g.ajaxLoaded;
-  if(len && len > g.photodata.photos.length){
-    var elms = g.elms[i];
-    var fbid = elms.fbid;
-    if(!g.ajaxRetry[fbid]){
-      g.ajaxRetry[fbid] = 0;
-    }
-    if(!g.dataLoaded[fbid] && g.ajaxRetry[fbid]<3){
-      g.ajaxRetry[fbid]++;
-      var xhr = new XMLHttpRequest();
-      xhr.onload = function(){
-        var output = JSON.parse(JSON.parse(this.response.slice(9)).payload.output);
-        var images = output[g.threadId].message_images.edges
-        for(var i = 0; i < images.length; i++){
-          g.dataLoaded[images[i].node.id] = 1;
-          g.photodata.photos.push({
-            href: '',
-            url: images[i].node.image2.uri
-          });
-        }
-        g.ajaxLoaded++;
-        fbAjaxAttachment();
-      };
-      xhr.open('POST', location.origin + '/ajax/graphql/query/');
-      xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-      var after = i > 0 ? ('&params[after]=' + g.elms[i - 1].fbid) : '';
-      var data = 'queryName=MESSAGE_THREAD_IMAGES_FIRST'+after+'&params[first]=19&params[thread_id]='+g.threadId+'&__user='+g.Env.user+'&__a=1&__req=7&fb_dtsg='+g.fb_dtsg;
-      xhr.send(data);
-    }else{
-      if(g.ajaxRetry[fbid] > 3){
-        g.photodata.photos.push({
-          href: '',
-          url: elms.url
-        });
-      }
-      g.ajaxLoaded++;
-      fbAjaxAttachment();
-    }
-  }else if(g.photodata.photos.length){
-    output();
-  }
 }
 function getQL(type, target, key) {
   if (g.pageType === 'album') {
@@ -2401,6 +2355,7 @@ var dFAcore = function(setup, bypass) {
       g.isVideo = location.href.match(/\/videos\/|set=v/);
       g.isPageVideo = g.isPage && g.isVideo;
       if (location.href.match('messages')) {
+        g.threadId = 0;
         getFbMessagesPhotos();
       } else {
         getPhotos();
