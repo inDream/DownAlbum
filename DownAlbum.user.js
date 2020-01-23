@@ -290,7 +290,7 @@ async function _addLink(k, target) {
     link.style.maxWidth = '200px';
     const title = '(provided by DownAlbum)';
     const items = [];
-    if (albumBtn) {
+    if (albumBtn || (t.getAttribute('poster') && src.indexOf('blob') > -1)) {
       const url = container.querySelector('a time').parentNode.getAttribute('href');
       if (loadedPosts[url] !== undefined) {
         if (loadedPosts[url] === 1) {
@@ -302,7 +302,8 @@ async function _addLink(k, target) {
         let r = await fetch(`${url}?__a=1`, { credentials: 'include' });
         r = await r.json();
         loadedPosts[url] = [];
-        r.graphql.shortcode_media.edge_sidecar_to_children.edges.forEach((e, i) => {
+        const m = r.graphql.shortcode_media;
+        (albumBtn ? m.edge_sidecar_to_children.edges : [{ node: m }]).forEach((e, i) => {
           const { is_video, video_url, display_url } = e.node;
           const img = `${is_video ? `${video_url}|` : ''}${parseFbSrc(display_url)}`;
           loadedPosts[url].push(img);
