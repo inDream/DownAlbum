@@ -1947,9 +1947,9 @@ function getWeibo() {
   GM_xmlhttpRequest({
     method: "GET",
     url: `https://www.weibo.com/p/aj/album/loading?owner_uid=${g.uId}&page_id=${g.pageId}&page=${g.ajaxPage}&ajax_call=1&since_id=${g.ajax}`,
-    onload: function() {
+    onload: function(res) {
       g.ajaxPage++;
-      var html = getDOM(JSON.parse(this.response).data);
+      var html = getDOM(JSON.parse(res.response).data);
       var loading = html.querySelector('[node-type="loading"]').getAttribute('action-data');
       g.ajax = parseQuery(loading).since_id;
       var links = html.querySelectorAll("a.ph_ar_box");
@@ -1981,9 +1981,9 @@ function getWeiboAlbum() {
   GM_xmlhttpRequest({
     method: "GET",
     url: `https://photo.weibo.com/albums/get_all?uid=${g.uId}&page=1&count=20`,
-    onload: function() {
+    onload: function(res) {
       try {
-        const list = JSON.parse(this.response).data.album_list;
+        const list = JSON.parse(res.response).data.album_list;
         g.statusEle.innerHTML = '<p>Select album to download:</p>'
         for (let i = 0; i < list.length; i++) {
           const a = document.createElement('a');
@@ -2010,19 +2010,19 @@ function loadWeiboAlbum() {
     method: "GET",
     url: `https://photo.weibo.com/photos/get_all?uid=${g.uId}&` +
       `album_id=${g.aId}&count=30&page=${g.ajaxPage}&type=3`,
-    onload: function() {
+    onload: function(res) {
       g.ajaxPage++;
       try {
-        const list = JSON.parse(this.response).data.photo_list;
+        const list = JSON.parse(res.response).data.photo_list;
         let lastCaption = '';
         for (let i = 0; i < list.length; i++) {
           const e = list[i];
-          const url = `https://${e.pic_host.replace('http://', '')}/large/${e.pic_name}`;
+          const url = `${e.pic_host}/large/${e.pic_name}`;
           if (!g.downloaded[url]) { g.downloaded[url] = 1; } else { continue; }
           g.photodata.photos.push({
             title: e.caption == lastCaption ? '' : e.caption,
             url: url,
-            href: `http://photo.weibo.com/${g.uId}/talbum/detail/photo_id/${e.photo_id}`,
+            href: `https://photo.weibo.com/${g.uId}/talbum/detail/photo_id/${e.photo_id}`,
             date: parseTime(e.timestamp)
           });
           lastCaption = e.caption;
