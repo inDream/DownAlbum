@@ -290,7 +290,7 @@ async function _addLink(k, target) {
     link.style.maxWidth = '200px';
     const title = '(provided by DownAlbum)';
     const items = [];
-    if (albumBtn || (t.getAttribute('poster') && src.indexOf('blob') > -1)) {
+    if (albumBtn || t.getAttribute('poster')) {
       const url = container.querySelector('a time').parentNode.getAttribute('href');
       if (loadedPosts[url] !== undefined) {
         if (loadedPosts[url] === 1) {
@@ -304,8 +304,11 @@ async function _addLink(k, target) {
         loadedPosts[url] = [];
         const m = r.graphql.shortcode_media;
         (albumBtn ? m.edge_sidecar_to_children.edges : [{ node: m }]).forEach((e, i) => {
-          const { is_video, video_url, display_url } = e.node;
-          const img = `${is_video ? `${video_url}|` : ''}${parseFbSrc(display_url)}`;
+          const { dash_info, is_video, video_url, display_url } = e.node;
+          const dash = is_video && dash_info.is_dash_eligible ?
+            (URL.createObjectURL(new Blob([dash_info.video_dash_manifest],
+              {type : 'application/dash+xml'})) + '|') : '';
+          const img = `${dash}${is_video ? `${video_url}|` : ''}${parseFbSrc(display_url)}`;
           loadedPosts[url].push(img);
           items.push(img);
         });
@@ -320,6 +323,7 @@ async function _addLink(k, target) {
     items.forEach((e, i) => {
       const s = e.split('|');
       const idx = items.length > 1 ? `#${i + 1} `: '';
+      html += s.length > 2 ? `<a href="${s.shift()}">Download ${idx}Video (Dash)</a>` : '';
       html += s.length > 1 ? `<a href="${s.shift()}" download title="${title}"\
         >Download ${idx}Video</a>` : '';
       html += `<a href="${s.shift()}" download title="${title}"\
