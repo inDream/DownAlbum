@@ -377,11 +377,13 @@ async function loadStories(id) {
       type: 'Stories',
     };
     items.forEach((e, i) => {
-      photodata.photos.push({ url: e.display_url, href: '' });
+      const p = { url: e.display_url, href: '' };
       if (e.video_resources) {
+        p.videoIdx = photodata.videos.length;
         const { src } = e.video_resources[e.video_resources.length - 1];
         photodata.videos.push({ url: src, thumb: e.display_url });
       }
+      photodata.photos.push(p);
     });
     if (isWinReady) {
       sendRequest({ type:'export', data: photodata });
@@ -709,6 +711,7 @@ function handleFbAjax(fbid) {
     photos[i].tag = d.tag;
     photos[i].date = d.date;
     if (d.video) {
+      photos[i].videoIdx = g.photodata.videos.length;
       g.photodata.videos.push({
         url: d.video
       });
@@ -1704,12 +1707,6 @@ function _instaQueryAdd(elms) {
     for (var j = 0; j < edges.length; j++) {
       var n = !isAlbum ? edges[j] : edges[j].node;
       url = parseFbSrc(n.display_url || n.display_src);
-      if (n.is_video) {
-        g.photodata.videos.push({
-          url: n.video_url,
-          thumb: url
-        });
-      }
       var caption = feed.edge_media_to_caption;
       if (caption) {
         caption = caption.edges.length ? caption.edges[0].node.text : '';
@@ -1731,14 +1728,22 @@ function _instaQueryAdd(elms) {
         tagHtml += '</div></div>';
       }
       var date = feed.date || feed.taken_at_timestamp;
-      g.photodata.photos.push({
+      const p = {
         title: j === 0 && caption ? caption : (feed.caption || ''),
         url: url,
         href: `https://www.instagram.com/p/${feed.shortcode}/`,
         date: date ? parseTime(date) : '',
         comments: c.count && j === 0 && cList.length > 1 ? cList : '',
         tag: tagHtml
-      });
+      };
+      if (n.is_video) {
+        p.videoIdx = g.photodata.videos.length;
+        g.photodata.videos.push({
+          url: n.video_url,
+          thumb: url
+        });
+      }
+      g.photodata.photos.push(p);
     }
   }
 }
@@ -2234,7 +2239,8 @@ function getAskFM() {
         title: title,
         url: url,
         href: 'https://ask.fm' + link.getAttribute('href'),
-        date: link.getAttribute('title')
+        date: link.getAttribute('title'),
+        videoIdx: video ? photodata.videos.length - 1 : undefined
       });
     }
     console.log('Loaded ' + photodata.photos.length + ' photos.');
