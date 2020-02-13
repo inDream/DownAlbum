@@ -1679,43 +1679,6 @@ function fbAutoLoad(elms){
   },10000);
   xhr.send();
 }
-function instaAjax(){
-  var xhr = new XMLHttpRequest();
-  xhr.onload = function() {
-    var total=g.total, photodata=g.photodata,
-    res=JSON.parse(this.response),elms=res.items;
-    if(elms[0].id.indexOf('_')<0)elms=elms[3];
-    g.ajax=res.more_available?elms[elms.length-1].id:null;
-    for(var i=0;i<elms.length;i++){
-      var url = parseFbSrc(elms[i].images.standard_resolution.url);
-      var c = elms[i].comments, cList = [c.count];
-      for(var k=0; k<c.data.length; k++){
-        var p = c.data[k];if(p){
-        cList.push({name: p.from.full_name || p.from.username, url: 'http://instagram.com/'+p.from.username, text: p.text, date: parseTime(p.created_time), id: elms[i].link});}
-      }
-      if(elms[i].videos){
-        photodata.videos.push({
-          url: elms[i].videos.standard_resolution.url,
-          thumb: url
-        });
-      }
-      photodata.photos.push({
-        title: elms[i].caption?elms[i].caption.text:'',
-        url: url,
-        href: elms[i].link,
-        date: elms[i].created_time?parseTime(elms[i].created_time):'',
-        comments: c.count?cList:''
-      });
-    }
-    log('Loaded '+photodata.photos.length+' of '+total+' photos.');
-    g.statusEle.textContent='Loaded '+g.photodata.photos.length+' / '+total;
-    document.title="("+g.photodata.photos.length+"/"+total+") ||"+g.photodata.aName;
-    if(qS('#stopAjaxCkb')&&qS('#stopAjaxCkb').checked){output();}
-    else if(total>photodata.photos.length&&g.ajax){instaAjax();}else{output();}
-  };
-  xhr.open("GET", 'https://www.instagram.com/'+g.Env.user.username+'/media/?max_id='+g.ajax);
-  xhr.send();
-}
 function _instaQueryAdd(elms) {
   for (var i = 0; i < elms.length; i++) {
     var feed = elms[i];
