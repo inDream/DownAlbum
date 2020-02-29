@@ -198,16 +198,10 @@ function addLink() {
     if (location.href.indexOf('explore/') > 0) {
       return;
     }
-    var k = qSA('article>div:nth-of-type(1), header>div:nth-of-type(1)');
+    let k = qSA('article>div:nth-of-type(1), header>div:nth-of-type(1):not([role="button"])');
     for(var i = 0; i<k.length; i++){
-      if (k[i].nextElementSibling) {
+      if (k[i].nextElementSibling && k[i].querySelectorAll('a').length < 2) {
         _addLink(k[i], k[i].nextElementSibling);
-      }
-    }
-    var k = qSA('header');
-    for(var i = 0; i<k.length; i++){
-      if (!k[i].querySelector('time')) {
-        _addLink(k[i], k[i]);
       }
     }
   } else if (location.host.match(/facebook.com/)) {
@@ -255,17 +249,12 @@ async function _addLink(k, target) {
     } else if (profiles[username] === undefined) {
       profiles[username] = null;
       try {
-        let r = await fetch(`https://www.instagram.com/${username}/`);
-        r = await r.text();
-        r = r.slice(r.indexOf('_sharedData'));
-        r = r.slice(r.indexOf('{'), r.indexOf('\n'));
-        const data = JSON.parse(r.slice(0, r.lastIndexOf('}') + 1));
-        const id = data.entry_data.ProfilePage[0].graphql.user.id;
+        let r = await fetch(`https://www.instagram.com/${username}/?__a=1`);
+        const id = (await r.json()).graphql.user.id;
         r = await request(`https://i.instagram.com/api/v1/users/${id}/info/`);
-        r = r.response;
         profiles[username] = {
           id,
-          src: r.user.hd_profile_pic_url_info.url
+          src: r.response.user.hd_profile_pic_url_info.url
         };
         src = profiles[username].src;
       } catch (e) {}
@@ -288,7 +277,6 @@ async function _addLink(k, target) {
     const link = document.createElement('div');
     link.className = 'dLink';
     link.style.maxWidth = '200px';
-    const title = '(provided by DownAlbum)';
     const items = [];
     if (albumBtn || t.getAttribute('poster')) {
       const url = container.querySelector('a time').parentNode.getAttribute('href');
@@ -304,10 +292,9 @@ async function _addLink(k, target) {
         loadedPosts[url] = [];
         const m = r.graphql.shortcode_media;
         (albumBtn ? m.edge_sidecar_to_children.edges : [{ node: m }]).forEach((e, i) => {
-          const { dash_info, is_video, video_url, display_url } = e.node;
+          const { dash_info, id, is_video, video_url, display_url } = e.node;
           const dash = is_video && dash_info.is_dash_eligible ?
-            (URL.createObjectURL(new Blob([dash_info.video_dash_manifest],
-              {type : 'application/dash+xml'})) + '|') : '';
+            `${id}.mpd,${URL.createObjectURL(new Blob([dash_info.video_dash_manifest]))}|` : '';
           const img = `${dash}${is_video ? `${video_url}|` : ''}${parseFbSrc(display_url)}`;
           loadedPosts[url].push(img);
           items.push(img);
@@ -323,11 +310,14 @@ async function _addLink(k, target) {
     items.forEach((e, i) => {
       const s = e.split('|');
       const idx = items.length > 1 ? `#${i + 1} `: '';
-      html += s.length > 2 ? `<a href="${s.shift()}">Download ${idx}Video (Dash)</a>` : '';
-      html += s.length > 1 ? `<a href="${s.shift()}" download title="${title}"\
+      if (s.length > 2) {
+        const [name, url] = s.shift().split(',');
+        html += `<a href="${url}" download="${name}" target="_blank"\
+        >Download ${idx}Video (Dash)</a>`;
+      }
+      html += s.length > 1 ? `<a href="${s.shift()}" target="_blank"\
         >Download ${idx}Video</a>` : '';
-      html += `<a href="${s.shift()}" download title="${title}"\
-        >Download ${idx}Photo</a>`;
+      html += `<a href="${s.shift()}" target="_blank">Download ${idx}Photo</a>`;
     });
     link.innerHTML = html;
     if (isProfile) {
@@ -377,7 +367,8 @@ async function loadStories(id) {
       type: 'Stories',
     };
     items.forEach((e, i) => {
-      const p = { url: e.display_url, href: '' };
+      const p = { url: e.display_url, href: '',
+        date: parseTime(e.taken_at_timestamp) };
       if (e.video_resources) {
         p.videoIdx = photodata.videos.length;
         const { src } = e.video_resources[e.video_resources.length - 1];
