@@ -666,7 +666,6 @@ function closeDialog() {
   document.body.removeChild(qS('#daContainer'));
 }
 function output(){
-  g.photodata.dTime = (new Date()).toLocaleString();
   if(location.href.match(/.*facebook.com/)){
     document.title = document.title.match(/(?:.*\|\|)*(.*)/)[1];
   }
@@ -2494,6 +2493,7 @@ switch(request.type){
     log('Exported '+request.data.photos.length+' photos.');
     var a,b=[],c=request.data;
     c.aName=(c.aName)?c.aName:"Facebook";
+    c.dTime = (new Date()).toLocaleString();
     var d = c.photos,totalCount = d.length;
     for (var i=0;i<totalCount;i++) {
       if(d[i]){
