@@ -350,7 +350,8 @@ async function loadStories(id) {
     let r = await fetch(url, options);
     r = await r.json();
     if (!r.data.reels_media || !r.data.reels_media.length) {
-      throw Error('No stories loaded');
+      alert('No stories loaded');
+      return;
     }
     openWindow();
     const { items, latest_reel_media: last, user } = r.data.reels_media[0];
