@@ -1995,8 +1995,13 @@ function loadWeiboAlbum() {
       `album_id=${g.aId}&count=30&page=${g.ajaxPage}&type=3`,
     onload: function(res) {
       g.ajaxPage++;
+      let ended = false;
       try {
         const list = JSON.parse(res.response).data.photo_list;
+        ended = list.length === 0;
+        if (ended) {
+          alert('Reached end of album due to author setting.');
+        }
         let lastCaption = '';
         for (let i = 0; i < list.length; i++) {
           const e = list[i];
@@ -2014,7 +2019,7 @@ function loadWeiboAlbum() {
         log(`Loaded ${count} photos.`);
         document.title=`(${count}/${g.total}) ||${g.photodata.aName}`;
         g.statusEle.textContent = `Loaded ${count}/${g.total}`;
-        if (qS('#stopAjaxCkb') && qS('#stopAjaxCkb').checked) {
+        if (qS('#stopAjaxCkb') && qS('#stopAjaxCkb').checked || ended) {
           output();
         } else if (count < g.total) {
           setTimeout(loadWeiboAlbum, 2000);
