@@ -200,7 +200,7 @@ function addLink() {
     }
     let k = qSA('article>div:nth-of-type(1), header>div:nth-of-type(1):not([role="button"])');
     for(var i = 0; i<k.length; i++){
-      if (k[i].nextElementSibling && k[i].querySelectorAll('a').length < 2) {
+      if (k[i].nextElementSibling) {
         _addLink(k[i], k[i].nextElementSibling);
       }
     }
