@@ -2368,6 +2368,12 @@ var dFAcore = function(setup, bypass) {
       return alert('Please go to profile page.');
     }
     var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+      if (this.readyState === 4 && this.status === 429) {
+        g.rateLimited = 1;
+        alert('Rate limit reached. Please try again later.');
+      }
+    };
     xhr.onload = function() {
       try {
         g.Env = getSharedData(this.response);
@@ -2380,7 +2386,15 @@ var dFAcore = function(setup, bypass) {
           alert('Need to reload for required variable.');
           return location.reload();
         }
-      } catch(e) {alert('Cannot load required variable!');} 
+      } catch(e) {
+        if (g.rateLimited) {
+          g.rateLimited = 0;
+        } else {
+          console.error(e);
+          alert('Cannot load required variable!');
+        }
+        return;
+      }
       g.isTagged = location.href.indexOf('/tagged/') > 0;
       g.Env.media = g.isTagged ? { count: 0, edges: [] } :
         g.Env.user.edge_owner_to_timeline_media;
