@@ -257,7 +257,13 @@ async function _addLink(k, target) {
           src: r.response.user.hd_profile_pic_url_info.url
         };
         src = profiles[username].src;
-      } catch (e) {}
+      } catch (e) {
+        console.error(e);
+        profiles[username] = null;
+      }
+    }
+    if (!profiles[username]) {
+      return;
     }
     const { id } = profiles[username];
     if (!k.querySelector(`.dStory[data-id="${id}"]`)) {
