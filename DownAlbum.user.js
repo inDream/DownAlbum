@@ -2082,7 +2082,7 @@ function getPinterest(){
       }
     }
   }
-  if (!s) {
+  if (!s || !s.ui || !s.ui.mainComponent) {
     alert('Cannot load initial state');
     return;
   }
@@ -2102,7 +2102,7 @@ function getPinterest(){
         prependPartner: false,
         prependUserNews: false,
         prependExploreRep: null,
-        field_set_key: 'grid_item_with_rec'
+        field_set_key: 'hf_grid'
       };
       g.resource = 'UserHomefeedResource';
       break;
@@ -2149,6 +2149,9 @@ function getPinterest(){
     case 'InterestFeedPage':
       g.bookmarks = {query: board[2]};
       break;
+    default:
+      alert('Download type not supported.');
+      return;
   }
   if (type === 'SearchPage' || type === 'InterestFeedPage') {   
     if (r.results) {
