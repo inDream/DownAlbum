@@ -1862,7 +1862,7 @@ function getInstagram() {
 }
 async function getTwitter() {
   let url = 'https://api.twitter.com/2/timeline/media/' + g.id +
-    '.json?skip_status=1&include_entities=false&count=20' +
+    '.json?skip_status=1&tweet_mode=extended&include_entities=false&count=20' +
     (g.ajax ? ('&cursor=' + encodeURIComponent(g.ajax)) : '');
   let r = await fetch(url, { credentials: 'include', headers: {
     'authorization': 'Bearer ' + g.token,
