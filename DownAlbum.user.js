@@ -1754,10 +1754,13 @@ function _instaQueryProcess(elms) {
       continue;
     }
     if (feed.__typename === 'GraphSidecar' || feed.__typename === 'GraphVideo') {
+      var albumHasVideo = feed.edge_sidecar_to_children &&
+        feed.edge_sidecar_to_children.edges
+        .filter(e => e.node.is_video && !e.node.video_url).length;
       if (g.skipAlbum) {
         elms[i] = null;
         continue;
-      } else if (!feed.edge_sidecar_to_children && !feed.video_url) {
+      } else if (albumHasVideo && !feed.video_url) {
         var xhr = new XMLHttpRequest();
         xhr.onload = function() {
           try {
