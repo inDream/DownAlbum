@@ -269,12 +269,16 @@ async function _addLink(k, target) {
     if (!k.querySelector(`.dStory[data-id="${id}"]`)) {
       const storyBtn = document.createElement('a');
       storyBtn.className = 'dStory';
-      storyBtn.style.maxWidth = '200px';
-      storyBtn.style.cursor = 'pointer';
+      storyBtn.style.cssText = 'max-width: 200px; cursor: pointer;';
       storyBtn.dataset.id = id;
       storyBtn.textContent = 'Download Stories';
       k.appendChild(storyBtn);
       storyBtn.addEventListener('click', () => loadStories(id));
+      const highlightBtn = document.createElement('a');
+      highlightBtn.style.cssText = 'max-width: 200px; cursor: pointer;';
+      highlightBtn.textContent = 'Download Highlights';
+      k.appendChild(highlightBtn);
+      highlightBtn.addEventListener('click', () => loadHighlights(id));
     }
   }
   const container = getParent(k, 'article') || k;
@@ -339,34 +343,29 @@ async function _addLink(k, target) {
     }
   }
 }
-async function loadStories(id) {
+async function loadStories(id, highlightId = '') {
   const hash = '61e453c4b7d667c6294e71c57afa6e63';
   const variables = `{"reel_ids":["${id}"],"tag_names":[],` +
-      `"location_ids":[],"highlight_reel_ids":[],"precomposed_overlay":false,` +
-      `"show_story_header_follow_button":false}`;
-  const options = {
-    credentials: 'include',
-    headers: {
-      'X-Requested-With': 'XMLHttpRequest',
-      'X-Instagram-GIS': md5(rhx_gis + ':' + variables),
-    },
-  };
+      `"location_ids":[],"highlight_reel_ids":[${highlightId}],`+
+      `"precomposed_overlay":false,"show_story_header_follow_button":false}`;
   try {
     const url = `${base}graphql/query/?query_hash=${hash}&variables=${variables}`;
-    let r = await fetch(url, options);
+    let r = await fetch(url, { credentials: 'include' });
     r = await r.json();
     if (!r.data.reels_media || !r.data.reels_media.length) {
       alert('No stories loaded');
       return;
     }
     openWindow();
-    const { items, latest_reel_media: last, user } = r.data.reels_media[0];
+    const idx = highlightId !== '' ? 1 : 0;
+    const { items, latest_reel_media: last, owner, user } = r.data.reels_media[idx];
+    const lastTime = last ? last : items[0].taken_at_timestamp;
     const photodata = {
       aDes: '',
       aName: 'Stories',
-      aAuth: user.username,
-      aLink: `${base}${user.username}`,
-      aTime: last ? 'Last Update: ' + parseTime(last) : '',
+      aAuth: (user || owner).username,
+      aLink: `${base}${(user || owner).username}`,
+      aTime: lastTime ? 'Last Update: ' + parseTime(lastTime) : '',
       newL: true,
       newLayout: true,
       photos: [],
@@ -391,6 +390,35 @@ async function loadStories(id) {
   } catch (e) {
     console.error(e);
     alert('Cannot load stories');
+  }
+}
+async function loadHighlights(id) {
+  const hash = 'ad99dd9d3646cc3c0dda65debcd266a7';
+  const variables = `{"user_id":"${id}","include_highlight_reels":true}`;
+  try {
+    const url = `${base}graphql/query/?query_hash=${hash}&variables=${variables}`;
+    let r = await fetch(url, { credentials: 'include' });
+    r = await r.json();
+    const list = r.data.user.edge_highlight_reels.edges;
+    if (!list || !list.length) {
+      alert('No highlights loaded');
+      return;
+    }
+    createDialog();
+    g.statusEle = qS('.daCounter');
+    g.statusEle.innerHTML = '<p>Select highlight to download:</p>'
+    for (let i = 0; i < list.length; i++) {
+      const n = list[i].node;
+      const a = document.createElement('a');
+      g.statusEle.appendChild(a);
+      a.style.cssText = 'width: 100px; display: inline-block;';
+      a.innerHTML = `<img src="${n.cover_media_cropped_thumbnail.url}" ` +
+        `style="width:100%;" /><br>${n.title}`;
+      a.addEventListener('click', () => loadStories(id, `"${n.id}"`));
+    }
+  } catch (e) {
+    console.error(e);
+    alert('Cannot load highlights');
   }
 }
 function getFbEnv() {
@@ -650,6 +678,7 @@ function createDialog() {
     #daHeader {font-size: 1.5rem; font-weight: 700; background: #FFF; \
     padding: 1rem 0.5rem; color: rgba(0,0,0,.85); \
     border-bottom: 1px solid rgba(34,36,38,.15);} \
+    .daCounter {max-height: 300px;overflow-y: auto;} \
     #daContent {font-size: 1.2em; line-height: 1.4; padding: .5rem;} \
     #daContainer a {cursor: pointer;border: 1px solid black;padding: 10px; \
       display: block;} \
