@@ -358,8 +358,9 @@ async function loadStories(id, highlightId = '') {
       return;
     }
     openWindow();
-    const idx = highlightId !== '' ? 1 : 0;
-    const { items, latest_reel_media: last, owner, user } = r.data.reels_media[idx];
+    const type = highlightId !== '' ? 'GraphHighlightReel' : 'GraphReel';
+    const { items, latest_reel_media: last, owner, user } =
+      r.data.reels_media.filter(e => e.__typename === type)[0];
     const lastTime = last ? last : items[0].taken_at_timestamp;
     const photodata = {
       aDes: '',
