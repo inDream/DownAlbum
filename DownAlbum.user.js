@@ -154,12 +154,13 @@ var dFAinit = function(){
     }
   }else if(href.indexOf('pinterest') > 0){
     if(!qS('#dfaButton')){
-      t = qS('.boardHeaderWrapper') || qS('h1') ? qS('h1').parentNode : null;
+      let search = qS('.SearchPage') ? qS('.SearchPage .gridCentered') : null;
+      t = qS('.boardHeaderWrapper') || search || (qS('h1') ? qS('h1').parentNode : null);
       if (!t) {
         return;
       }
-      t.innerHTML += '<button id="dfaButton">DownAlbum</button>' +
-        '<button id="dfaSetButton">DownAlbum(Setup)</button>';
+      t.innerHTML = '<button id="dfaButton">DownAlbum</button>' +
+        '<button id="dfaSetButton">DownAlbum(Setup)</button>' + t.innerHTML;
       qS('#dfaButton').addEventListener("click", function(){
         dFAcore();
       });
