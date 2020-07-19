@@ -1860,7 +1860,7 @@ function instaQuery() {
   xhr.send();
 }
 function getInstagramQueryId() {
-  const s = qS('script[src*="ProfilePageContainer"], script[src*="Commons"]');
+  const s = qS('script[src*="ProfilePageContainer"]');
   const xhr = new XMLHttpRequest();
   xhr.onload = function() {
     const src = this.response.replace(/void 0/g, '');
