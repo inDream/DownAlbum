@@ -196,7 +196,7 @@ function addLink() {
     if (location.href.indexOf('explore/') > 0) {
       return;
     }
-    let k = qSA('article>div:nth-of-type(1), header>div:nth-of-type(1):not([role="button"])');
+    let k = qSA('article>div:nth-of-type(2), header>div:nth-of-type(1):not([role="button"])');
     for(var i = 0; i<k.length; i++){
       if (k[i].nextElementSibling) {
         _addLink(k[i], k[i].nextElementSibling);
@@ -211,12 +211,15 @@ async function _addLink(k, target) {
   var isProfile = (k.tagName == 'HEADER' || k.parentNode.tagName == 'HEADER');
   let username = null;
   if (isProfile) {
-    const u = k.parentNode.querySelector('h1, h2, [title]:not(button)');
+    const u = k.parentNode.querySelector('h2, span a');
     if (u) {
       if (u.parentNode.className === 'dLink') {
         return;
       }
       username = u.textContent;
+      if (!username.length) {
+        return;
+      }
     }
   }
   var tParent = target.parentNode;
@@ -267,14 +270,14 @@ async function _addLink(k, target) {
     if (!k.querySelector(`.dStory[data-id="${id}"]`)) {
       const storyBtn = document.createElement('a');
       storyBtn.className = 'dStory';
-      storyBtn.style.cssText = 'max-width: 200px; cursor: pointer;';
+      storyBtn.style.cssText = 'max-width: 200px; cursor: pointer; display: block;';
       storyBtn.dataset.id = id;
-      storyBtn.textContent = 'Download Stories';
+      storyBtn.textContent = '📥 Stories';
       k.appendChild(storyBtn);
       storyBtn.addEventListener('click', () => loadStories(id));
       const highlightBtn = document.createElement('a');
       highlightBtn.style.cssText = 'max-width: 200px; cursor: pointer;';
-      highlightBtn.textContent = 'Download Highlights';
+      highlightBtn.textContent = '📥 Highlights';
       k.appendChild(highlightBtn);
       highlightBtn.addEventListener('click', () => loadHighlights(id));
     }
@@ -286,7 +289,7 @@ async function _addLink(k, target) {
     link.className = 'dLink';
     link.style.maxWidth = '200px';
     const items = [];
-    if (albumBtn || t.getAttribute('poster')) {
+    if (!isProfile && (albumBtn || t.getAttribute('poster'))) {
       const url = container.querySelector('a time').parentNode.getAttribute('href');
       if (loadedPosts[url] !== undefined) {
         if (loadedPosts[url] === 1) {
