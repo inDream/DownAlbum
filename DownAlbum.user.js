@@ -44,7 +44,7 @@
 
 const base = 'https://www.instagram.com/';
 const phoneUA = 'Instagram 27.0.0.7.97 (iPhone7,2; iPhone OS 9_3_3; en_US; en-US; ' +
-  'scale=2.00; 750x1334) AppleWebKit/420+';
+  'scale=2.00; 1440x2560) AppleWebKit/420+';
 const loadedPosts = {};
 const profiles = {};
 let fbDtsg = '';
