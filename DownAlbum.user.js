@@ -1784,14 +1784,16 @@ function _instaQueryProcess(elms) {
     if (!elms[i] || (g.downloaded && g.downloaded[feed.id])) {
       continue;
     }
-    if (feed.__typename === 'GraphSidecar' || feed.__typename === 'GraphVideo') {
-      var albumHasVideo = feed.edge_sidecar_to_children &&
+    var isAlbum = feed.__typename === 'GraphSidecar';
+    var isVideo = feed.__typename === 'GraphVideo';
+    if (isAlbum || isVideo) {
+      var albumIncomplete = isAlbum && (!feed.edge_sidecar_to_children ||
         feed.edge_sidecar_to_children.edges
-        .filter(e => e.node.is_video && !e.node.video_url).length;
+        .filter(e => e.node.is_video && !e.node.video_url).length);
       if (g.skipAlbum) {
         elms[i] = null;
         continue;
-      } else if (albumHasVideo && !feed.video_url) {
+      } else if (albumIncomplete || (isVideo && !feed.video_url)) {
         var xhr = new XMLHttpRequest();
         xhr.onload = function() {
           try {
