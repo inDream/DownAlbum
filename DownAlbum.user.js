@@ -1926,7 +1926,7 @@ async function getTwitter() {
       const m = media[i];
       const p = {
         title: i === 0 ? t.text : '',
-        url: m.media_url_https + ':orig',
+        url: m.media_url_https + '?name=orig',
         href: 'https://' + m.display_url,
         date: parseTime(new Date(t.created_at), true)
       };
