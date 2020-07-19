@@ -106,16 +106,23 @@ function request(url, opt = {}) {
 var dFAinit = function(){
   var href = location.href;
   var site = href.match(/(facebook|instagram|twitter|weibo)\.com|ask\.fm|pinterest/);
+  var isTwitter = href.indexOf('twitter.com') > 0;
   if (document.querySelector('#dFA') || !site) {
     return;
+  }
+  if (location.host.match(/instagram.com|facebook.com|twitter.com/)) {
+    var o = window.WebKitMutationObserver || window.MutationObserver;
+    if (o && !window.addedObserver) {
+      window.addedObserver = true;
+      var observer = new o(runLater);
+      observer.observe(document.body, {subtree: true, childList: true});
+      runLater();
+    }
   }
   var k, k2, klass;
   if (site[0] == 'instagram.com') {
     klass = qS('header section div span button, header section div button')
     if (!klass) {
-      if (location.href.indexOf('/p') > 0) {
-        runLater();
-      }
       return;
     }
     klass = klass.parentNode;
@@ -127,9 +134,8 @@ var dFAinit = function(){
   k2 = k.cloneNode();
   k.innerHTML = '<a id="dFA" class="navSubmenu">DownAlbum</a>';
   k2.innerHTML = '<a id="dFAsetup" class="navSubmenu">DownAlbum(Setup)</a>';
-  var t = qS('.uiContextualLayerPositionerFixed ul') || qS('.Dropdown ul') ||
-    qS('.gn_topmenulist.gn_topmenulist_set ul') || qS('.uiContextualLayer [role="menu"]') ||
-    qS('header section div') /* ig */ || qS('[role="menu"]') /* twitter */;
+  var t = qS('.gn_topmenulist ul') || qS('.uiContextualLayer [role="menu"]') ||
+    qS('header section div') /* ig */ || (isTwitter && qS('[role="menu"]')) /* twitter */;
   if(t){
     t.appendChild(k); t.appendChild(k2);
     k.addEventListener("click", function(){
@@ -175,15 +181,6 @@ var dFAinit = function(){
         '<a class="link-green" onClick="dFAcore(true);">DownAlbum(Setup)</a>';
     } else {
       setTimeout(dFAinit, 300);
-    }
-  }
-  if (location.host.match(/instagram.com|facebook.com|twitter.com/)) {
-    var o = window.WebKitMutationObserver || window.MutationObserver;
-    if (o && !window.addedObserver) {
-      window.addedObserver = true;
-      var observer = new o(runLater);
-      observer.observe(document.body, {subtree: true, childList: true});
-      runLater();
     }
   }
 };
