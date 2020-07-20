@@ -211,13 +211,13 @@ async function _addLink(k, target) {
   var isProfile = (k.tagName == 'HEADER' || k.parentNode.tagName == 'HEADER');
   let username = null;
   if (isProfile) {
-    const u = k.parentNode.querySelector('h2, span a');
+    const u = k.parentNode.querySelector('h1, h2, span a');
     if (u) {
       if (u.parentNode.className === 'dLink') {
         return;
       }
       username = u.textContent;
-      if (!username.length) {
+      if (!username || !username.length) {
         return;
       }
     }
